@@ -7,16 +7,24 @@ const baseUrl = process.env.CHRONOS_URL ?? "http://localhost:3000";
 const outDir = new URL("../artifacts/screenshots/", import.meta.url);
 
 const shots = [
-  ["chronos-dark-desktop.png", "dark", 1440, 1080, false],
-  ["chronos-light-desktop.png", "light", 1440, 1080, false],
-  ["chronos-dark-mobile.png", "dark", 390, 844, true],
-  ["chronos-light-mobile.png", "light", 390, 844, true],
-  ["qa-1365-dark.png", "dark", 1365, 1080, false],
-  ["qa-1024-light.png", "light", 1024, 900, false],
+  ["chronos-dark-1920x1080.png", "dark", 1920, 1080, false],
+  ["chronos-light-1920x1080.png", "light", 1920, 1080, false],
+  ["chronos-dark-1600x900.png", "dark", 1600, 900, false],
+  ["chronos-light-1600x900.png", "light", 1600, 900, false],
+  ["chronos-dark-1366x768.png", "dark", 1366, 768, false],
+  ["chronos-light-1366x768.png", "light", 1366, 768, false],
+  ["chronos-dark-390x844.png", "dark", 390, 844, true],
+  ["chronos-light-390x844.png", "light", 390, 844, true],
+  ["qa-dark-1536x864.png", "dark", 1536, 864, false],
+  ["qa-light-1440x900.png", "light", 1440, 900, false],
+  ["qa-dark-1280x720.png", "dark", 1280, 720, false],
+  ["qa-light-393x852.png", "light", 393, 852, true],
+  ["qa-dark-375x812.png", "dark", 375, 812, true],
+  ["qa-light-430x932.png", "light", 430, 932, true],
 ];
 
 let messageId = 0;
-setMaxListeners(40);
+setMaxListeners(100);
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -40,6 +48,21 @@ async function waitForEndpoint(port) {
   }
 
   throw new Error("Timed out waiting for Chrome DevTools endpoint.");
+}
+
+async function waitForApp() {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    try {
+      const response = await fetch(baseUrl);
+      if (response.ok) {
+        return;
+      }
+    } catch {
+      await delay(250);
+    }
+  }
+
+  throw new Error(`Timed out waiting for Chronos at ${baseUrl}. Start the dev server first.`);
 }
 
 function send(socket, method, params = {}) {
@@ -92,6 +115,7 @@ async function capture(socket, [filename, theme, width, height, mobile]) {
 
 async function main() {
   await mkdir(outDir, { recursive: true });
+  await waitForApp();
   const port = 9222 + Math.floor(Math.random() * 1000);
   const chrome = spawn(chromePath, [
     "--headless=new",
