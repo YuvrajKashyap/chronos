@@ -523,9 +523,78 @@ a {
   cursor: pointer;
 }
 
+.timer-control-form {
+  display: contents;
+}
+
+.timer-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+}
+
 .timer-button svg {
   width: clamp(13px, calc(var(--ui) * 0.009), 19px);
   height: clamp(13px, calc(var(--ui) * 0.009), 19px);
+}
+
+.login-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 6, 13, 0.62);
+  backdrop-filter: blur(14px);
+}
+
+.login-modal {
+  width: min(440px, 100%);
+  padding: 30px;
+  position: relative;
+  border: 1px solid rgba(var(--nav-active-rgb), 0.28);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(var(--nav-active-rgb), 0.1), transparent 44%),
+    var(--card-bg);
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+:root[data-theme="light"] .login-modal {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(var(--nav-active-rgb), 0.08), transparent 44%),
+    rgba(255, 255, 255, 0.86);
+}
+
+.login-modal h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.login-modal p:not(.auth-kicker) {
+  margin: 16px 0 24px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.login-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--divider);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  cursor: pointer;
 }
 
 .card-motif {

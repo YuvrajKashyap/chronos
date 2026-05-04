@@ -5,8 +5,14 @@ import { redirect } from "next/navigation";
 
 import { createChronosServerClient } from "@/lib/supabase/server";
 
-function redirectWithAdminError(message: string) {
-  redirect(`/admin?error=${encodeURIComponent(message)}`);
+function getSafeNextPath(formData: FormData | null) {
+  const nextPath = String(formData?.get("nextPath") ?? "/admin");
+
+  return nextPath === "/" ? "/" : "/admin";
+}
+
+function redirectWithAdminError(message: string, nextPath: string) {
+  redirect(`${nextPath}?error=${encodeURIComponent(message)}`);
 }
 
 function getRpcErrorMessage(data: unknown, fallback: string) {
@@ -32,9 +38,10 @@ export async function logoutFromChronos() {
 
 export async function startChronosTimer(formData: FormData) {
   const skillId = String(formData.get("skillId") ?? "");
+  const nextPath = getSafeNextPath(formData);
 
   if (!skillId) {
-    redirectWithAdminError("Choose a skill before starting a timer.");
+    redirectWithAdminError("Choose a skill before starting a timer.", nextPath);
   }
 
   const supabase = await createChronosServerClient();
@@ -43,35 +50,36 @@ export async function startChronosTimer(formData: FormData) {
   });
 
   if (error) {
-    redirectWithAdminError(error.message);
+    redirectWithAdminError(error.message, nextPath);
   }
 
   const message = getRpcErrorMessage(data, "Timer could not be started.");
   if (data && typeof data === "object" && "success" in data && data.success === false) {
-    redirectWithAdminError(message);
+    redirectWithAdminError(message, nextPath);
   }
 
   revalidatePath("/");
   revalidatePath("/admin");
-  redirect("/admin");
+  redirect(nextPath);
 }
 
-export async function stopChronosTimer() {
+export async function stopChronosTimer(formData: FormData) {
+  const nextPath = getSafeNextPath(formData);
   const supabase = await createChronosServerClient();
   const { data, error } = await supabase.rpc("stop_timer", {
     p_ended_at: new Date().toISOString(),
   });
 
   if (error) {
-    redirectWithAdminError(error.message);
+    redirectWithAdminError(error.message, nextPath);
   }
 
   const message = getRpcErrorMessage(data, "Timer could not be stopped.");
   if (data && typeof data === "object" && "success" in data && data.success === false) {
-    redirectWithAdminError(message);
+    redirectWithAdminError(message, nextPath);
   }
 
   revalidatePath("/");
   revalidatePath("/admin");
-  redirect("/admin");
+  redirect(nextPath);
 }

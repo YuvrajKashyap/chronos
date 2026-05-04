@@ -12,6 +12,8 @@ import type { ChronosSkill, SkillMotif } from "@/lib/chronos-sample-data";
 import { formatSecondsAsTimer } from "@/lib/chronos/format-time";
 import type { PublicDashboardPayload, PublicDashboardSkill } from "@/lib/chronos/public-dashboard";
 
+export type PublicLikeSkill = PublicDashboardSkill;
+
 type SkillStyle = {
   icon: LucideIcon;
   accent: string;

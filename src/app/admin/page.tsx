@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AdminControlPanel } from "@/components/chronos/admin-control-panel";
+import { ChronosDashboardPage } from "@/components/chronos/chronos-dashboard-page";
 import { ChronosShell } from "@/components/chronos/chronos-shell";
 import { getAdminTimerState } from "@/lib/chronos/admin-dashboard";
+import { getAdminActiveSessionCount, transformAdminDashboardToSkills } from "@/lib/chronos/transform-admin-dashboard";
 import { createChronosServerClient } from "@/lib/supabase/server";
-import { logoutFromChronos } from "./actions";
+import { logoutFromChronos, startChronosTimer, stopChronosTimer } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -167,8 +168,16 @@ export default async function AdminPage({
   }
 
   return (
-    <ChronosShell>
-      <AdminControlPanel state={state} message={actionError} />
-    </ChronosShell>
+    <ChronosDashboardPage
+      activeSessionCount={getAdminActiveSessionCount(state)}
+      controls={{
+        mode: "admin",
+        nextPath: "/admin",
+        startAction: startChronosTimer,
+        stopAction: stopChronosTimer,
+      }}
+      message={actionError}
+      skills={transformAdminDashboardToSkills(state)}
+    />
   );
 }

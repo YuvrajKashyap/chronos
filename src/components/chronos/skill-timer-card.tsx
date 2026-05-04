@@ -1,11 +1,21 @@
-import { Play, Square } from "lucide-react";
 import type { ChronosSkill } from "@/lib/chronos-sample-data";
+import type { DashboardControls } from "./chronos-dashboard-page";
 import { CardMotif } from "./card-motif";
+import { LoginPromptButton } from "./login-prompt-button";
 import { LiveTimerValue } from "./live-timer-value";
+import { TimerSubmitButton } from "./timer-submit-button";
 
-export function SkillTimerCard({ skill }: { skill: ChronosSkill }) {
+export function SkillTimerCard({
+  controls,
+  hasActiveTimer,
+  skill,
+}: {
+  controls: DashboardControls;
+  hasActiveTimer: boolean;
+  skill: ChronosSkill;
+}) {
   const Icon = skill.icon;
-  const ButtonIcon = skill.buttonLabel === "Stop" ? Square : Play;
+  const isDisabledStart = controls.mode === "admin" && hasActiveTimer && !skill.isActive;
 
   return (
     <article className={`skill-card accent-${skill.accent} ${skill.isActive ? "is-active" : ""}`}>
@@ -36,10 +46,19 @@ export function SkillTimerCard({ skill }: { skill: ChronosSkill }) {
         {skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
       </div>
       <div className="card-rule" aria-hidden="true" />
-      <button className="timer-button" type="button">
-        <ButtonIcon size={22} fill="currentColor" aria-hidden="true" />
-        <span>{skill.buttonLabel}</span>
-      </button>
+      {controls.mode === "admin" ? (
+        <form action={skill.isActive ? controls.stopAction : controls.startAction} className="timer-control-form">
+          <input type="hidden" name="skillId" value={skill.id} />
+          <input type="hidden" name="nextPath" value={controls.nextPath} />
+          <TimerSubmitButton buttonLabel={isDisabledStart ? "Start" : skill.buttonLabel} disabled={isDisabledStart} />
+        </form>
+      ) : controls.mode === "login" ? (
+        <LoginPromptButton buttonLabel={skill.buttonLabel} />
+      ) : (
+        <button className="timer-button" type="button">
+          <span>{skill.buttonLabel}</span>
+        </button>
+      )}
       <CardMotif type={skill.motif} />
     </article>
   );
