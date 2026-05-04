@@ -39,7 +39,7 @@ function AdminStatusPanel({
   const isDenied = Boolean(error);
 
   return (
-    <ChronosShell>
+    <ChronosShell isAuthenticated>
       <main className="auth-main">
         <section className={isDenied ? "auth-panel admin-panel is-denied" : "auth-panel admin-panel"} aria-labelledby="admin-title">
           <p className="auth-kicker">{isDenied ? "Access denied" : "Owner control shell"}</p>
