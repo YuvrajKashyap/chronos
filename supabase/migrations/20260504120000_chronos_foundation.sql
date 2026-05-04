@@ -540,7 +540,10 @@ using (user_id = auth.uid() and chronos.is_active_user(auth.uid()));
 revoke all on schema chronos from public;
 grant usage on schema chronos to anon, authenticated, service_role;
 
-grant usage on all types in schema chronos to authenticated, service_role;
+grant usage on type chronos.access_status to authenticated, service_role;
+grant usage on type chronos.downtime_mode to authenticated, service_role;
+grant usage on type chronos.session_source to authenticated, service_role;
+grant usage on type chronos.skill_visibility to authenticated, service_role;
 
 grant select on chronos.users to authenticated;
 grant select, update on chronos.user_state to authenticated;
