@@ -73,6 +73,7 @@ export default async function Home({
           startAction: startChronosTimer,
           stopAction: stopChronosTimer,
         }}
+        isAuthenticated
         message={actionError}
         skills={adminDashboard.skills}
       />

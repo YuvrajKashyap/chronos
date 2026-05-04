@@ -176,6 +176,7 @@ export default async function AdminPage({
         startAction: startChronosTimer,
         stopAction: stopChronosTimer,
       }}
+      isAuthenticated
       message={actionError}
       skills={transformAdminDashboardToSkills(state)}
     />

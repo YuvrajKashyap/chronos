@@ -1,7 +1,13 @@
 import type { ReactNode } from "react";
 import { ChronosTopNav } from "./chronos-top-nav";
 
-export function ChronosShell({ children }: { children: ReactNode }) {
+export function ChronosShell({
+  children,
+  isAuthenticated = false,
+}: {
+  children: ReactNode;
+  isAuthenticated?: boolean;
+}) {
   return (
     <div className="chronos-page">
       <div className="global-orbit global-orbit-one" aria-hidden="true" />
@@ -14,7 +20,7 @@ export function ChronosShell({ children }: { children: ReactNode }) {
       </div>
       <div className="star-field" aria-hidden="true" />
       <div className="chronos-frame">
-        <ChronosTopNav />
+        <ChronosTopNav isAuthenticated={isAuthenticated} />
         {children}
       </div>
     </div>

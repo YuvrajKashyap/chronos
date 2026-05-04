@@ -91,7 +91,7 @@ export function transformPublicDashboardToSkills(payload: PublicDashboardPayload
       const initialElapsedSeconds = skill.current_active_elapsed_seconds ?? 0;
 
       return {
-        id: skill.slug ?? skill.id ?? skill.name ?? "skill",
+        id: skill.id ?? skill.slug ?? skill.name ?? "skill",
         title: skill.name ?? skill.slug ?? "Skill",
         icon: style.icon,
         accent: style.accent,

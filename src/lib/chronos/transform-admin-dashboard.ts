@@ -1,5 +1,4 @@
 import type { ChronosSkill } from "@/lib/chronos-sample-data";
-import { formatSecondsAsTimer } from "@/lib/chronos/format-time";
 import type { AdminTimerState } from "@/lib/chronos/admin-dashboard";
 import { transformPublicDashboardToSkills, type PublicLikeSkill } from "@/lib/chronos/transform-dashboard";
 
@@ -23,8 +22,5 @@ export function transformAdminDashboardToSkills(state: AdminTimerState): Chronos
       current_active_elapsed_seconds: skill.current_active_elapsed_seconds,
     }));
 
-  return transformPublicDashboardToSkills({ skills: publicLikeSkills }).map((skill) => ({
-    ...skill,
-    value: skill.isActive ? skill.value : formatSecondsAsTimer(publicLikeSkills.find((item) => item.slug === skill.id)?.lifetime_seconds),
-  }));
+  return transformPublicDashboardToSkills({ skills: publicLikeSkills });
 }

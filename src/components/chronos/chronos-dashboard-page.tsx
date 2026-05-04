@@ -17,18 +17,20 @@ export type DashboardControls =
 export function ChronosDashboardPage({
   activeSessionCount = 1,
   controls = { mode: "readonly" },
+  isAuthenticated = false,
   message,
   skills,
 }: {
   activeSessionCount?: number;
   controls?: DashboardControls;
+  isAuthenticated?: boolean;
   message?: string | null;
   skills: ChronosSkill[];
 }) {
   const sessionLabel = activeSessionCount === 1 ? "1 active session" : `${activeSessionCount} active sessions`;
 
   return (
-    <ChronosShell>
+    <ChronosShell isAuthenticated={isAuthenticated}>
       <main className="dashboard-main">
         <section className="dashboard-hero" aria-labelledby="dashboard-title">
           <h1 id="dashboard-title">Time Investment Ledger</h1>
