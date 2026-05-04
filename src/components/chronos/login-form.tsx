@@ -1,64 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react";
 
-import { createChronosBrowserClient } from "@/lib/supabase/client";
-
-type LoginState = "idle" | "sending" | "sent" | "error";
+import { signInToChronos, type LoginFormState } from "@/app/login/actions";
 
 export function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [state, setState] = useState<LoginState>("idle");
-  const [message, setMessage] = useState("Only the authorized Chronos owner email can access admin.");
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setState("sending");
-    setMessage("Preparing secure magic link...");
-
-    try {
-      const supabase = createChronosBrowserClient();
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/admin`,
-          shouldCreateUser: true,
-        },
-      });
-
-      if (error) {
-        setState("error");
-        setMessage(error.message);
-        return;
-      }
-
-      setState("sent");
-      setMessage("Magic link sent. Open it from this browser to enter the Chronos admin shell.");
-    } catch (error) {
-      setState("error");
-      setMessage(error instanceof Error ? error.message : "Unable to send login link.");
-    }
-  }
+  const initialState: LoginFormState = { error: null, username: "" };
+  const [state, formAction, isPending] = useActionState(signInToChronos, initialState);
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit}>
-      <label htmlFor="email">Owner email</label>
-      <div className="auth-input-row">
+    <form className="auth-form" action={formAction}>
+      <div className="auth-field-stack">
+        <label htmlFor="username">Username</label>
         <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="you@example.com"
+          id="username"
+          name="username"
+          type="text"
+          autoCapitalize="none"
+          autoComplete="username"
+          defaultValue={state.username}
+          placeholder="yuvraj"
           required
         />
-        <button type="submit" disabled={state === "sending"}>
-          {state === "sending" ? "Sending" : "Send link"}
-        </button>
+
+        <label htmlFor="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          placeholder="Password"
+          required
+        />
       </div>
-      <p className={state === "error" ? "auth-message is-error" : "auth-message"}>{message}</p>
+      <button className="auth-submit-button" type="submit" disabled={isPending}>
+        {isPending ? "Signing in" : "Sign in"}
+      </button>
+      <p className={state.error ? "auth-message is-error" : "auth-message"}>
+        {state.error ?? "Private Chronos control access."}
+      </p>
     </form>
   );
 }

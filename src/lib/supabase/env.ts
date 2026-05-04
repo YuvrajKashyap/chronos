@@ -3,24 +3,25 @@ export type ChronosSupabaseEnv = {
   anonKey: string;
 };
 
-const SUPABASE_ENV_KEYS = [
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-] as const;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export function hasChronosSupabaseEnv() {
-  return SUPABASE_ENV_KEYS.every((key) => Boolean(process.env[key]));
+  return Boolean(supabaseUrl && supabaseAnonKey);
 }
 
 export function getChronosSupabaseEnv(): ChronosSupabaseEnv {
-  const missing = SUPABASE_ENV_KEYS.filter((key) => !process.env[key]);
+  const missing = [
+    !supabaseUrl ? "NEXT_PUBLIC_SUPABASE_URL" : null,
+    !supabaseAnonKey ? "NEXT_PUBLIC_SUPABASE_ANON_KEY" : null,
+  ].filter(Boolean);
 
   if (missing.length > 0) {
     throw new Error(`Missing Supabase environment variables: ${missing.join(", ")}`);
   }
 
   return {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url: supabaseUrl!,
+    anonKey: supabaseAnonKey!,
   };
 }
