@@ -21,6 +21,8 @@ export type ChronosSkill = {
   value: string;
   buttonLabel: "Start" | "Stop";
   motif: SkillMotif;
+  activeStartedAt?: string;
+  initialElapsedSeconds?: number;
 };
 
 export const chronosSkills: ChronosSkill[] = [

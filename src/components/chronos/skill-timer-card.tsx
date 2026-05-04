@@ -1,6 +1,7 @@
 import { Play, Square } from "lucide-react";
 import type { ChronosSkill } from "@/lib/chronos-sample-data";
 import { CardMotif } from "./card-motif";
+import { LiveTimerValue } from "./live-timer-value";
 
 export function SkillTimerCard({ skill }: { skill: ChronosSkill }) {
   const Icon = skill.icon;
@@ -23,7 +24,15 @@ export function SkillTimerCard({ skill }: { skill: ChronosSkill }) {
       <div className="card-body">
         <h2>{skill.title}</h2>
         {!skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
-        <div className={skill.isActive ? "metric-value active-value" : "metric-value"}>{skill.value}</div>
+        {skill.isActive && skill.activeStartedAt ? (
+          <LiveTimerValue
+            className="metric-value active-value"
+            initialSeconds={skill.initialElapsedSeconds}
+            startedAt={skill.activeStartedAt}
+          />
+        ) : (
+          <div className={skill.isActive ? "metric-value active-value" : "metric-value"}>{skill.value}</div>
+        )}
         {skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
       </div>
       <div className="card-rule" aria-hidden="true" />
