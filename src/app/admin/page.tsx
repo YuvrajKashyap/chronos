@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { AdminControlPanel } from "@/components/chronos/admin-control-panel";
 import { ChronosShell } from "@/components/chronos/chronos-shell";
+import { getAdminTimerState } from "@/lib/chronos/admin-dashboard";
 import { createChronosServerClient } from "@/lib/supabase/server";
 import { logoutFromChronos } from "./actions";
 
@@ -81,7 +83,13 @@ function AdminStatusPanel({
   );
 }
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
+  const actionError = params.error ? decodeURIComponent(params.error) : null;
   let supabase;
 
   try {
@@ -105,11 +113,62 @@ export default async function AdminPage() {
 
   const { data, error } = await supabase.rpc("bootstrap_current_user");
 
+  if (error) {
+    return (
+      <AdminStatusPanel
+        email={user.email ?? "Unknown email"}
+        bootstrap={(data as BootstrapPayload | null) ?? null}
+        error={error.message}
+      />
+    );
+  }
+
+  const { data: defaultSkillsData, error: defaultSkillsError } = await supabase.rpc("ensure_default_skills");
+
+  if (defaultSkillsError) {
+    return (
+      <AdminStatusPanel
+        email={user.email ?? "Unknown email"}
+        bootstrap={(data as BootstrapPayload | null) ?? null}
+        error={defaultSkillsError.message}
+      />
+    );
+  }
+
+  if (
+    defaultSkillsData &&
+    typeof defaultSkillsData === "object" &&
+    "success" in defaultSkillsData &&
+    defaultSkillsData.success === false
+  ) {
+    return (
+      <AdminStatusPanel
+        email={user.email ?? "Unknown email"}
+        bootstrap={(data as BootstrapPayload | null) ?? null}
+        error={
+          "error" in defaultSkillsData && typeof defaultSkillsData.error === "string"
+            ? defaultSkillsData.error
+            : "Default skills could not be ensured."
+        }
+      />
+    );
+  }
+
+  const { state, error: timerStateError } = await getAdminTimerState();
+
+  if (!state || timerStateError) {
+    return (
+      <AdminStatusPanel
+        email={user.email ?? "Unknown email"}
+        bootstrap={(data as BootstrapPayload | null) ?? null}
+        error={timerStateError ?? "Chronos timer state is unavailable."}
+      />
+    );
+  }
+
   return (
-    <AdminStatusPanel
-      email={user.email ?? "Unknown email"}
-      bootstrap={(data as BootstrapPayload | null) ?? null}
-      error={error?.message ?? null}
-    />
+    <ChronosShell>
+      <AdminControlPanel state={state} message={actionError} />
+    </ChronosShell>
   );
 }
