@@ -6,7 +6,6 @@ import { createChronosServerClient } from "@/lib/supabase/server";
 
 export type LoginFormState = {
   error: string | null;
-  username: string;
 };
 
 const INVALID_CREDENTIALS = "Invalid username or password.";
@@ -30,33 +29,36 @@ export async function signInToChronos(
   _previousState: LoginFormState,
   formData: FormData,
 ): Promise<LoginFormState> {
-  const username = normalizeUsername(formData.get("username"));
+  const username = normalizeUsername(formData.get("chronos-access-name"));
   const password = String(formData.get("password") ?? "");
   const config = getOwnerLoginConfig();
 
   if (!config) {
     return {
-      username,
       error: "Chronos login is not configured.",
     };
   }
 
   if (username !== config.username || password.length === 0) {
     return {
-      username,
       error: INVALID_CREDENTIALS,
     };
   }
 
-  const supabase = await createChronosServerClient();
-  const { error } = await supabase.auth.signInWithPassword({
-    email: config.email,
-    password,
-  });
+  try {
+    const supabase = await createChronosServerClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: config.email,
+      password,
+    });
 
-  if (error) {
+    if (error) {
+      return {
+        error: INVALID_CREDENTIALS,
+      };
+    }
+  } catch {
     return {
-      username,
       error: INVALID_CREDENTIALS,
     };
   }
