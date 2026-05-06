@@ -905,313 +905,203 @@ a {
 }
 
 .add-skill-card {
-  --accent: var(--nav-active);
-  --accent-rgb: var(--nav-active-rgb);
-  border-color: rgba(var(--nav-active-rgb), 0.4);
+  --accent: #22b7a8;
+  --accent-rgb: 34, 183, 168;
+  padding: clamp(10px, calc(var(--ui) * 0.008), 16px);
+  border-color: rgba(50, 172, 163, 0.14);
+  border-radius: clamp(24px, calc(var(--ui) * 0.017), 36px);
   background:
-    radial-gradient(circle at 18% 8%, rgba(var(--nav-active-rgb), 0.14), transparent 32%),
-    radial-gradient(circle at 94% 26%, rgba(63, 145, 255, 0.13), transparent 30%),
-    linear-gradient(145deg, rgba(7, 14, 25, 0.92), rgba(3, 7, 14, 0.82) 58%, rgba(7, 17, 22, 0.86));
+    radial-gradient(circle at 50% 46%, rgba(64, 181, 171, 0.09), transparent 35%),
+    linear-gradient(145deg, rgba(8, 18, 30, 0.92), rgba(5, 12, 22, 0.86));
   box-shadow:
-    var(--card-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.055),
-    0 0 44px rgba(var(--nav-active-rgb), 0.1);
+    0 26px 60px rgba(0, 0, 0, 0.26),
+    0 0 0 1px rgba(119, 218, 205, 0.05) inset,
+    0 0 42px rgba(34, 183, 168, 0.08);
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease;
 }
 
 :root[data-theme="light"] .add-skill-card {
-  border-color: rgba(var(--nav-active-rgb), 0.26);
+  border-color: rgba(39, 154, 145, 0.1);
   background:
-    radial-gradient(circle at 16% 8%, rgba(var(--nav-active-rgb), 0.11), transparent 34%),
-    radial-gradient(circle at 94% 28%, rgba(63, 145, 255, 0.1), transparent 31%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(240, 249, 246, 0.72));
+    radial-gradient(circle at 50% 48%, rgba(62, 170, 160, 0.08), transparent 38%),
+    linear-gradient(145deg, rgba(252, 254, 253, 0.92), rgba(244, 250, 248, 0.78));
   box-shadow:
-    0 20px 45px rgba(43, 76, 84, 0.11),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 24px 55px rgba(66, 92, 94, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.88) inset;
 }
 
 .add-skill-card:hover,
 .add-skill-card:focus-within {
-  border-color: rgba(var(--nav-active-rgb), 0.52);
+  border-color: rgba(45, 193, 181, 0.24);
   box-shadow:
-    var(--card-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 46px rgba(var(--nav-active-rgb), 0.13);
+    0 30px 70px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(119, 218, 205, 0.08) inset,
+    0 0 52px rgba(34, 183, 168, 0.12);
 }
 
 .add-skill-card-button {
   width: 100%;
   height: 100%;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
   border: 0;
+  border-radius: clamp(17px, calc(var(--ui) * 0.013), 28px);
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  text-align: left;
-}
-
-.add-skill-card-button::after {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  border-radius: clamp(17px, calc(var(--ui) * 0.011), 24px);
-  pointer-events: none;
-  box-shadow: inset 0 0 38px rgba(var(--nav-active-rgb), 0.07);
 }
 
 .add-skill-card-button:focus-visible {
   outline: 0;
 }
 
-.add-skill-backplate,
-.add-skill-gridlines {
+.add-skill-inner {
   position: absolute;
-  inset: 0;
+  inset: clamp(7px, calc(var(--ui) * 0.006), 12px);
+  border: 1.5px dashed rgba(44, 205, 190, 0.72);
+  border-radius: clamp(15px, calc(var(--ui) * 0.012), 24px);
   pointer-events: none;
 }
 
-.add-skill-backplate {
-  background:
-    linear-gradient(118deg, transparent 0 52%, rgba(var(--nav-active-rgb), 0.06) 52% 54%, transparent 54%),
-    radial-gradient(circle at 66% 55%, rgba(var(--nav-active-rgb), 0.09), transparent 35%);
-  opacity: 0.9;
+:root[data-theme="light"] .add-skill-inner {
+  border-color: rgba(53, 180, 169, 0.62);
 }
 
-.add-skill-gridlines {
-  background:
-    linear-gradient(90deg, rgba(var(--nav-active-rgb), 0.08) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(var(--nav-active-rgb), 0.06) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: linear-gradient(135deg, rgba(0, 0, 0, 0.76), transparent 67%);
-  opacity: 0.3;
-}
-
-.add-skill-header {
-  display: flex;
-  align-items: center;
-  gap: clamp(12px, calc(var(--ui) * 0.011), 22px);
-  position: relative;
-  z-index: 2;
-}
-
-.add-skill-emblem {
-  width: clamp(58px, calc(var(--ui) * 0.047), 94px);
-  height: clamp(58px, calc(var(--ui) * 0.047), 94px);
+.add-skill-center {
   display: grid;
   place-items: center;
-  border: 1px solid rgba(var(--nav-active-rgb), 0.42);
-  border-radius: 999px;
-  color: var(--nav-active);
-  background:
-    radial-gradient(circle at 38% 26%, rgba(255, 255, 255, 0.2), transparent 28%),
-    conic-gradient(from 150deg, rgba(var(--nav-active-rgb), 0.26), transparent 34%, rgba(63, 145, 255, 0.22), transparent 72%, rgba(var(--nav-active-rgb), 0.2)),
-    rgba(var(--nav-active-rgb), 0.08);
-  box-shadow:
-    inset 0 0 24px rgba(var(--nav-active-rgb), 0.08),
-    0 16px 34px rgba(var(--nav-active-rgb), 0.12);
-}
-
-.add-skill-title {
-  display: grid;
-  gap: clamp(5px, calc(var(--ui) * 0.005), 9px);
-}
-
-.add-skill-title span {
-  color: var(--nav-active);
-  font-size: clamp(10px, calc(var(--ui) * 0.007), 15px);
-  font-weight: 850;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.add-skill-title strong {
-  font-family: var(--font-display);
-  font-size: clamp(28px, calc(var(--ui) * 0.023), 47px);
-  font-weight: 600;
-  line-height: 0.92;
-}
-
-.add-skill-composer {
-  margin-top: clamp(14px, calc(var(--ui) * 0.013), 28px);
-  padding: clamp(14px, calc(var(--ui) * 0.012), 24px);
-  display: grid;
-  gap: clamp(10px, calc(var(--ui) * 0.009), 18px);
+  gap: clamp(15px, calc(var(--ui) * 0.014), 28px);
   position: relative;
   z-index: 2;
-  border: 1px solid rgba(var(--nav-active-rgb), 0.18);
-  border-radius: clamp(15px, calc(var(--ui) * 0.011), 22px);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
-    rgba(0, 0, 0, 0.08);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 18px 36px rgba(0, 0, 0, 0.12);
 }
 
-:root[data-theme="light"] .add-skill-composer {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.34)),
-    rgba(255, 255, 255, 0.22);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 16px 30px rgba(43, 76, 84, 0.08);
-}
-
-.add-skill-composer-top,
-.add-skill-tool-row,
-.add-skill-timer-row,
-.add-skill-swatch-row {
-  display: flex;
-  align-items: center;
-}
-
-.add-skill-composer-top {
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.add-skill-mini-icon,
-.add-skill-tool-row span {
+.add-skill-orb {
+  width: clamp(58px, calc(var(--ui) * 0.048), 98px);
+  height: clamp(58px, calc(var(--ui) * 0.048), 98px);
   display: grid;
   place-items: center;
-  border: 1px solid rgba(var(--nav-active-rgb), 0.22);
-  background: rgba(var(--nav-active-rgb), 0.08);
-  color: var(--nav-active);
-}
-
-.add-skill-mini-icon {
-  width: clamp(34px, calc(var(--ui) * 0.026), 50px);
-  height: clamp(34px, calc(var(--ui) * 0.026), 50px);
-  border-radius: 13px;
-}
-
-.add-skill-swatch-row {
-  gap: clamp(6px, calc(var(--ui) * 0.005), 10px);
-}
-
-.add-skill-swatch-row span {
-  width: clamp(18px, calc(var(--ui) * 0.015), 30px);
-  height: clamp(18px, calc(var(--ui) * 0.015), 30px);
+  border: 1px solid rgba(44, 205, 190, 0.72);
   border-radius: 999px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
-}
-
-.add-skill-swatch-row span:nth-child(1) {
-  background: #ff563f;
-}
-
-.add-skill-swatch-row span:nth-child(2) {
-  background: #efa320;
-}
-
-.add-skill-swatch-row span:nth-child(3) {
-  background: #27b787;
-}
-
-.add-skill-timer-row {
-  gap: 10px;
-  color: var(--text-primary);
-}
-
-.add-skill-timer-row svg {
-  color: var(--nav-active);
-}
-
-.add-skill-timer-row span {
-  font-family: var(--font-display);
-  font-size: clamp(25px, calc(var(--ui) * 0.021), 42px);
-  font-weight: 600;
-  line-height: 0.95;
-}
-
-.add-skill-input-lines {
-  display: grid;
-  gap: clamp(7px, calc(var(--ui) * 0.006), 12px);
-}
-
-.add-skill-input-lines span {
-  height: clamp(7px, calc(var(--ui) * 0.006), 11px);
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(var(--nav-active-rgb), 0.22), rgba(var(--nav-active-rgb), 0.04));
-}
-
-.add-skill-input-lines span:first-child {
-  width: 74%;
-}
-
-.add-skill-input-lines span:last-child {
-  width: 48%;
-  opacity: 0.65;
-}
-
-.add-skill-tool-row {
-  gap: clamp(7px, calc(var(--ui) * 0.006), 12px);
-}
-
-.add-skill-tool-row span {
-  width: clamp(28px, calc(var(--ui) * 0.022), 44px);
-  height: clamp(28px, calc(var(--ui) * 0.022), 44px);
-  border-radius: 12px;
-}
-
-.add-skill-tool-row span:not(:first-child) {
-  background: rgba(var(--nav-active-rgb), 0.055);
-}
-
-.add-skill-rail {
-  margin-top: clamp(10px, calc(var(--ui) * 0.009), 17px);
-  display: flex;
-  gap: clamp(7px, calc(var(--ui) * 0.006), 12px);
-  position: relative;
-  z-index: 2;
-}
-
-.add-skill-rail span {
-  height: clamp(5px, calc(var(--ui) * 0.004), 8px);
-  flex: 1;
-  border-radius: 999px;
-  background: rgba(var(--nav-active-rgb), 0.14);
-}
-
-.add-skill-rail span:nth-child(2) {
-  flex: 1.55;
-  background: rgba(var(--nav-active-rgb), 0.28);
-}
-
-.add-skill-action {
-  min-width: clamp(108px, calc(var(--ui) * 0.08), 164px);
-  height: clamp(32px, calc(var(--ui) * 0.024), 50px);
-  margin: auto auto 0;
-  padding: 0 clamp(16px, calc(var(--ui) * 0.014), 30px);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  position: relative;
-  z-index: 2;
-  border: 1px solid rgba(var(--nav-active-rgb), 0.34);
-  border-radius: 14px;
-  background: var(--button-bg);
-  color: var(--nav-active);
-  box-shadow: 0 0 26px rgba(var(--nav-active-rgb), 0.13);
-  font-size: clamp(13px, calc(var(--ui) * 0.009), 19px);
-  font-weight: 800;
+  background: rgba(50, 190, 178, 0.1);
+  color: #29cab9;
+  box-shadow:
+    0 0 0 1px rgba(44, 205, 190, 0.06) inset,
+    0 14px 34px rgba(34, 183, 168, 0.12);
   transition:
-    border-color 180ms ease,
-    background 180ms ease,
     transform 180ms ease;
 }
 
-.add-skill-card:hover .add-skill-action,
-.add-skill-card:focus-within .add-skill-action {
-  border-color: rgba(var(--nav-active-rgb), 0.52);
-  background: rgba(var(--nav-active-rgb), 0.1);
-  transform: translateY(-1px);
+:root[data-theme="light"] .add-skill-orb {
+  background: rgba(51, 180, 169, 0.08);
+  color: #168f84;
+  box-shadow:
+    0 0 0 1px rgba(44, 169, 159, 0.06) inset,
+    0 14px 34px rgba(60, 130, 125, 0.1);
+}
+
+.add-skill-copy {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(21px, calc(var(--ui) * 0.018), 37px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+:root[data-theme="light"] .add-skill-copy {
+  color: #425b61;
+}
+
+.add-skill-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(6px, calc(var(--ui) * 0.006), 11px);
+}
+
+.add-skill-mark span:first-child,
+.add-skill-mark span:last-child {
+  width: clamp(24px, calc(var(--ui) * 0.022), 45px);
+  height: 1px;
+  background: rgba(44, 205, 190, 0.72);
+}
+
+.add-skill-mark span:nth-child(2) {
+  width: clamp(5px, calc(var(--ui) * 0.004), 8px);
+  height: clamp(5px, calc(var(--ui) * 0.004), 8px);
+  border-radius: 999px;
+  background: rgba(44, 205, 190, 0.9);
+}
+
+.add-skill-contours,
+.add-skill-dial {
+  position: absolute;
+  color: #26c7b7;
+  pointer-events: none;
+}
+
+.add-skill-contours {
+  left: -7%;
+  bottom: -14%;
+  width: 39%;
+  height: 62%;
+  opacity: 0.17;
+}
+
+.add-skill-contours path,
+.add-skill-dial path,
+.add-skill-dial circle {
+  fill: none;
+  stroke: currentColor;
+  vector-effect: non-scaling-stroke;
+}
+
+.add-skill-contours path {
+  stroke-width: 1.15;
+}
+
+.add-skill-dotfield {
+  position: absolute;
+  right: 12%;
+  bottom: 20%;
+  width: clamp(80px, 20%, 180px);
+  height: 52%;
+  pointer-events: none;
+  opacity: 0.22;
+  background-image: radial-gradient(circle, currentColor 0 1.4px, transparent 1.8px);
+  background-size: 13px 13px;
+  color: #26c7b7;
+  mask-image: radial-gradient(ellipse at 50% 55%, rgba(0, 0, 0, 0.9), transparent 68%);
+}
+
+.add-skill-dial {
+  right: -4%;
+  bottom: -14%;
+  width: 27%;
+  height: 72%;
+  opacity: 0.38;
+}
+
+.add-skill-dial .dial-arc {
+  stroke-width: 1.2;
+}
+
+.add-skill-dial .dial-ticks path {
+  stroke-width: 1.6;
+  opacity: 0.85;
+}
+
+.add-skill-dial .dial-needle {
+  stroke-width: 1.8;
+}
+
+.add-skill-dial .dial-pin {
+  fill: currentColor;
+  stroke: none;
 }
 
 .skill-modal-backdrop {
@@ -3183,7 +3073,7 @@ a {
 }
 
 .skill-icon,
-.add-skill-emblem,
+.add-skill-orb,
 .footer-emblem {
   transition:
     border-color 200ms ease,
@@ -3195,8 +3085,8 @@ a {
 
 .skill-card:hover .skill-icon,
 .skill-card:focus-within .skill-icon,
-.add-skill-card:hover .add-skill-emblem,
-.add-skill-card:focus-within .add-skill-emblem {
+.add-skill-card:hover .add-skill-orb,
+.add-skill-card:focus-within .add-skill-orb {
   transform: translateY(-2px) scale(1.035);
   box-shadow:
     inset 0 0 24px rgba(var(--accent-rgb), 0.08),
