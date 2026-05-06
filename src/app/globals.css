@@ -566,6 +566,7 @@ a {
   border-radius: 999px;
   background: #ff523d;
   box-shadow: 0 0 13px rgba(255, 82, 61, 0.7);
+  animation: status-pulse 1800ms ease-in-out infinite;
 }
 
 .skill-grid {
@@ -2015,6 +2016,8 @@ a {
 }
 
 .active-timer-panel.is-live {
+  --accent: #ff563f;
+  --accent-rgb: 255, 86, 63;
   border-color: rgba(255, 86, 63, 0.36);
   box-shadow:
     var(--card-shadow),
@@ -2238,6 +2241,717 @@ a {
 
 :root[data-theme="light"] .star-field {
   opacity: 0;
+}
+
+.top-nav {
+  animation: nav-drop 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.wordmark,
+.primary-nav,
+.header-actions {
+  animation: soft-rise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.wordmark {
+  animation-delay: 80ms;
+}
+
+.primary-nav {
+  animation-delay: 140ms;
+}
+
+.header-actions {
+  animation-delay: 200ms;
+}
+
+.dashboard-hero h1,
+.status-row,
+.admin-inline-message,
+.footer-hint {
+  animation: soft-rise 680ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.dashboard-hero h1 {
+  animation-delay: 160ms;
+}
+
+.status-row {
+  animation-delay: 240ms;
+}
+
+.admin-inline-message {
+  animation-delay: 280ms;
+}
+
+.skill-card,
+.pending-session-panel,
+.auth-panel:not(.auth-modal-panel),
+.route-panel,
+.admin-hero-panel,
+.active-timer-panel,
+.recent-session-panel,
+.admin-skill-card {
+  animation: card-enter 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: center top;
+}
+
+.skill-grid .skill-card:nth-child(1) {
+  animation-delay: 260ms;
+}
+
+.skill-grid .skill-card:nth-child(2) {
+  animation-delay: 330ms;
+}
+
+.skill-grid .skill-card:nth-child(3) {
+  animation-delay: 400ms;
+}
+
+.skill-grid .skill-card:nth-child(4) {
+  animation-delay: 470ms;
+}
+
+.skill-grid .skill-card:nth-child(5) {
+  animation-delay: 540ms;
+}
+
+.skill-grid .skill-card:nth-child(6) {
+  animation-delay: 610ms;
+}
+
+.pending-session-panel,
+.auth-panel:not(.auth-modal-panel),
+.route-panel,
+.admin-hero-panel {
+  animation-delay: 180ms;
+}
+
+.active-timer-panel,
+.recent-session-panel,
+.admin-skill-card {
+  animation-delay: 260ms;
+}
+
+.admin-skill-grid .admin-skill-card:nth-child(2) {
+  animation-delay: 320ms;
+}
+
+.admin-skill-grid .admin-skill-card:nth-child(3) {
+  animation-delay: 380ms;
+}
+
+.admin-skill-grid .admin-skill-card:nth-child(4) {
+  animation-delay: 440ms;
+}
+
+.nav-link,
+.user-pill,
+.login-pill,
+.profile-emblem-button,
+.login-emblem-button,
+.theme-toggle,
+.timer-button,
+.session-decision-button,
+.skill-modal-secondary,
+.skill-modal-primary,
+.skill-modal-danger,
+.auth-input-row button,
+.auth-submit-button,
+.auth-primary-link,
+.auth-outline-button,
+.admin-skill-action,
+.add-skill-card-button,
+.auth-secondary-link {
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    opacity 180ms ease,
+    filter 180ms ease,
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+  color: var(--text-primary);
+  outline: 0;
+  transform: translateY(-1px);
+}
+
+.nav-link.active::after {
+  animation: active-nav-line 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: center;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible,
+.profile-emblem-button:hover,
+.profile-emblem-button:focus-visible,
+.user-pill:hover,
+.user-pill:focus-visible,
+.login-pill:hover,
+.login-pill:focus-visible {
+  transform: translateY(-1px);
+}
+
+.theme-toggle:active,
+.profile-emblem-button:active,
+.user-pill:active,
+.login-pill:active,
+.login-emblem-button:active,
+.timer-button:active,
+.session-decision-button:active,
+.skill-modal-secondary:active,
+.skill-modal-primary:active,
+.skill-modal-danger:active,
+.auth-input-row button:active,
+.auth-submit-button:active,
+.auth-primary-link:active,
+.auth-outline-button:active,
+.admin-skill-action:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.theme-toggle-track {
+  overflow: hidden;
+  transition:
+    border-color 180ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.theme-toggle-track::before {
+  content: "";
+  position: absolute;
+  inset: -80% -45%;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.2), transparent 65%);
+  opacity: 0;
+  transform: translateX(-36%) rotate(12deg);
+  transition:
+    opacity 220ms ease,
+    transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.theme-toggle:hover .theme-toggle-track::before,
+.theme-toggle:focus-visible .theme-toggle-track::before {
+  opacity: 1;
+  transform: translateX(36%) rotate(12deg);
+}
+
+.theme-toggle.is-dark .theme-toggle-icon-moon,
+.theme-toggle.is-light .theme-toggle-icon-sun {
+  animation: icon-pop 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.profile-dropdown,
+.skill-card-menu {
+  animation: menu-rise 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: top right;
+}
+
+.profile-dropdown-action,
+.skill-card-menu button {
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.profile-dropdown-action:hover,
+.profile-dropdown-action:focus-visible,
+.skill-card-menu button:hover,
+.skill-card-menu button:focus-visible {
+  transform: translateX(2px);
+}
+
+.skill-card,
+.pending-session-panel,
+.auth-panel:not(.auth-modal-panel),
+.route-panel,
+.admin-hero-panel,
+.active-timer-panel,
+.recent-session-panel,
+.admin-skill-card {
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    filter 220ms ease,
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+.skill-card::before,
+.admin-skill-card::before,
+.pending-session-panel::before,
+.active-timer-panel::before,
+.route-panel::before,
+.auth-panel:not(.auth-modal-panel)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 24%, rgba(255, 255, 255, 0.1), transparent 52%);
+  opacity: 0;
+  transform: translateX(-26%);
+  transition:
+    opacity 220ms ease,
+    transform 620ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pending-session-panel,
+.active-timer-panel,
+.route-panel,
+.auth-panel:not(.auth-modal-panel),
+.admin-skill-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.skill-card:hover,
+.skill-card:focus-within,
+.admin-skill-card:hover,
+.admin-skill-card:focus-within,
+.pending-session-panel:hover,
+.active-timer-panel:hover,
+.route-panel:hover,
+.auth-panel:not(.auth-modal-panel):hover {
+  transform: translateY(-4px);
+  box-shadow:
+    var(--card-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 18px 52px rgba(var(--accent-rgb, var(--nav-active-rgb)), 0.11);
+}
+
+.skill-card:hover::before,
+.skill-card:focus-within::before,
+.admin-skill-card:hover::before,
+.admin-skill-card:focus-within::before,
+.pending-session-panel:hover::before,
+.active-timer-panel:hover::before,
+.route-panel:hover::before,
+.auth-panel:not(.auth-modal-panel):hover::before {
+  opacity: 1;
+  transform: translateX(28%);
+}
+
+.card-glow {
+  opacity: 0.9;
+  transition:
+    opacity 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.skill-card:hover .card-glow,
+.skill-card:focus-within .card-glow {
+  opacity: 1;
+  box-shadow:
+    inset 0 0 46px rgba(var(--accent-rgb), 0.1),
+    0 0 42px rgba(var(--accent-rgb), 0.08);
+}
+
+.skill-icon,
+.add-skill-icon,
+.footer-emblem {
+  transition:
+    border-color 200ms ease,
+    background 200ms ease,
+    box-shadow 200ms ease,
+    color 200ms ease,
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.skill-card:hover .skill-icon,
+.skill-card:focus-within .skill-icon,
+.add-skill-card:hover .add-skill-icon,
+.add-skill-card:focus-within .add-skill-icon {
+  transform: translateY(-2px) scale(1.035);
+  box-shadow:
+    inset 0 0 24px rgba(var(--accent-rgb), 0.08),
+    0 16px 32px rgba(var(--accent-rgb), 0.12);
+}
+
+.card-motif {
+  transform-origin: center;
+  transition:
+    opacity 260ms ease,
+    transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.skill-card:hover .card-motif,
+.skill-card:focus-within .card-motif {
+  opacity: 0.3;
+  transform: translate3d(-5px, -5px, 0) scale(1.04);
+}
+
+.skill-card.is-active {
+  animation:
+    card-enter 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    active-card-breathe 2600ms ease-in-out 900ms infinite;
+}
+
+.skill-card.is-active .live-badge span,
+.active-timer-panel.is-live .admin-live-value {
+  animation: live-pulse 1400ms ease-in-out infinite;
+}
+
+.metric-value,
+.admin-live-value,
+.pending-session-row span {
+  transition:
+    color 180ms ease,
+    text-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.skill-card.is-active .metric-value,
+.active-timer-panel.is-live .admin-live-value {
+  animation: value-glow 1600ms ease-in-out infinite;
+}
+
+.timer-button:hover:not(:disabled),
+.timer-button:focus-visible:not(:disabled),
+.session-decision-button:hover:not(:disabled),
+.session-decision-button:focus-visible:not(:disabled),
+.skill-modal-secondary:hover:not(:disabled),
+.skill-modal-secondary:focus-visible:not(:disabled),
+.skill-modal-primary:hover:not(:disabled),
+.skill-modal-primary:focus-visible:not(:disabled),
+.skill-modal-danger:hover:not(:disabled),
+.skill-modal-danger:focus-visible:not(:disabled),
+.auth-input-row button:hover:not(:disabled),
+.auth-input-row button:focus-visible:not(:disabled),
+.auth-submit-button:hover:not(:disabled),
+.auth-submit-button:focus-visible:not(:disabled),
+.auth-primary-link:hover,
+.auth-primary-link:focus-visible,
+.auth-outline-button:hover,
+.auth-outline-button:focus-visible,
+.admin-skill-action:hover:not(:disabled),
+.admin-skill-action:focus-visible:not(:disabled) {
+  outline: 0;
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 36px rgba(var(--nav-active-rgb), 0.13),
+    0 0 22px rgba(var(--accent-rgb, var(--nav-active-rgb)), 0.08);
+}
+
+.timer-button:hover:not(:disabled),
+.timer-button:focus-visible:not(:disabled) {
+  box-shadow:
+    var(--button-shadow),
+    0 13px 28px rgba(var(--accent-rgb), 0.14);
+}
+
+.add-skill-card:hover,
+.add-skill-card:focus-within {
+  border-color: rgba(var(--nav-active-rgb), 0.42);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(var(--nav-active-rgb), 0.12), transparent 42%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.add-skill-card-button:hover,
+.add-skill-card-button:focus-visible {
+  outline: 0;
+}
+
+.skill-modal-backdrop,
+.login-modal-backdrop,
+.auth-modal-backdrop {
+  animation: backdrop-fade 220ms ease both;
+}
+
+.skill-modal-panel,
+.login-modal {
+  animation: modal-rise 300ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.skill-modal-close,
+.login-modal-close,
+.auth-modal-close {
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.skill-modal-close:hover,
+.skill-modal-close:focus-visible,
+.login-modal-close:hover,
+.login-modal-close:focus-visible {
+  background: rgba(var(--nav-active-rgb), 0.1);
+  transform: translateY(-1px) rotate(4deg);
+}
+
+.skill-modal-field input,
+.skill-lifetime-grid input,
+.auth-input-row input,
+.auth-field-stack input {
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.skill-modal-field input:focus,
+.skill-lifetime-grid input:focus,
+.auth-input-row input:focus,
+.auth-field-stack input:focus {
+  transform: translateY(-1px);
+}
+
+.skill-icon-choice,
+.skill-accent-choice,
+.skill-visibility-choice,
+.skill-emoji-choice {
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease,
+    transform 170ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.skill-icon-choice:hover,
+.skill-icon-choice:focus-visible,
+.skill-accent-choice:hover,
+.skill-accent-choice:focus-visible,
+.skill-visibility-choice:hover,
+.skill-visibility-choice:focus-visible,
+.skill-emoji-choice:hover,
+.skill-emoji-choice:focus-visible {
+  transform: translateY(-2px);
+}
+
+.skill-icon-choice.is-selected,
+.skill-accent-choice.is-selected,
+.skill-visibility-choice.is-selected,
+.skill-emoji-choice.is-selected {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 24px rgba(var(--nav-active-rgb), 0.08);
+}
+
+.pending-session-row,
+.recent-session-row,
+.admin-status-grid div {
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pending-session-row:hover,
+.recent-session-row:hover,
+.admin-status-grid div:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--nav-active-rgb), 0.26);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.global-wave {
+  animation: wave-float 9600ms ease-in-out infinite;
+}
+
+.global-wave path {
+  animation: wave-shimmer 5200ms ease-in-out infinite;
+}
+
+.global-orbit-one {
+  animation: orbit-drift-one 18000ms ease-in-out infinite;
+}
+
+.global-orbit-two {
+  animation: orbit-drift-two 16000ms ease-in-out infinite;
+}
+
+.star-field {
+  animation: star-drift 12000ms ease-in-out infinite;
+}
+
+@keyframes nav-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes soft-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+    scale: 0.982;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+@keyframes menu-rise {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes active-nav-line {
+  from {
+    opacity: 0;
+    transform: scaleX(0.25);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes icon-pop {
+  0% {
+    transform: scale(0.88) rotate(-8deg);
+  }
+  100% {
+    transform: scale(1.05) rotate(0);
+  }
+}
+
+@keyframes active-card-breathe {
+  0%,
+  100% {
+    box-shadow:
+      var(--card-shadow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.035),
+      0 0 36px rgba(var(--accent-rgb), 0.08);
+  }
+  50% {
+    box-shadow:
+      var(--card-shadow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.055),
+      0 0 58px rgba(var(--accent-rgb), 0.18);
+  }
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.68;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes status-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 13px rgba(255, 82, 61, 0.7);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(255, 82, 61, 0.9);
+    transform: scale(1.08);
+  }
+}
+
+@keyframes value-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.2);
+  }
+  50% {
+    text-shadow: 0 0 32px rgba(var(--accent-rgb), 0.34);
+  }
+}
+
+@keyframes wave-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-8px, 8px, 0);
+  }
+}
+
+@keyframes wave-shimmer {
+  0%,
+  100% {
+    opacity: 0.72;
+    filter: drop-shadow(0 0 7px rgba(127, 190, 255, 0.34));
+  }
+  50% {
+    opacity: 0.92;
+    filter: drop-shadow(0 0 12px rgba(127, 190, 255, 0.5));
+  }
+}
+
+@keyframes orbit-drift-one {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(18px, -10px, 0) scale(1.015);
+  }
+}
+
+@keyframes orbit-drift-two {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-14px, 12px, 0) scale(1.02);
+  }
+}
+
+@keyframes star-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
+    opacity: 0.78;
+  }
 }
 
 @media (max-width: 1180px) {
@@ -2465,5 +3179,40 @@ a {
   .global-wave {
     width: 82vw;
     top: 175px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
+  .skill-card:hover,
+  .skill-card:focus-within,
+  .admin-skill-card:hover,
+  .admin-skill-card:focus-within,
+  .pending-session-panel:hover,
+  .active-timer-panel:hover,
+  .route-panel:hover,
+  .auth-panel:not(.auth-modal-panel):hover,
+  .theme-toggle:hover,
+  .theme-toggle:focus-visible,
+  .profile-emblem-button:hover,
+  .profile-emblem-button:focus-visible,
+  .user-pill:hover,
+  .user-pill:focus-visible,
+  .login-pill:hover,
+  .login-pill:focus-visible,
+  .timer-button:hover:not(:disabled),
+  .timer-button:focus-visible:not(:disabled),
+  .session-decision-button:hover:not(:disabled),
+  .session-decision-button:focus-visible:not(:disabled) {
+    transform: none !important;
   }
 }
