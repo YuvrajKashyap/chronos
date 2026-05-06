@@ -5,6 +5,7 @@ import { LogOut } from "lucide-react";
 import { useState } from "react";
 
 import { logoutFromChronos } from "@/app/admin/actions";
+import { ChronosLoginEmblem } from "@/components/chronos/chronos-login-emblem";
 
 export function UserPill({ isAuthenticated }: { isAuthenticated: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,8 +13,7 @@ export function UserPill({ isAuthenticated }: { isAuthenticated: boolean }) {
   if (!isAuthenticated) {
     return (
       <Link className="login-emblem-button" href="/login" aria-label="Login to Chronos admin">
-        <span className="login-emblem-aura" aria-hidden="true" />
-        <span className="login-emblem-core">YK</span>
+        <ChronosLoginEmblem />
       </Link>
     );
   }

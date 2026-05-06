@@ -339,7 +339,19 @@ a {
 }
 
 .login-emblem-button {
-  --emblem-size: clamp(44px, calc(var(--ui) * 0.032), 62px);
+  --emblem-size: clamp(60px, calc(var(--ui) * 0.046), 82px);
+  --mark-face-hi: #fffdf4;
+  --mark-face: #f4f6ef;
+  --mark-face-low: #e9f0eb;
+  --mark-gold-hi: #fff0bd;
+  --mark-gold: #c8a45a;
+  --mark-gold-low: #8b743b;
+  --mark-sage-hi: #b9cac0;
+  --mark-sage: #7f9d91;
+  --mark-sage-low: #55756c;
+  --mark-glass-hi: rgba(255, 255, 255, 0.7);
+  --mark-glass-low: rgba(205, 221, 215, 0.3);
+  --mark-shadow: #17342f;
   width: var(--emblem-size);
   height: var(--emblem-size);
   display: grid;
@@ -347,112 +359,156 @@ a {
   position: relative;
   isolation: isolate;
   border-radius: 999px;
-  color: var(--text-primary);
   text-decoration: none;
   transform: translateZ(0);
-}
-
-.login-emblem-button::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  background:
-    conic-gradient(
-      from 220deg,
-      rgba(var(--nav-active-rgb), 0.88),
-      rgba(63, 145, 255, 0.38),
-      rgba(39, 183, 135, 0.35),
-      rgba(var(--nav-active-rgb), 0.88)
-    );
-  opacity: 0.74;
-  filter: blur(0.2px);
+  filter: drop-shadow(0 9px 20px rgba(46, 69, 64, 0.16));
   transition:
-    opacity 180ms ease,
     transform 180ms ease,
     filter 180ms ease;
-  z-index: -2;
 }
 
-.login-emblem-button::after {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: inherit;
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.18), transparent 28%),
-    rgba(5, 11, 21, 0.84);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 -18px 30px rgba(var(--nav-active-rgb), 0.08),
-    0 16px 34px rgba(0, 0, 0, 0.18);
-  z-index: -1;
+.chronos-login-mark {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
 }
 
-.login-emblem-aura {
-  position: absolute;
-  inset: -9px;
-  border-radius: inherit;
-  background:
-    radial-gradient(circle, rgba(var(--nav-active-rgb), 0.2), transparent 64%);
-  opacity: 0.62;
-  transform: scale(0.94);
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease;
-  z-index: -3;
+.mark-aura {
+  fill: rgba(189, 214, 205, 0.2);
 }
 
-.login-emblem-core {
-  display: grid;
-  place-items: center;
-  width: calc(var(--emblem-size) - 13px);
-  height: calc(var(--emblem-size) - 13px);
-  border-radius: inherit;
-  font-size: clamp(13px, calc(var(--ui) * 0.009), 18px);
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  background: rgba(255, 255, 255, 0.055);
-  text-shadow: 0 1px 10px rgba(var(--nav-active-rgb), 0.35);
+.mark-face {
+  fill: url("#chronosMarkFace");
+  stroke: rgba(94, 125, 116, 0.22);
+  stroke-width: 1.2;
+}
+
+.mark-rim {
+  fill: none;
+  stroke: url("#chronosMarkGold");
+  vector-effect: non-scaling-stroke;
+}
+
+.mark-rim-outer {
+  stroke-width: 3;
+}
+
+.mark-rim-highlight {
+  stroke-width: 1;
+  opacity: 0.7;
+}
+
+.mark-rim-inner {
+  stroke-width: 1.2;
+  opacity: 0.78;
+}
+
+.mark-ticks path {
+  stroke: url("#chronosMarkGold");
+  stroke-linecap: round;
+  stroke-width: 3.4;
+  filter: url("#chronosMarkInset");
+}
+
+.mark-roman text {
+  fill: url("#chronosMarkGold");
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  filter: url("#chronosMarkInset");
+}
+
+.mark-sage-lines path {
+  fill: none;
+  stroke: rgba(118, 169, 154, 0.45);
+  stroke-linecap: round;
+  stroke-width: 1.8;
+}
+
+.mark-dots circle {
+  fill: rgba(196, 160, 83, 0.38);
+}
+
+.mark-hourglass {
+  opacity: 0.92;
+}
+
+.mark-hourglass-glass {
+  fill: url("#chronosMarkGlass");
+  stroke: rgba(87, 119, 111, 0.42);
+  stroke-width: 1.2;
+}
+
+.mark-hourglass-line {
+  fill: none;
+  stroke: rgba(110, 132, 122, 0.5);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.mark-sand {
+  fill: rgba(176, 151, 91, 0.58);
+}
+
+.mark-letter {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 118px;
+  font-weight: 650;
+  letter-spacing: -0.24em;
+  paint-order: stroke fill;
+  dominant-baseline: alphabetic;
+}
+
+.mark-letter-back {
+  fill: none;
+  stroke: rgba(255, 241, 197, 0.92);
+  stroke-linejoin: round;
+  stroke-width: 10px;
+}
+
+.mark-letter-front {
+  fill: url("#chronosMarkSage");
+  stroke: url("#chronosMarkGold");
+  stroke-linejoin: round;
+  stroke-width: 3.4px;
 }
 
 .login-emblem-button:hover,
 .login-emblem-button:focus-visible {
   outline: 0;
+  filter: drop-shadow(0 12px 24px rgba(41, 70, 63, 0.2));
+  transform: translateY(-1px) scale(1.04);
 }
 
-.login-emblem-button:hover::before,
-.login-emblem-button:focus-visible::before {
-  opacity: 1;
-  filter: drop-shadow(0 0 12px rgba(var(--nav-active-rgb), 0.32));
-  transform: rotate(18deg) scale(1.02);
-}
-
-.login-emblem-button:hover .login-emblem-aura,
-.login-emblem-button:focus-visible .login-emblem-aura {
-  opacity: 1;
-  transform: scale(1.08);
-}
-
-.login-emblem-button:focus-visible .login-emblem-core {
+.login-emblem-button:focus-visible {
   box-shadow: 0 0 0 3px rgba(var(--nav-active-rgb), 0.24);
 }
 
-:root[data-theme="light"] .login-emblem-button::after {
-  border-color: rgba(31, 73, 78, 0.12);
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.92), transparent 30%),
-    rgba(249, 253, 251, 0.86);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.86),
-    inset 0 -18px 30px rgba(var(--nav-active-rgb), 0.08),
-    0 12px 26px rgba(54, 78, 83, 0.14);
+:root[data-theme="dark"] .login-emblem-button {
+  --mark-face-hi: #101823;
+  --mark-face: #07111d;
+  --mark-face-low: #030812;
+  --mark-gold-hi: #ffe7a7;
+  --mark-gold: #b9984d;
+  --mark-gold-low: #6f5a2d;
+  --mark-sage-hi: #b2d0c5;
+  --mark-sage: #6c9287;
+  --mark-sage-low: #406860;
+  --mark-glass-hi: rgba(170, 220, 210, 0.18);
+  --mark-glass-low: rgba(42, 76, 77, 0.1);
+  --mark-shadow: #000711;
+  filter: drop-shadow(0 0 15px rgba(188, 161, 92, 0.18));
 }
 
-:root[data-theme="light"] .login-emblem-core {
-  background: rgba(221, 236, 231, 0.72);
-  text-shadow: 0 1px 10px rgba(30, 115, 94, 0.18);
+:root[data-theme="dark"] .mark-aura {
+  fill: rgba(31, 91, 83, 0.2);
+}
+
+:root[data-theme="dark"] .mark-sage-lines path {
+  stroke: rgba(99, 191, 170, 0.24);
 }
 
 :root[data-theme="light"] .user-pill {
