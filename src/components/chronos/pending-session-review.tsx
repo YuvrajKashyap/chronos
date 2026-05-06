@@ -43,7 +43,7 @@ export function PendingSessionReview({
     return null;
   }
 
-  function handleDecision(countTowardsLifetime: boolean, durationSeconds: number) {
+  function handleDecision(countTowardsLifetime: boolean, durationSeconds?: number) {
     if (!modalSession || isPending) {
       return;
     }

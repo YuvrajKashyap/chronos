@@ -347,7 +347,7 @@ export function SmoothTimerControl({
     onPause?.();
   }
 
-  function handleDecision(countTowardsLifetime: boolean, durationSeconds: number) {
+  function handleDecision(countTowardsLifetime: boolean, durationSeconds?: number) {
     if (!stoppedSession || decisionPending || !stoppedSession.id) {
       return;
     }
@@ -413,7 +413,7 @@ type LifetimeDecisionModalProps = {
   error: string | null;
   isSyncing?: boolean;
   session: SmoothStoppedSession;
-  onDecision: (countTowardsLifetime: boolean, durationSeconds: number) => void;
+  onDecision: (countTowardsLifetime: boolean, durationSeconds?: number) => void;
 };
 
 export function LifetimeDecisionModal({
@@ -431,7 +431,9 @@ export function LifetimeDecisionModal({
   const [seconds, setSeconds] = useState(String(initialParts.seconds));
   const editedDurationSeconds =
     (getDurationInputValue(hours) * 3600) + (getDurationInputValue(minutes, 59) * 60) + getDurationInputValue(seconds, 59);
+  const hasEditedDuration = editedDurationSeconds !== Math.max(0, Math.floor(session.durationSeconds));
   const duration = useMemo(() => formatSecondsAsTimer(editedDurationSeconds), [editedDurationSeconds]);
+  const submittedDurationSeconds = hasEditedDuration ? editedDurationSeconds : undefined;
 
   useEffect(() => {
     setMounted(true);
@@ -449,14 +451,17 @@ export function LifetimeDecisionModal({
     <div className="lifetime-decision-backdrop" role="presentation">
       <section className="lifetime-decision-panel" role="dialog" aria-modal="true" aria-labelledby="lifetime-decision-title">
         <div className="lifetime-decision-aura" aria-hidden="true" />
-        <p className="lifetime-decision-kicker">Stopped timer</p>
+        <div className="lifetime-decision-topline">
+          <p className="lifetime-decision-kicker">Stopped timer</p>
+          <span className="lifetime-decision-skill">{session.skillName}</span>
+        </div>
         <h2 id="lifetime-decision-title">Count this toward lifetime?</h2>
-        <div className="lifetime-decision-session">
-          <span>{session.skillName}</span>
+        <div className="lifetime-decision-time-card">
+          <span>Elapsed</span>
           {isEditingDuration ? (
             <div className="lifetime-duration-inputs" aria-label="Edit elapsed duration">
               <label>
-                <span>H</span>
+                <span>Hours</span>
                 <input
                   inputMode="numeric"
                   min="0"
@@ -466,7 +471,7 @@ export function LifetimeDecisionModal({
                 />
               </label>
               <label>
-                <span>M</span>
+                <span>Min</span>
                 <input
                   inputMode="numeric"
                   max="59"
@@ -477,7 +482,7 @@ export function LifetimeDecisionModal({
                 />
               </label>
               <label>
-                <span>S</span>
+                <span>Sec</span>
                 <input
                   inputMode="numeric"
                   max="59"
@@ -494,9 +499,7 @@ export function LifetimeDecisionModal({
             </button>
           )}
         </div>
-        <p>
-          Lifetime totals stay unchanged until you choose. Counting adds the elapsed time shown here; skipping leaves it out.
-        </p>
+        <p>Lifetime totals stay unchanged until you choose.</p>
         {error ? <p className="lifetime-decision-error">{error}</p> : null}
         {isSyncing ? <p className="lifetime-decision-sync">Finalizing the stopped session...</p> : null}
         <div className="lifetime-decision-actions">
@@ -504,7 +507,7 @@ export function LifetimeDecisionModal({
             className="session-decision-button is-skip"
             type="button"
             disabled={Boolean(decisionPending) || isSyncing}
-            onClick={() => onDecision(false, editedDurationSeconds)}
+            onClick={() => onDecision(false, submittedDurationSeconds)}
           >
             {decisionPending === "skip" ? <Loader2 className="timer-button-spinner" size={18} /> : <X size={18} />}
             <span>{decisionPending === "skip" ? "Skipping" : "Skip it"}</span>
@@ -513,7 +516,7 @@ export function LifetimeDecisionModal({
             className="session-decision-button is-count"
             type="button"
             disabled={Boolean(decisionPending) || isSyncing}
-            onClick={() => onDecision(true, editedDurationSeconds)}
+            onClick={() => onDecision(true, submittedDurationSeconds)}
           >
             {decisionPending === "count" ? <Loader2 className="timer-button-spinner" size={18} /> : <Check size={18} />}
             <span>{decisionPending === "count" ? "Counting" : "Count it"}</span>
