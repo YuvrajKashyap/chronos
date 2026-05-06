@@ -672,6 +672,13 @@ a {
   z-index: 2;
 }
 
+.card-header-live-slot {
+  position: absolute;
+  top: clamp(26px, calc(var(--ui) * 0.02), 40px);
+  right: clamp(28px, calc(var(--ui) * 0.021), 44px);
+  z-index: 3;
+}
+
 .skill-icon {
   width: clamp(48px, calc(var(--ui) * 0.039), 80px);
   height: clamp(48px, calc(var(--ui) * 0.039), 80px);
@@ -803,8 +810,24 @@ a {
 .timer-motion-shell {
   width: max-content;
   margin: 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   position: relative;
   z-index: 3;
+}
+
+.timer-active-controls {
+  width: min(100%, 300px);
+}
+
+.timer-pause-button {
+  min-width: clamp(102px, calc(var(--ui) * 0.069), 138px);
+  color: var(--text-secondary);
+  border-color: rgba(var(--accent-rgb), 0.22);
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
 }
 
 .timer-button:disabled {
@@ -1669,8 +1692,17 @@ a {
   background:
     linear-gradient(115deg, transparent 24%, rgba(255, 255, 255, 0.13), transparent 54%),
     radial-gradient(circle at 50% 0%, rgba(var(--nav-active-rgb), 0.12), transparent 44%);
-  opacity: 0.8;
-  animation: modal-sheen 1800ms cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  opacity: 0.46;
+  transform: translateX(-20%);
+  transition:
+    opacity 260ms ease,
+    transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lifetime-decision-panel:hover .lifetime-decision-aura,
+.lifetime-decision-panel:focus-within .lifetime-decision-aura {
+  opacity: 0.84;
+  transform: translateX(18%);
 }
 
 .lifetime-decision-kicker {
@@ -1731,6 +1763,13 @@ a {
   position: relative;
   color: #ff6a55;
   font-weight: 800;
+}
+
+.lifetime-decision-sync {
+  margin-top: 14px !important;
+  color: var(--nav-active) !important;
+  font-size: 13px;
+  font-weight: 850;
 }
 
 .lifetime-decision-actions {
@@ -3652,7 +3691,7 @@ a {
     active-card-breathe 2600ms ease-in-out 900ms infinite;
 }
 
-.skill-card.is-active .live-badge span,
+.skill-card .live-badge span,
 .active-timer-panel.is-live .admin-live-value {
   animation: live-pulse 1400ms ease-in-out infinite;
 }
@@ -3954,18 +3993,6 @@ a {
   50% {
     opacity: 1;
     transform: translateY(-50%) scale(1.08);
-  }
-}
-
-@keyframes modal-sheen {
-  0%,
-  100% {
-    transform: translateX(-28%);
-    opacity: 0.48;
-  }
-  50% {
-    transform: translateX(28%);
-    opacity: 0.84;
   }
 }
 
@@ -4306,6 +4333,12 @@ a {
 
   .timer-motion-pulse {
     display: none;
+  }
+
+  .timer-active-controls {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .admin-identity,

@@ -144,7 +144,7 @@ export async function startChronosTimer(formData: FormData) {
   redirect(nextPath);
 }
 
-export async function startChronosTimerSmooth(skillId: string): Promise<SmoothTimerActionResult> {
+export async function startChronosTimerSmooth(skillId: string, startedAt?: string): Promise<SmoothTimerActionResult> {
   if (!skillId) {
     return { success: false, error: "Choose a skill before starting a timer." };
   }
@@ -153,6 +153,7 @@ export async function startChronosTimerSmooth(skillId: string): Promise<SmoothTi
     const supabase = await createChronosServerClient();
     const { data, error } = await supabase.rpc("start_timer", {
       p_skill_id: skillId,
+      p_started_at: startedAt ?? new Date().toISOString(),
     });
 
     if (error) {
@@ -208,11 +209,14 @@ export async function stopChronosTimer(formData: FormData) {
   redirect(nextPath);
 }
 
-export async function stopChronosTimerSmooth(fallbackSkillName: string): Promise<SmoothStopTimerActionResult> {
+export async function stopChronosTimerSmooth(
+  fallbackSkillName: string,
+  endedAt?: string,
+): Promise<SmoothStopTimerActionResult> {
   try {
     const supabase = await createChronosServerClient();
     const { data, error } = await supabase.rpc("stop_timer", {
-      p_ended_at: new Date().toISOString(),
+      p_ended_at: endedAt ?? new Date().toISOString(),
     });
 
     if (error) {

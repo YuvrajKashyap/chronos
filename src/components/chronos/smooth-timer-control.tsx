@@ -1,8 +1,8 @@
 "use client";
 
-import { Check, Loader2, Play, Sparkles, Square, X } from "lucide-react";
+import { Check, Loader2, Pause, Play, Square, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import type {
   confirmChronosTimerSessionSmooth,
@@ -12,35 +12,280 @@ import type {
 } from "@/app/admin/actions";
 import { formatSecondsAsTimer } from "@/lib/chronos/format-time";
 
-type SmoothTimerControlProps = {
+const timerStartedEvent = "chronos:timer-started";
+const timerStoppedEvent = "chronos:timer-stopped";
+
+type TimerMode = "idle" | "running" | "paused";
+
+type TimerCardRuntimeProps = {
+  activeStartedAt?: string;
   buttonLabel: "Start" | "Stop";
   confirmAction: typeof confirmChronosTimerSessionSmooth;
   disabled?: boolean;
+  initialElapsedSeconds?: number;
+  initialIsActive: boolean;
+  label: string;
   skillId: string;
   skillName: string;
   startAction: typeof startChronosTimerSmooth;
   stopAction: typeof stopChronosTimerSmooth;
+  value: string;
+};
+
+function getInitialElapsedSeconds(startedAt: string | undefined, fallbackSeconds: number) {
+  if (!startedAt) {
+    return fallbackSeconds;
+  }
+
+  const startedAtMs = new Date(startedAt).getTime();
+  if (Number.isNaN(startedAtMs)) {
+    return fallbackSeconds;
+  }
+
+  return Math.max(fallbackSeconds, Math.floor((Date.now() - startedAtMs) / 1000));
+}
+
+function getStoppedAtIso(startedAtMs: number | null, elapsedSeconds: number) {
+  if (!startedAtMs) {
+    return new Date().toISOString();
+  }
+
+  return new Date(startedAtMs + (Math.max(0, elapsedSeconds) * 1000)).toISOString();
+}
+
+export function TimerCardRuntime({
+  activeStartedAt,
+  buttonLabel,
+  confirmAction,
+  disabled = false,
+  initialElapsedSeconds = 0,
+  initialIsActive,
+  label,
+  skillId,
+  skillName,
+  startAction,
+  stopAction,
+  value,
+}: TimerCardRuntimeProps) {
+  const [mode, setMode] = useState<TimerMode>(initialIsActive ? "running" : "idle");
+  const [seconds, setSeconds] = useState(() => getInitialElapsedSeconds(activeStartedAt, initialElapsedSeconds));
+  const [error, setError] = useState<string | null>(null);
+  const [isSyncingStart, setIsSyncingStart] = useState(false);
+  const [isSyncingStop, setIsSyncingStop] = useState(false);
+  const [externalActiveSkillId, setExternalActiveSkillId] = useState<string | null>(initialIsActive ? skillId : null);
+  const activeStartedAtMsRef = useRef<number | null>(activeStartedAt ? new Date(activeStartedAt).getTime() : null);
+  const runStartedAtMsRef = useRef<number | null>(activeStartedAt ? new Date(activeStartedAt).getTime() : null);
+  const accumulatedSecondsRef = useRef(0);
+  const startPromiseRef = useRef<Promise<Awaited<ReturnType<typeof startAction>>> | null>(null);
+  const hasActiveTimer = mode === "running" || mode === "paused";
+  const startDisabled = disabled || Boolean(externalActiveSkillId && externalActiveSkillId !== skillId);
+
+  useEffect(() => {
+    function onTimerStarted(event: Event) {
+      const nextSkillId = (event as CustomEvent<{ skillId: string }>).detail?.skillId;
+      setExternalActiveSkillId(nextSkillId ?? null);
+    }
+
+    function onTimerStopped() {
+      setExternalActiveSkillId(null);
+    }
+
+    window.addEventListener(timerStartedEvent, onTimerStarted);
+    window.addEventListener(timerStoppedEvent, onTimerStopped);
+
+    return () => {
+      window.removeEventListener(timerStartedEvent, onTimerStarted);
+      window.removeEventListener(timerStoppedEvent, onTimerStopped);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (mode !== "running") {
+      return;
+    }
+
+    function tick() {
+      const runStartedAtMs = runStartedAtMsRef.current ?? Date.now();
+      const nextSeconds = accumulatedSecondsRef.current + Math.floor((Date.now() - runStartedAtMs) / 1000);
+      setSeconds(Math.max(0, nextSeconds));
+    }
+
+    tick();
+    const intervalId = window.setInterval(tick, 250);
+
+    return () => window.clearInterval(intervalId);
+  }, [mode]);
+
+  function startLocalTimer() {
+    if (startDisabled || hasActiveTimer || isSyncingStart) {
+      return;
+    }
+
+    const startedAtMs = Date.now();
+    const startedAt = new Date(startedAtMs).toISOString();
+
+    setError(null);
+    setSeconds(0);
+    setMode("running");
+    setIsSyncingStart(true);
+    setExternalActiveSkillId(skillId);
+    activeStartedAtMsRef.current = startedAtMs;
+    runStartedAtMsRef.current = startedAtMs;
+    accumulatedSecondsRef.current = 0;
+    window.dispatchEvent(new CustomEvent(timerStartedEvent, { detail: { skillId } }));
+
+    const promise = startAction(skillId, startedAt);
+    startPromiseRef.current = promise;
+    promise
+      .then((result) => {
+        if (!result.success) {
+          setError(result.error);
+          setMode("idle");
+          setExternalActiveSkillId(null);
+          window.dispatchEvent(new Event(timerStoppedEvent));
+        }
+      })
+      .finally(() => {
+        setIsSyncingStart(false);
+      });
+  }
+
+  function pauseTimer() {
+    if (mode !== "running") {
+      return;
+    }
+
+    const runStartedAtMs = runStartedAtMsRef.current ?? Date.now();
+    const nextSeconds = accumulatedSecondsRef.current + Math.floor((Date.now() - runStartedAtMs) / 1000);
+    accumulatedSecondsRef.current = Math.max(0, nextSeconds);
+    setSeconds(accumulatedSecondsRef.current);
+    setMode("paused");
+  }
+
+  function resumeTimer() {
+    if (mode !== "paused") {
+      return;
+    }
+
+    runStartedAtMsRef.current = Date.now();
+    setMode("running");
+  }
+
+  async function stopLocalTimer() {
+    if (!hasActiveTimer || isSyncingStop) {
+      return undefined;
+    }
+
+    const visibleSeconds =
+      mode === "running"
+        ? accumulatedSecondsRef.current + Math.floor((Date.now() - (runStartedAtMsRef.current ?? Date.now())) / 1000)
+        : seconds;
+    const finalSeconds = Math.max(0, visibleSeconds);
+    const endedAt = getStoppedAtIso(activeStartedAtMsRef.current, finalSeconds);
+
+    setError(null);
+    setSeconds(finalSeconds);
+    setMode("idle");
+    setIsSyncingStop(true);
+    setExternalActiveSkillId(null);
+    window.dispatchEvent(new Event(timerStoppedEvent));
+
+    if (startPromiseRef.current) {
+      const startResult = await startPromiseRef.current;
+      if (!startResult.success) {
+        setError(startResult.error);
+        setIsSyncingStop(false);
+        return undefined;
+      }
+    }
+
+    const result = await stopAction(skillName, endedAt);
+    setIsSyncingStop(false);
+
+    if (!result.success) {
+      setError(result.error);
+      return undefined;
+    }
+
+    return result.session;
+  }
+
+  return (
+    <>
+      <div className="card-header-live-slot">
+        {hasActiveTimer ? (
+          <span className="live-badge">
+            <span aria-hidden="true" />
+            {mode === "paused" ? "PAUSED" : "LIVE"}
+          </span>
+        ) : null}
+      </div>
+      <div className="card-body">
+        <h2>{skillName}</h2>
+        {!hasActiveTimer ? <p className="metric-label">{label}</p> : null}
+        <div className={hasActiveTimer || isSyncingStop ? "metric-value active-value" : "metric-value"}>
+          {hasActiveTimer || isSyncingStop ? formatSecondsAsTimer(seconds) : value}
+        </div>
+        {hasActiveTimer ? <p className="metric-label">{mode === "paused" ? "PAUSED" : "ELAPSED TIME"}</p> : null}
+      </div>
+      <div className="card-rule" aria-hidden="true" />
+      <SmoothTimerControl
+        buttonLabel={hasActiveTimer ? "Stop" : buttonLabel}
+        confirmAction={confirmAction}
+        disabled={startDisabled}
+        isPaused={mode === "paused"}
+        isSyncingStart={isSyncingStart}
+        isSyncingStop={isSyncingStop}
+        skillName={skillName}
+        stopPreviewSeconds={seconds}
+        onPause={pauseTimer}
+        onResume={resumeTimer}
+        onStart={startLocalTimer}
+        onStop={stopLocalTimer}
+      />
+      {error ? <p className="smooth-timer-error">{error}</p> : null}
+    </>
+  );
+}
+
+type SmoothTimerControlProps = {
+  buttonLabel: "Start" | "Stop";
+  confirmAction: typeof confirmChronosTimerSessionSmooth;
+  disabled?: boolean;
+  isPaused?: boolean;
+  isSyncingStart?: boolean;
+  isSyncingStop?: boolean;
+  skillName: string;
+  stopPreviewSeconds?: number;
+  onPause?: () => void;
+  onResume?: () => void;
+  onStart?: () => void;
+  onStop?: () => Promise<SmoothStoppedSession | undefined>;
 };
 
 export function SmoothTimerControl({
   buttonLabel,
   confirmAction,
   disabled = false,
-  skillId,
+  isPaused = false,
+  isSyncingStart = false,
+  isSyncingStop = false,
   skillName,
-  startAction,
-  stopAction,
+  stopPreviewSeconds = 0,
+  onPause,
+  onResume,
+  onStart,
+  onStop,
 }: SmoothTimerControlProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [phase, setPhase] = useState<"idle" | "starting" | "stopping">("idle");
   const [error, setError] = useState<string | null>(null);
   const [stoppedSession, setStoppedSession] = useState<SmoothStoppedSession | null>(null);
   const [decisionPending, setDecisionPending] = useState<"count" | "skip" | null>(null);
   const isStop = buttonLabel === "Stop";
-  const isBusy = phase !== "idle" || isPending;
-  const ButtonIcon = phase === "idle" ? (isStop ? Square : Play) : Loader2;
-  const label = phase === "starting" ? "Starting" : phase === "stopping" ? "Stopping" : buttonLabel;
+  const isBusy = isSyncingStart || isSyncingStop || isPending;
+  const ButtonIcon = isSyncingStart || isSyncingStop ? Loader2 : isStop ? Square : Play;
+  const label = isSyncingStart ? "Starting" : isSyncingStop ? "Stopping" : isStop ? "Stop now" : buttonLabel;
 
   function handleTimerClick() {
     if (disabled || isBusy) {
@@ -48,37 +293,41 @@ export function SmoothTimerControl({
     }
 
     setError(null);
-    setPhase(isStop ? "stopping" : "starting");
+    if (!isStop) {
+      onStart?.();
+      return;
+    }
+
+    setStoppedSession({
+      id: "",
+      skillId: "",
+      skillName,
+      startedAt: new Date().toISOString(),
+      endedAt: new Date().toISOString(),
+      durationSeconds: stopPreviewSeconds,
+    });
     startTransition(async () => {
-      if (isStop) {
-        const result = await stopAction(skillName);
-
-        if (!result.success) {
-          setError(result.error);
-          setPhase("idle");
-          return;
-        }
-
-        setStoppedSession(result.session);
-        setPhase("idle");
-        router.refresh();
+      const session = await onStop?.();
+      if (!session) {
+        setStoppedSession(null);
         return;
       }
 
-      const result = await startAction(skillId);
-      if (!result.success) {
-        setError(result.error);
-        setPhase("idle");
-        return;
-      }
-
-      setPhase("idle");
-      router.refresh();
+      setStoppedSession(session);
     });
   }
 
+  function handlePauseClick() {
+    if (isPaused) {
+      onResume?.();
+      return;
+    }
+
+    onPause?.();
+  }
+
   function handleDecision(countTowardsLifetime: boolean) {
-    if (!stoppedSession || decisionPending) {
+    if (!stoppedSession || decisionPending || !stoppedSession.id) {
       return;
     }
 
@@ -102,7 +351,13 @@ export function SmoothTimerControl({
 
   return (
     <>
-      <div className="timer-motion-shell">
+      <div className={isStop ? "timer-motion-shell timer-active-controls" : "timer-motion-shell"}>
+        {isStop ? (
+          <button className="timer-button timer-pause-button" type="button" disabled={isBusy} onClick={handlePauseClick}>
+            {isPaused ? <Play size={22} fill="currentColor" aria-hidden="true" /> : <Pause size={22} fill="currentColor" aria-hidden="true" />}
+            <span>{isPaused ? "Resume" : "Pause"}</span>
+          </button>
+        ) : null}
         <button
           className={`timer-button ${isBusy ? "is-busy" : ""}`}
           type="button"
@@ -110,24 +365,20 @@ export function SmoothTimerControl({
           onClick={handleTimerClick}
         >
           <ButtonIcon
-            className={phase === "idle" ? undefined : "timer-button-spinner"}
+            className={isSyncingStart || isSyncingStop ? "timer-button-spinner" : undefined}
             size={22}
-            fill={phase === "idle" ? "currentColor" : "none"}
+            fill={isSyncingStart || isSyncingStop ? "none" : "currentColor"}
             aria-hidden="true"
           />
           <span>{label}</span>
         </button>
-        {phase !== "idle" ? (
-          <span className="timer-motion-pulse" aria-hidden="true">
-            <Sparkles size={15} />
-          </span>
-        ) : null}
       </div>
       {error ? <p className="smooth-timer-error">{error}</p> : null}
       {stoppedSession ? (
         <LifetimeDecisionModal
           decisionPending={decisionPending}
           error={error}
+          isSyncing={!stoppedSession.id || isSyncingStop}
           session={stoppedSession}
           onDecision={handleDecision}
         />
@@ -139,6 +390,7 @@ export function SmoothTimerControl({
 type LifetimeDecisionModalProps = {
   decisionPending: "count" | "skip" | null;
   error: string | null;
+  isSyncing?: boolean;
   session: SmoothStoppedSession;
   onDecision: (countTowardsLifetime: boolean) => void;
 };
@@ -146,6 +398,7 @@ type LifetimeDecisionModalProps = {
 export function LifetimeDecisionModal({
   decisionPending,
   error,
+  isSyncing = false,
   session,
   onDecision,
 }: LifetimeDecisionModalProps) {
@@ -166,11 +419,12 @@ export function LifetimeDecisionModal({
           it out.
         </p>
         {error ? <p className="lifetime-decision-error">{error}</p> : null}
+        {isSyncing ? <p className="lifetime-decision-sync">Finalizing the stopped session...</p> : null}
         <div className="lifetime-decision-actions">
           <button
             className="session-decision-button is-skip"
             type="button"
-            disabled={Boolean(decisionPending)}
+            disabled={Boolean(decisionPending) || isSyncing}
             onClick={() => onDecision(false)}
           >
             {decisionPending === "skip" ? <Loader2 className="timer-button-spinner" size={18} /> : <X size={18} />}
@@ -179,7 +433,7 @@ export function LifetimeDecisionModal({
           <button
             className="session-decision-button is-count"
             type="button"
-            disabled={Boolean(decisionPending)}
+            disabled={Boolean(decisionPending) || isSyncing}
             onClick={() => onDecision(true)}
           >
             {decisionPending === "count" ? <Loader2 className="timer-button-spinner" size={18} /> : <Check size={18} />}
