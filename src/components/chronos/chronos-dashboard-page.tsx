@@ -14,7 +14,6 @@ import type {
 import { ChronosShell } from "./chronos-shell";
 import { DashboardFooterHint } from "./dashboard-footer-hint";
 import { LiveTimerValue } from "./live-timer-value";
-import { PendingSessionReview } from "./pending-session-review";
 import { SkillTimerGrid } from "./skill-timer-grid";
 
 export type DashboardControls =
@@ -40,7 +39,6 @@ export function ChronosDashboardPage({
   isAuthenticated = false,
   idleSession,
   message,
-  pendingSessions = [],
   skills,
 }: {
   activeSessionCount?: number;
@@ -81,12 +79,6 @@ export function ChronosDashboardPage({
           </div>
         </section>
         {message ? <p className="admin-inline-message is-error">{message}</p> : null}
-        {controls.mode === "admin" ? (
-          <PendingSessionReview
-            action={controls.confirmSessionSmoothAction}
-            sessions={pendingSessions}
-          />
-        ) : null}
         <SkillTimerGrid controls={controls} skills={skills} />
         <DashboardFooterHint />
       </main>
