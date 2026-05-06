@@ -2232,13 +2232,14 @@ a {
   letter-spacing: 0;
   background: radial-gradient(circle, rgba(214, 164, 70, 0.14), transparent 66%);
   box-shadow: 0 0 22px rgba(214, 164, 70, 0.14);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .auth-mini-logo {
-  width: 138%;
-  height: 138%;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
+  object-position: center;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.28));
 }
 
