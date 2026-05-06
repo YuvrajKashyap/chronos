@@ -11,8 +11,9 @@ export function UserPill({ isAuthenticated }: { isAuthenticated: boolean }) {
 
   if (!isAuthenticated) {
     return (
-      <Link className="login-pill" href="/login">
-        Login
+      <Link className="login-emblem-button" href="/login" aria-label="Login to Chronos admin">
+        <span className="login-emblem-aura" aria-hidden="true" />
+        <span className="login-emblem-core">YK</span>
       </Link>
     );
   }

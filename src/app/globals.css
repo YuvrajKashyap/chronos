@@ -338,6 +338,123 @@ a {
   box-shadow: 0 8px 22px rgba(54, 78, 83, 0.08);
 }
 
+.login-emblem-button {
+  --emblem-size: clamp(44px, calc(var(--ui) * 0.032), 62px);
+  width: var(--emblem-size);
+  height: var(--emblem-size);
+  display: grid;
+  place-items: center;
+  position: relative;
+  isolation: isolate;
+  border-radius: 999px;
+  color: var(--text-primary);
+  text-decoration: none;
+  transform: translateZ(0);
+}
+
+.login-emblem-button::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background:
+    conic-gradient(
+      from 220deg,
+      rgba(var(--nav-active-rgb), 0.88),
+      rgba(63, 145, 255, 0.38),
+      rgba(39, 183, 135, 0.35),
+      rgba(var(--nav-active-rgb), 0.88)
+    );
+  opacity: 0.74;
+  filter: blur(0.2px);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    filter 180ms ease;
+  z-index: -2;
+}
+
+.login-emblem-button::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.18), transparent 28%),
+    rgba(5, 11, 21, 0.84);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -18px 30px rgba(var(--nav-active-rgb), 0.08),
+    0 16px 34px rgba(0, 0, 0, 0.18);
+  z-index: -1;
+}
+
+.login-emblem-aura {
+  position: absolute;
+  inset: -9px;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle, rgba(var(--nav-active-rgb), 0.2), transparent 64%);
+  opacity: 0.62;
+  transform: scale(0.94);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+  z-index: -3;
+}
+
+.login-emblem-core {
+  display: grid;
+  place-items: center;
+  width: calc(var(--emblem-size) - 13px);
+  height: calc(var(--emblem-size) - 13px);
+  border-radius: inherit;
+  font-size: clamp(13px, calc(var(--ui) * 0.009), 18px);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  background: rgba(255, 255, 255, 0.055);
+  text-shadow: 0 1px 10px rgba(var(--nav-active-rgb), 0.35);
+}
+
+.login-emblem-button:hover,
+.login-emblem-button:focus-visible {
+  outline: 0;
+}
+
+.login-emblem-button:hover::before,
+.login-emblem-button:focus-visible::before {
+  opacity: 1;
+  filter: drop-shadow(0 0 12px rgba(var(--nav-active-rgb), 0.32));
+  transform: rotate(18deg) scale(1.02);
+}
+
+.login-emblem-button:hover .login-emblem-aura,
+.login-emblem-button:focus-visible .login-emblem-aura {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.login-emblem-button:focus-visible .login-emblem-core {
+  box-shadow: 0 0 0 3px rgba(var(--nav-active-rgb), 0.24);
+}
+
+:root[data-theme="light"] .login-emblem-button::after {
+  border-color: rgba(31, 73, 78, 0.12);
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.92), transparent 30%),
+    rgba(249, 253, 251, 0.86);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    inset 0 -18px 30px rgba(var(--nav-active-rgb), 0.08),
+    0 12px 26px rgba(54, 78, 83, 0.14);
+}
+
+:root[data-theme="light"] .login-emblem-core {
+  background: rgba(221, 236, 231, 0.72);
+  text-shadow: 0 1px 10px rgba(30, 115, 94, 0.18);
+}
+
 :root[data-theme="light"] .user-pill {
   background: rgba(255, 255, 255, 0.66);
   box-shadow: 0 8px 22px rgba(54, 78, 83, 0.08);
