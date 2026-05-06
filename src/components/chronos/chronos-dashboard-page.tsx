@@ -81,7 +81,7 @@ export function ChronosDashboardPage({
           />
         ) : null}
         <SkillTimerGrid controls={controls} skills={skills} />
-        <DashboardFooterHint />
+        <DashboardFooterHint isViewOnly={controls.mode === "login"} />
       </main>
     </ChronosShell>
   );

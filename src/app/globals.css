@@ -2042,6 +2042,17 @@ a {
   font-weight: 600;
 }
 
+.footer-hint.is-view-only {
+  width: min(620px, 100%);
+  color: color-mix(in srgb, var(--text-secondary) 82%, var(--text-muted));
+}
+
+.footer-hint.is-view-only p {
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
 .auth-main {
   width: min(calc(100% - (var(--main-x) * 2)), 960px);
   min-height: calc(100svh - var(--header-h) - 2px);
