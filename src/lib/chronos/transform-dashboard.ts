@@ -26,6 +26,7 @@ export function transformPublicDashboardToSkills(payload: PublicDashboardPayload
     })
     .map((skill) => {
       const style = resolveSkillStyle({
+        accentColor: skill.accent_color,
         accentKey: skill.accent_key,
         iconKey: skill.icon_key,
         name: skill.name,
@@ -42,6 +43,8 @@ export function transformPublicDashboardToSkills(payload: PublicDashboardPayload
         icon: style.icon,
         iconEmoji: style.emoji,
         accent: style.accent,
+        accentColor: style.accentColor,
+        accentRgb: style.accentRgb,
         accentKey: skill.accent_key ?? style.accent,
         visibility: skill.visibility ?? undefined,
         isActive,

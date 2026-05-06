@@ -18,6 +18,8 @@ export type ChronosSkill = {
   icon: LucideIcon;
   accent: string;
   accentKey?: string;
+  accentColor?: string;
+  accentRgb?: string;
   visibility?: "public" | "private";
   iconEmoji?: string;
   isActive: boolean;

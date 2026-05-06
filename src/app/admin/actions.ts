@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { createChronosServerClient } from "@/lib/supabase/server";
 
 const ALLOWED_ACCENTS = new Set(["coral", "blue", "amber", "violet", "teal", "indigo"]);
+const CUSTOM_ACCENT_PATTERN = /^custom-[0-9a-f]{6}$/i;
 
 function getSafeNextPath(formData: FormData | null) {
   const nextPath = String(formData?.get("nextPath") ?? "/admin");
@@ -85,7 +86,7 @@ function getSkillFormPayload(formData: FormData) {
   const visibility = String(formData.get("visibility") ?? "public") === "private" ? "private" : "public";
 
   return {
-    accentKey: ALLOWED_ACCENTS.has(requestedAccent) ? requestedAccent : "coral",
+    accentKey: ALLOWED_ACCENTS.has(requestedAccent) || CUSTOM_ACCENT_PATTERN.test(requestedAccent) ? requestedAccent.toLowerCase() : "coral",
     iconKey,
     name,
     visibility,

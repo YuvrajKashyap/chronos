@@ -1,4 +1,5 @@
 import type { ChronosSkill } from "@/lib/chronos-sample-data";
+import type { CSSProperties } from "react";
 import type { DashboardControls } from "./chronos-dashboard-page";
 import { CardMotif } from "./card-motif";
 import { LoginPromptButton } from "./login-prompt-button";
@@ -35,10 +36,18 @@ export function SkillTimerCard({
   ]
     .filter(Boolean)
     .join(" ");
+  const cardStyle =
+    skill.accentColor && skill.accentRgb
+      ? ({
+          "--accent": skill.accentColor,
+          "--accent-rgb": skill.accentRgb,
+        } as CSSProperties)
+      : undefined;
 
   return (
     <SkillCardFrame
       className={cardClassName}
+      style={cardStyle}
       manage={
         controls.mode === "admin"
           ? {

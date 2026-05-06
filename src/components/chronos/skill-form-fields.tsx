@@ -1,8 +1,23 @@
 "use client";
 
+import type { SkillMotif } from "@/lib/chronos-sample-data";
 import { useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 
-import { ACCENT_OPTIONS, CUSTOM_EMOJI_OPTIONS, ICON_OPTIONS, getSkillEmoji } from "@/lib/chronos/skill-style-options";
+import {
+  ACCENT_OPTIONS,
+  CUSTOM_EMOJI_OPTIONS,
+  ICON_OPTIONS,
+  SKILL_MOTIF_OPTIONS,
+  buildSkillIconKey,
+  getSkillAccentKeyFromHex,
+  getSkillAccentOption,
+  getSkillCustomAccent,
+  getSkillEmoji,
+  getSkillMotif,
+  splitSkillIconKey,
+} from "@/lib/chronos/skill-style-options";
+import { CardMotif } from "./card-motif";
 
 export type SkillFormInitialValues = {
   accentKey?: string;
@@ -13,6 +28,7 @@ export type SkillFormInitialValues = {
 };
 
 const CATEGORY_ORDER = ["Core", "Creative", "Work", "Learning", "Wellness", "Life", "Travel", "Tech"];
+const DEFAULT_CUSTOM_ACCENT = "#ff563f";
 
 function splitSeconds(totalSeconds: number | null | undefined) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds ?? 0));
@@ -24,6 +40,24 @@ function splitSeconds(totalSeconds: number | null | undefined) {
   };
 }
 
+function getRandomMotif() {
+  return SKILL_MOTIF_OPTIONS[Math.floor(Math.random() * SKILL_MOTIF_OPTIONS.length)]?.key ?? "contour";
+}
+
+function getInitialMotif(initialValues: SkillFormInitialValues) {
+  const storedMotif = getSkillMotif(initialValues.iconKey);
+
+  if (storedMotif) {
+    return storedMotif;
+  }
+
+  if (initialValues.name) {
+    return getSkillAccentOption(initialValues.accentKey).motif;
+  }
+
+  return getRandomMotif();
+}
+
 export function SkillFormFields({
   initialValues = {},
   showLifetime = false,
@@ -31,13 +65,23 @@ export function SkillFormFields({
   initialValues?: SkillFormInitialValues;
   showLifetime?: boolean;
 }) {
-  const [accentKey, setAccentKey] = useState(initialValues.accentKey ?? "coral");
-  const initialEmoji = getSkillEmoji(initialValues.iconKey) ?? CUSTOM_EMOJI_OPTIONS[0];
+  const initialCustomAccent = getSkillCustomAccent(initialValues.accentKey);
+  const [customAccentColor, setCustomAccentColor] = useState(initialCustomAccent?.color ?? DEFAULT_CUSTOM_ACCENT);
+  const [accentKey, setAccentKey] = useState(initialCustomAccent?.key ?? initialValues.accentKey ?? "coral");
+  const initialBaseIconKey = splitSkillIconKey(initialValues.iconKey).iconKey;
+  const initialEmoji = getSkillEmoji(initialBaseIconKey) ?? CUSTOM_EMOJI_OPTIONS[0];
   const [customEmoji, setCustomEmoji] = useState(initialEmoji);
-  const [iconKey, setIconKey] = useState(initialValues.iconKey?.startsWith("emoji:") ? `emoji:${initialEmoji}` : (initialValues.iconKey ?? "sparkles"));
+  const [iconKey, setIconKey] = useState(initialBaseIconKey.startsWith("emoji:") ? `emoji:${initialEmoji}` : (initialBaseIconKey || "sparkles"));
+  const [motifKey, setMotifKey] = useState<SkillMotif>(() => getInitialMotif(initialValues));
   const [visibility, setVisibility] = useState<"public" | "private">(initialValues.visibility ?? "public");
   const lifetime = splitSeconds(initialValues.lifetimeSeconds);
   const selectedIconKey = iconKey.startsWith("emoji:") ? "custom" : iconKey;
+  const isCustomAccent = Boolean(getSkillCustomAccent(accentKey));
+  const selectedAccentKey = isCustomAccent ? getSkillAccentKeyFromHex(customAccentColor) : accentKey;
+  const storedIconKey = buildSkillIconKey(iconKey, motifKey);
+  const customAccentStyle = {
+    "--custom-accent": customAccentColor,
+  } as CSSProperties;
 
   const groupedIcons = useMemo(() => {
     return CATEGORY_ORDER.map((category) => ({
@@ -50,11 +94,11 @@ export function SkillFormFields({
     <>
       <label className="skill-modal-field">
         <span>Name</span>
-        <input name="name" defaultValue={initialValues.name ?? ""} placeholder="Tennis, deep work, piano..." maxLength={42} required />
+        <input name="name" defaultValue={initialValues.name ?? ""} maxLength={42} required />
       </label>
 
-      <input type="hidden" name="iconKey" value={iconKey} />
-      <input type="hidden" name="accentKey" value={accentKey} />
+      <input type="hidden" name="iconKey" value={storedIconKey} />
+      <input type="hidden" name="accentKey" value={selectedAccentKey} />
       <input type="hidden" name="visibility" value={visibility} />
 
       <fieldset className="skill-modal-fieldset">
@@ -147,6 +191,44 @@ export function SkillFormFields({
             >
               <span aria-hidden="true" />
               {option.label}
+            </button>
+          ))}
+          <label
+            className={`skill-accent-choice skill-accent-custom ${isCustomAccent ? "is-selected" : ""}`}
+            style={customAccentStyle}
+            title="Custom accent"
+          >
+            <input
+              type="color"
+              value={customAccentColor}
+              aria-label="Custom accent color"
+              onChange={(event) => {
+                setCustomAccentColor(event.target.value);
+                setAccentKey(getSkillAccentKeyFromHex(event.target.value));
+              }}
+              onClick={() => setAccentKey(getSkillAccentKeyFromHex(customAccentColor))}
+            />
+            <span className="skill-accent-wheel" aria-hidden="true" />
+            Custom
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset className="skill-modal-fieldset">
+        <legend>Card background</legend>
+        <div className="skill-motif-row">
+          {SKILL_MOTIF_OPTIONS.map((option) => (
+            <button
+              className={option.key === motifKey ? "skill-motif-choice is-selected" : "skill-motif-choice"}
+              type="button"
+              key={option.key}
+              aria-pressed={option.key === motifKey}
+              onClick={() => setMotifKey(option.key)}
+            >
+              <span className="skill-motif-preview" aria-hidden="true">
+                <CardMotif type={option.key} />
+              </span>
+              <span>{option.label}</span>
             </button>
           ))}
         </div>
