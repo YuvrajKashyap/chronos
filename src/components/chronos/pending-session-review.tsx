@@ -1,54 +1,80 @@
-import type { confirmChronosTimerSession } from "@/app/admin/actions";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
+
+import type { confirmChronosTimerSessionSmooth } from "@/app/admin/actions";
 import type { AdminPendingSession } from "@/lib/chronos/admin-dashboard";
-import { formatSecondsAsTimer } from "@/lib/chronos/format-time";
-import { TimerDecisionButton } from "./timer-decision-button";
+import { LifetimeDecisionModal } from "./smooth-timer-control";
 
 export function PendingSessionReview({
   action,
-  nextPath,
   sessions,
 }: {
-  action: typeof confirmChronosTimerSession;
-  nextPath: string;
+  action: typeof confirmChronosTimerSessionSmooth;
   sessions: AdminPendingSession[];
 }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [decisionPending, setDecisionPending] = useState<"count" | "skip" | null>(null);
+  const [dismissedSessionIds, setDismissedSessionIds] = useState<Set<string>>(() => new Set());
+  const session = sessions.find((candidate) => !dismissedSessionIds.has(candidate.id)) ?? null;
+  const modalSession = useMemo(() => {
+    if (!session) {
+      return null;
+    }
+
+    return {
+      id: session.id,
+      skillId: session.skill_id,
+      skillName: session.skill_name,
+      startedAt: session.started_at,
+      endedAt: session.ended_at,
+      durationSeconds: session.duration_seconds,
+    };
+  }, [session]);
+
   if (sessions.length === 0) {
     return null;
   }
 
+  if (!modalSession) {
+    return null;
+  }
+
+  function handleDecision(countTowardsLifetime: boolean) {
+    if (!modalSession || isPending) {
+      return;
+    }
+
+    setError(null);
+    setDecisionPending(countTowardsLifetime ? "count" : "skip");
+    startTransition(async () => {
+      const result = await action(modalSession.id, countTowardsLifetime);
+
+      if (!result.success) {
+        setError(result.error);
+        setDecisionPending(null);
+        return;
+      }
+
+      setDismissedSessionIds((current) => {
+        const next = new Set(current);
+        next.add(modalSession.id);
+        return next;
+      });
+      setDecisionPending(null);
+      router.refresh();
+    });
+  }
+
   return (
-    <section className="pending-session-panel" aria-label="Stopped sessions awaiting lifetime decision">
-      <div>
-        <span>Stopped timer</span>
-        <h2>Count this toward lifetime?</h2>
-        <p>
-          Lifetime totals are unchanged until you choose. Skipped sessions stay out of the public and admin totals.
-        </p>
-      </div>
-      <div className="pending-session-list">
-        {sessions.map((session) => (
-          <div className="pending-session-row" key={session.id}>
-            <div>
-              <strong>{session.skill_name}</strong>
-              <span>{formatSecondsAsTimer(session.duration_seconds)}</span>
-            </div>
-            <div className="session-decision-actions">
-              <form action={action}>
-                <input type="hidden" name="sessionId" value={session.id} />
-                <input type="hidden" name="countTowardsLifetime" value="true" />
-                <input type="hidden" name="nextPath" value={nextPath} />
-                <TimerDecisionButton decision="count" />
-              </form>
-              <form action={action}>
-                <input type="hidden" name="sessionId" value={session.id} />
-                <input type="hidden" name="countTowardsLifetime" value="false" />
-                <input type="hidden" name="nextPath" value={nextPath} />
-                <TimerDecisionButton decision="skip" />
-              </form>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
+    <LifetimeDecisionModal
+      decisionPending={decisionPending}
+      error={error}
+      session={modalSession}
+      onDecision={handleDecision}
+    />
   );
 }

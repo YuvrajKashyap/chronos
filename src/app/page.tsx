@@ -11,10 +11,13 @@ import {
 import { createChronosServerClient } from "@/lib/supabase/server";
 import {
   confirmChronosTimerSession,
+  confirmChronosTimerSessionSmooth,
   createChronosSkill,
   deleteChronosSkill,
   startChronosTimer,
+  startChronosTimerSmooth,
   stopChronosTimer,
+  stopChronosTimerSmooth,
   updateChronosSkill,
 } from "./admin/actions";
 
@@ -79,10 +82,13 @@ export default async function Home({
           mode: "admin",
           nextPath: "/",
           confirmSessionAction: confirmChronosTimerSession,
+          confirmSessionSmoothAction: confirmChronosTimerSessionSmooth,
           createSkillAction: createChronosSkill,
           deleteSkillAction: deleteChronosSkill,
           startAction: startChronosTimer,
+          startSmoothAction: startChronosTimerSmooth,
           stopAction: stopChronosTimer,
+          stopSmoothAction: stopChronosTimerSmooth,
           updateSkillAction: updateChronosSkill,
         }}
         isAuthenticated

@@ -4,7 +4,7 @@ import { CardMotif } from "./card-motif";
 import { LoginPromptButton } from "./login-prompt-button";
 import { LiveTimerValue } from "./live-timer-value";
 import { SkillCardFrame } from "./skill-card-frame";
-import { TimerSubmitButton } from "./timer-submit-button";
+import { SmoothTimerControl } from "./smooth-timer-control";
 
 function isAdTracker(skill: ChronosSkill) {
   const normalized = [skill.title, skill.slug, skill.iconKey]
@@ -98,11 +98,15 @@ export function SkillTimerCard({
       </div>
       <div className="card-rule" aria-hidden="true" />
       {controls.mode === "admin" ? (
-        <form action={skill.isActive ? controls.stopAction : controls.startAction} className="timer-control-form">
-          <input type="hidden" name="skillId" value={skill.id} />
-          <input type="hidden" name="nextPath" value={controls.nextPath} />
-          <TimerSubmitButton buttonLabel={isDisabledStart ? "Start" : skill.buttonLabel} disabled={isDisabledStart} />
-        </form>
+        <SmoothTimerControl
+          buttonLabel={isDisabledStart ? "Start" : skill.buttonLabel}
+          confirmAction={controls.confirmSessionSmoothAction}
+          disabled={isDisabledStart}
+          skillId={skill.id}
+          skillName={skill.title}
+          startAction={controls.startSmoothAction}
+          stopAction={controls.stopSmoothAction}
+        />
       ) : controls.mode === "login" ? (
         <LoginPromptButton buttonLabel={skill.buttonLabel} />
       ) : (

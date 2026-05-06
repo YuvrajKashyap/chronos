@@ -32,6 +32,52 @@ function getRpcErrorMessage(data: unknown, fallback: string) {
   return fallback;
 }
 
+type TimerSessionPayload = {
+  id?: string;
+  skill_id?: string;
+  started_at?: string;
+  ended_at?: string | null;
+};
+
+export type SmoothStoppedSession = {
+  id: string;
+  skillId: string;
+  skillName: string;
+  startedAt: string;
+  endedAt: string;
+  durationSeconds: number;
+};
+
+export type SmoothTimerActionResult =
+  | { success: true; session?: { id: string; skillId: string; startedAt: string } }
+  | { success: false; error: string };
+
+export type SmoothStopTimerActionResult =
+  | { success: true; session: SmoothStoppedSession }
+  | { success: false; error: string };
+
+function getSessionPayload(data: unknown): TimerSessionPayload | null {
+  if (!data || typeof data !== "object" || !("session" in data)) {
+    return null;
+  }
+
+  const session = data.session;
+  if (!session || typeof session !== "object") {
+    return null;
+  }
+
+  return session as TimerSessionPayload;
+}
+
+function getDurationSeconds(startedAt?: string, endedAt?: string | null) {
+  if (!startedAt || !endedAt) {
+    return 0;
+  }
+
+  const duration = Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000);
+  return Number.isFinite(duration) ? Math.max(0, duration) : 0;
+}
+
 function getSkillFormPayload(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const iconKey = String(formData.get("iconKey") ?? "sparkles").trim() || "sparkles";
@@ -97,6 +143,49 @@ export async function startChronosTimer(formData: FormData) {
   redirect(nextPath);
 }
 
+export async function startChronosTimerSmooth(skillId: string): Promise<SmoothTimerActionResult> {
+  if (!skillId) {
+    return { success: false, error: "Choose a skill before starting a timer." };
+  }
+
+  try {
+    const supabase = await createChronosServerClient();
+    const { data, error } = await supabase.rpc("start_timer", {
+      p_skill_id: skillId,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    const message = getRpcErrorMessage(data, "Timer could not be started.");
+    if (data && typeof data === "object" && "success" in data && data.success === false) {
+      return { success: false, error: message };
+    }
+
+    const session = getSessionPayload(data);
+    revalidatePath("/");
+    revalidatePath("/admin");
+
+    return {
+      success: true,
+      session:
+        session?.id && session.skill_id && session.started_at
+          ? {
+              id: session.id,
+              skillId: session.skill_id,
+              startedAt: session.started_at,
+            }
+          : undefined,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Timer could not be started.",
+    };
+  }
+}
+
 export async function stopChronosTimer(formData: FormData) {
   const nextPath = getSafeNextPath(formData);
   const supabase = await createChronosServerClient();
@@ -116,6 +205,59 @@ export async function stopChronosTimer(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/admin");
   redirect(nextPath);
+}
+
+export async function stopChronosTimerSmooth(fallbackSkillName: string): Promise<SmoothStopTimerActionResult> {
+  try {
+    const supabase = await createChronosServerClient();
+    const { data, error } = await supabase.rpc("stop_timer", {
+      p_ended_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    const message = getRpcErrorMessage(data, "Timer could not be stopped.");
+    if (data && typeof data === "object" && "success" in data && data.success === false) {
+      return { success: false, error: message };
+    }
+
+    const session = getSessionPayload(data);
+    if (!session?.id || !session.skill_id || !session.started_at || !session.ended_at) {
+      return { success: false, error: "Stopped timer details were unavailable." };
+    }
+
+    const { data: skill } = await supabase
+      .schema("chronos")
+      .from("skills")
+      .select("name")
+      .eq("id", session.skill_id)
+      .maybeSingle();
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+
+    return {
+      success: true,
+      session: {
+        id: session.id,
+        skillId: session.skill_id,
+        skillName:
+          skill && typeof skill === "object" && "name" in skill && typeof skill.name === "string"
+            ? skill.name
+            : fallbackSkillName,
+        startedAt: session.started_at,
+        endedAt: session.ended_at,
+        durationSeconds: getDurationSeconds(session.started_at, session.ended_at),
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Timer could not be stopped.",
+    };
+  }
 }
 
 export async function confirmChronosTimerSession(formData: FormData) {
@@ -149,6 +291,41 @@ export async function confirmChronosTimerSession(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/admin");
   redirect(nextPath);
+}
+
+export async function confirmChronosTimerSessionSmooth(
+  sessionId: string,
+  countTowardsLifetime: boolean,
+): Promise<SmoothTimerActionResult> {
+  if (!sessionId) {
+    return { success: false, error: "Choose a stopped session before updating the lifetime total." };
+  }
+
+  try {
+    const supabase = await createChronosServerClient();
+    const { data, error } = await supabase.rpc("confirm_timer_session", {
+      p_session_id: sessionId,
+      p_count_towards_lifetime: countTowardsLifetime,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    const message = getRpcErrorMessage(data, "Stopped session could not be updated.");
+    if (data && typeof data === "object" && "success" in data && data.success === false) {
+      return { success: false, error: message };
+    }
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Stopped session could not be updated.",
+    };
+  }
 }
 
 export async function createChronosSkill(formData: FormData) {

@@ -8,11 +8,14 @@ import { getAdminActiveSessionCount, transformAdminDashboardToSkills } from "@/l
 import { createChronosServerClient } from "@/lib/supabase/server";
 import {
   confirmChronosTimerSession,
+  confirmChronosTimerSessionSmooth,
   createChronosSkill,
   deleteChronosSkill,
   logoutFromChronos,
   startChronosTimer,
+  startChronosTimerSmooth,
   stopChronosTimer,
+  stopChronosTimerSmooth,
   updateChronosSkill,
 } from "./actions";
 
@@ -182,10 +185,13 @@ export default async function AdminPage({
         mode: "admin",
         nextPath: "/admin",
         confirmSessionAction: confirmChronosTimerSession,
+        confirmSessionSmoothAction: confirmChronosTimerSessionSmooth,
         createSkillAction: createChronosSkill,
         deleteSkillAction: deleteChronosSkill,
         startAction: startChronosTimer,
+        startSmoothAction: startChronosTimerSmooth,
         stopAction: stopChronosTimer,
+        stopSmoothAction: stopChronosTimerSmooth,
         updateSkillAction: updateChronosSkill,
       }}
       isAuthenticated

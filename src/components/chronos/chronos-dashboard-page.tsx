@@ -2,10 +2,13 @@ import type { ChronosSkill } from "@/lib/chronos-sample-data";
 import type { AdminPendingSession } from "@/lib/chronos/admin-dashboard";
 import type {
   confirmChronosTimerSession,
+  confirmChronosTimerSessionSmooth,
   createChronosSkill,
   deleteChronosSkill,
   startChronosTimer,
+  startChronosTimerSmooth,
   stopChronosTimer,
+  stopChronosTimerSmooth,
   updateChronosSkill,
 } from "@/app/admin/actions";
 import { ChronosShell } from "./chronos-shell";
@@ -19,8 +22,11 @@ export type DashboardControls =
   | {
       mode: "admin";
       startAction: typeof startChronosTimer;
+      startSmoothAction: typeof startChronosTimerSmooth;
       stopAction: typeof stopChronosTimer;
+      stopSmoothAction: typeof stopChronosTimerSmooth;
       confirmSessionAction: typeof confirmChronosTimerSession;
+      confirmSessionSmoothAction: typeof confirmChronosTimerSessionSmooth;
       createSkillAction: typeof createChronosSkill;
       updateSkillAction: typeof updateChronosSkill;
       deleteSkillAction: typeof deleteChronosSkill;
@@ -56,8 +62,7 @@ export function ChronosDashboardPage({
         {message ? <p className="admin-inline-message is-error">{message}</p> : null}
         {controls.mode === "admin" ? (
           <PendingSessionReview
-            action={controls.confirmSessionAction}
-            nextPath={controls.nextPath}
+            action={controls.confirmSessionSmoothAction}
             sessions={pendingSessions}
           />
         ) : null}
