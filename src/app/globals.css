@@ -1232,7 +1232,7 @@ a {
   z-index: 80;
   display: grid;
   place-items: center;
-  padding: 22px;
+  padding: clamp(12px, 2.4vw, 28px);
   background: rgba(2, 6, 13, 0.62);
   backdrop-filter: blur(16px);
 }
@@ -1242,16 +1242,16 @@ a {
 }
 
 .skill-modal-panel {
-  width: min(920px, 100%);
-  max-height: min(920px, calc(100svh - 36px));
-  padding: clamp(24px, calc(var(--ui) * 0.023), 44px);
+  width: min(1060px, 100%);
+  max-height: min(920px, calc(100svh - 28px));
   position: relative;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border: 1px solid rgba(var(--nav-active-rgb), 0.24);
-  border-radius: clamp(20px, calc(var(--ui) * 0.017), 32px);
+  border-radius: clamp(18px, calc(var(--ui) * 0.015), 26px);
   background:
-    radial-gradient(circle at 12% 0%, rgba(var(--nav-active-rgb), 0.08), transparent 40%),
-    radial-gradient(circle at 100% 100%, rgba(63, 145, 255, 0.08), transparent 44%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 38%),
     var(--card-bg);
   box-shadow:
     0 40px 110px rgba(0, 0, 0, 0.42),
@@ -1260,18 +1260,30 @@ a {
 
 :root[data-theme="light"] .skill-modal-panel {
   background:
-    radial-gradient(circle at 12% 0%, rgba(var(--nav-active-rgb), 0.08), transparent 40%),
-    radial-gradient(circle at 100% 100%, rgba(63, 145, 255, 0.08), transparent 44%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 253, 252, 0.92) 42%),
     rgba(255, 255, 255, 0.9);
   box-shadow:
     0 34px 90px rgba(43, 76, 84, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.86);
 }
 
+.skill-modal-header {
+  padding: clamp(22px, calc(var(--ui) * 0.021), 34px) clamp(24px, calc(var(--ui) * 0.024), 42px) 18px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.skill-modal-content {
+  min-height: 0;
+  overflow: auto;
+  padding: 20px clamp(18px, calc(var(--ui) * 0.024), 42px) clamp(18px, calc(var(--ui) * 0.024), 42px);
+  scrollbar-color: rgba(var(--nav-active-rgb), 0.32) transparent;
+}
+
 .skill-modal-close {
   position: absolute;
   top: 16px;
   right: 16px;
+  z-index: 2;
   width: 38px;
   height: 38px;
   display: grid;
@@ -1311,11 +1323,11 @@ a {
 }
 
 .skill-modal-panel h2 {
-  margin: 0 44px 26px 0;
+  margin: 0 48px 0 0;
   font-family: var(--font-body);
-  font-size: clamp(34px, calc(var(--ui) * 0.028), 55px);
-  font-weight: 700;
-  line-height: 0.98;
+  font-size: clamp(26px, calc(var(--ui) * 0.022), 40px);
+  font-weight: 780;
+  line-height: 1.02;
   letter-spacing: 0;
   text-wrap: balance;
 }
@@ -1327,7 +1339,9 @@ a {
 
 .skill-modal-form {
   display: grid;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.86fr);
+  align-items: start;
+  gap: 14px;
 }
 
 .skill-modal-field {
@@ -1381,12 +1395,27 @@ a {
 .skill-modal-fieldset {
   min-width: 0;
   margin: 0;
-  padding: 0;
-  border: 0;
+  padding: 15px;
+  border: 1px solid var(--divider);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.026);
+}
+
+:root[data-theme="light"] .skill-modal-fieldset {
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.skill-name-field,
+.skill-logo-fieldset,
+.skill-emoji-fieldset,
+.skill-motif-fieldset,
+.skill-modal-actions {
+  grid-column: 1 / -1;
 }
 
 .skill-modal-fieldset legend {
-  margin-bottom: 11px;
+  padding: 0 6px;
+  margin-bottom: 10px;
 }
 
 .skill-icon-search {
@@ -1424,9 +1453,9 @@ a {
 }
 
 .skill-icon-bank {
-  max-height: 360px;
+  max-height: 282px;
   display: grid;
-  gap: 20px;
+  gap: 16px;
   overflow: auto;
   padding-right: 10px;
   scrollbar-color: rgba(var(--nav-active-rgb), 0.32) transparent;
@@ -1452,7 +1481,7 @@ a {
 
 .skill-icon-bank-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -1674,7 +1703,15 @@ a {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding-top: 4px;
+  position: sticky;
+  bottom: calc(clamp(18px, calc(var(--ui) * 0.024), 42px) * -1);
+  z-index: 1;
+  padding: 14px 0 0;
+  background: linear-gradient(180deg, transparent, var(--card-bg) 34%);
+}
+
+:root[data-theme="light"] .skill-modal-actions {
+  background: linear-gradient(180deg, transparent, rgba(250, 253, 252, 0.96) 34%);
 }
 
 .skill-modal-secondary,
@@ -4701,6 +4738,50 @@ a {
   .skill-card-menu-trigger {
     opacity: 1;
     transform: none;
+  }
+
+  .skill-modal-backdrop {
+    padding: 10px;
+    place-items: end center;
+  }
+
+  .skill-modal-panel {
+    width: 100%;
+    max-height: calc(100svh - 20px);
+    border-radius: 22px;
+  }
+
+  .skill-modal-header {
+    padding: 22px 22px 16px;
+  }
+
+  .skill-modal-content {
+    padding: 16px 16px 22px;
+  }
+
+  .skill-modal-panel h2 {
+    font-size: 29px;
+  }
+
+  .skill-modal-form {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-name-field,
+  .skill-logo-fieldset,
+  .skill-emoji-fieldset,
+  .skill-motif-fieldset,
+  .skill-modal-actions {
+    grid-column: auto;
+  }
+
+  .skill-modal-fieldset {
+    padding: 13px;
+    border-radius: 16px;
+  }
+
+  .skill-icon-bank {
+    max-height: 260px;
   }
 
   .skill-icon-bank-grid {

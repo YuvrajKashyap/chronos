@@ -59,6 +59,12 @@ export type SmoothStopTimerActionResult =
 
 type ChronosSupabaseClient = Awaited<ReturnType<typeof createChronosServerClient>>;
 type ConfirmTimerResult = { success: true } | { success: false; error: string };
+type UpdateSkillPayload = ReturnType<typeof getSkillFormPayload> & {
+  goalNote: string;
+  priorityWeight: number;
+  targetSessionsPerWeek: number;
+  weeklyTargetSeconds: number;
+};
 
 function getSessionPayload(data: unknown): TimerSessionPayload | null {
   if (!data || typeof data !== "object" || !("session" in data)) {
@@ -137,6 +143,12 @@ function isAlreadyResolvedDecision(message: string) {
   return message.toLowerCase().includes("no stopped timer is awaiting a lifetime decision");
 }
 
+function isMissingRpcSignature(message: string) {
+  const normalized = message.toLowerCase();
+
+  return normalized.includes("could not find the function") || normalized.includes("schema cache");
+}
+
 async function confirmTimerSessionDecision(
   supabase: ChronosSupabaseClient,
   sessionId: string,
@@ -193,6 +205,74 @@ async function confirmTimerSessionDecision(
 
   if (!updatedSession) {
     return { success: true };
+  }
+
+  return { success: true };
+}
+
+async function updateSkillDetails(
+  supabase: ChronosSupabaseClient,
+  skillId: string,
+  payload: UpdateSkillPayload,
+): Promise<{ success: true } | { success: false; error: string }> {
+  const expandedArgs = {
+    p_skill_id: skillId,
+    p_name: payload.name,
+    p_icon_key: payload.iconKey,
+    p_accent_key: payload.accentKey,
+    p_visibility: payload.visibility,
+    p_weekly_target_seconds: payload.weeklyTargetSeconds,
+    p_target_sessions_per_week: payload.targetSessionsPerWeek,
+    p_priority_weight: payload.priorityWeight,
+    p_goal_note: payload.goalNote,
+  };
+
+  const { data, error } = await supabase.rpc("update_skill", expandedArgs);
+
+  if (!error) {
+    const message = getRpcErrorMessage(data, "Dashboard card could not be updated.");
+    if (data && typeof data === "object" && "success" in data && data.success === false) {
+      return { success: false, error: message };
+    }
+
+    return { success: true };
+  }
+
+  if (!isMissingRpcSignature(error.message)) {
+    return { success: false, error: error.message };
+  }
+
+  const { data: legacyData, error: legacyError } = await supabase.rpc("update_skill", {
+    p_skill_id: skillId,
+    p_name: payload.name,
+    p_icon_key: payload.iconKey,
+    p_accent_key: payload.accentKey,
+    p_visibility: payload.visibility,
+  });
+
+  if (legacyError) {
+    return { success: false, error: legacyError.message || error.message };
+  }
+
+  const legacyMessage = getRpcErrorMessage(legacyData, "Dashboard card could not be updated.");
+  if (legacyData && typeof legacyData === "object" && "success" in legacyData && legacyData.success === false) {
+    return { success: false, error: legacyMessage };
+  }
+
+  const { error: trackingError } = await supabase
+    .schema("chronos")
+    .from("skills")
+    .update({
+      weekly_target_seconds: payload.weeklyTargetSeconds,
+      target_sessions_per_week: payload.targetSessionsPerWeek,
+      priority_weight: payload.priorityWeight,
+      goal_note: payload.goalNote || null,
+    })
+    .eq("id", skillId)
+    .is("archived_at", null);
+
+  if (trackingError && !trackingError.message.toLowerCase().includes("column")) {
+    return { success: false, error: trackingError.message };
   }
 
   return { success: true };
@@ -507,25 +587,16 @@ export async function updateChronosSkill(formData: FormData) {
   }
 
   const supabase = await createChronosServerClient();
-  const { data, error } = await supabase.rpc("update_skill", {
-    p_skill_id: skillId,
-    p_name: payload.name,
-    p_icon_key: payload.iconKey,
-    p_accent_key: payload.accentKey,
-    p_visibility: payload.visibility,
-    p_weekly_target_seconds: weeklyTargetSeconds,
-    p_target_sessions_per_week: targetSessionsPerWeek,
-    p_priority_weight: priorityWeight,
-    p_goal_note: goalNote,
+  const updateResult = await updateSkillDetails(supabase, skillId, {
+    ...payload,
+    goalNote,
+    priorityWeight,
+    targetSessionsPerWeek,
+    weeklyTargetSeconds,
   });
 
-  if (error) {
-    redirectWithAdminError(error.message, nextPath);
-  }
-
-  const message = getRpcErrorMessage(data, "Dashboard card could not be updated.");
-  if (data && typeof data === "object" && "success" in data && data.success === false) {
-    redirectWithAdminError(message, nextPath);
+  if (!updateResult.success) {
+    redirectWithAdminError(updateResult.error, nextPath);
   }
 
   if (lifetimeSeconds !== null) {

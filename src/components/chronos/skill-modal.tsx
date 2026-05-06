@@ -43,9 +43,11 @@ export function SkillModal({
         <button className="skill-modal-close" type="button" onClick={onClose} aria-label="Close">
           <X size={18} aria-hidden="true" />
         </button>
-        <p className="skill-modal-kicker">{eyebrow}</p>
-        <h2 id="skill-modal-title">{title}</h2>
-        {children}
+        <header className="skill-modal-header">
+          <p className="skill-modal-kicker">{eyebrow}</p>
+          <h2 id="skill-modal-title">{title}</h2>
+        </header>
+        <div className="skill-modal-content">{children}</div>
       </section>
     </div>,
     document.body,

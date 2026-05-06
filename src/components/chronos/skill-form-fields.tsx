@@ -110,7 +110,7 @@ export function SkillFormFields({
 
   return (
     <>
-      <label className="skill-modal-field">
+      <label className="skill-modal-field skill-name-field">
         <span>Name</span>
         <input name="name" defaultValue={initialValues.name ?? ""} maxLength={42} required />
       </label>
@@ -119,7 +119,7 @@ export function SkillFormFields({
       <input type="hidden" name="accentKey" value={selectedAccentKey} />
       <input type="hidden" name="visibility" value={visibility} />
 
-      <fieldset className="skill-modal-fieldset">
+      <fieldset className="skill-modal-fieldset skill-logo-fieldset">
         <legend>Logo bank</legend>
         <label className="skill-icon-search">
           <span>Search logos</span>
@@ -161,7 +161,7 @@ export function SkillFormFields({
       </fieldset>
 
       {selectedIconKey === "custom" ? (
-        <fieldset className="skill-modal-fieldset">
+        <fieldset className="skill-modal-fieldset skill-emoji-fieldset">
           <legend>Emoji mark</legend>
           <div className="skill-emoji-grid">
             {CUSTOM_EMOJI_OPTIONS.map((emoji) => {
@@ -187,7 +187,7 @@ export function SkillFormFields({
       ) : null}
 
       {showLifetime ? (
-        <fieldset className="skill-modal-fieldset">
+        <fieldset className="skill-modal-fieldset skill-lifetime-fieldset">
           <legend>Lifetime total</legend>
           <div className="skill-lifetime-grid">
             <label>
@@ -207,7 +207,7 @@ export function SkillFormFields({
       ) : null}
 
       {showLifetime ? (
-        <fieldset className="skill-modal-fieldset">
+        <fieldset className="skill-modal-fieldset skill-goal-fieldset">
           <legend>Goal tracking</legend>
           <div className="skill-lifetime-grid">
             <label>
@@ -234,7 +234,7 @@ export function SkillFormFields({
         </fieldset>
       ) : null}
 
-      <fieldset className="skill-modal-fieldset">
+      <fieldset className="skill-modal-fieldset skill-accent-fieldset">
         <legend>Accent</legend>
         <div className="skill-accent-row">
           {ACCENT_OPTIONS.map((option) => (
@@ -270,7 +270,7 @@ export function SkillFormFields({
         </div>
       </fieldset>
 
-      <fieldset className="skill-modal-fieldset">
+      <fieldset className="skill-modal-fieldset skill-motif-fieldset">
         <legend>Card background</legend>
         <div className="skill-motif-row">
           {SKILL_MOTIF_OPTIONS.map((option) => (
@@ -290,7 +290,7 @@ export function SkillFormFields({
         </div>
       </fieldset>
 
-      <fieldset className="skill-modal-fieldset">
+      <fieldset className="skill-modal-fieldset skill-visibility-fieldset">
         <legend>Visibility</legend>
         <div className="skill-visibility-row">
           <button
