@@ -110,6 +110,7 @@ export type ChronosInsights = {
     manual_seconds: number;
     timer_seconds: number;
     system_seconds: number;
+    idle_seconds: number;
     planned_seconds: number;
     rated_session_count: number;
     interruption_count: number;
@@ -325,6 +326,7 @@ async function getAdminSessionRows(): Promise<{ sessions: RawSessionRow[]; error
 
 function normalizeAdminSessions(rows: RawSessionRow[], skills: AdminSkill[], fallback: AdminRecentSession[]) {
   const skillNames = new Map(skills.map((skill) => [skill.id, skill.name]));
+  const downtimeSkillIds = new Set(skills.filter((skill) => skill.is_downtime).map((skill) => skill.id));
 
   if (rows.length === 0) {
     return fallback;
@@ -338,6 +340,7 @@ function normalizeAdminSessions(rows: RawSessionRow[], skills: AdminSkill[], fal
     ended_at: row.ended_at,
     source: row.source,
     is_private: row.is_private,
+    is_downtime: downtimeSkillIds.has(row.skill_id),
     counts_toward_lifetime: row.counts_toward_lifetime,
     duration_seconds: secondsBetween(row.started_at, row.ended_at),
     planned_seconds: row.planned_seconds,
@@ -418,6 +421,7 @@ function deriveInsights({
   const manualSessions = usefulSessions.filter((session) => session.source === "manual");
   const timerSessions = usefulSessions.filter((session) => session.source === "timer");
   const systemSessions = usefulSessions.filter((session) => session.source === "system");
+  const idleSessions = usefulSessions.filter((session) => session.is_downtime || session.project_key === "downtime");
   const deepWorkSessions = usefulSessions.filter((session) => session.duration_seconds >= 90 * 60);
   const microSessions = usefulSessions.filter((session) => session.duration_seconds > 0 && session.duration_seconds <= 10 * 60);
   const ratedQualitySessions = usefulSessions.filter((session) => asNumber(session.quality_score) > 0);
@@ -433,6 +437,7 @@ function deriveInsights({
   const manualSeconds = sum(manualSessions.map((session) => session.duration_seconds));
   const timerSeconds = sum(timerSessions.map((session) => session.duration_seconds));
   const systemSeconds = sum(systemSessions.map((session) => session.duration_seconds));
+  const idleSeconds = sum(idleSessions.map((session) => session.duration_seconds));
   const deepWorkSeconds = sum(deepWorkSessions.map((session) => session.duration_seconds));
   const microSessionSeconds = sum(microSessions.map((session) => session.duration_seconds));
   const plannedSeconds = sum(usefulSessions.map((session) => asNumber(session.planned_seconds)));
@@ -825,6 +830,7 @@ function deriveInsights({
       manual_seconds: manualSeconds,
       timer_seconds: timerSeconds,
       system_seconds: systemSeconds,
+      idle_seconds: idleSeconds,
       planned_seconds: plannedSeconds,
       rated_session_count: Math.max(ratedQualitySessions.length, ratedEnergySessions.length, ratedFocusSessions.length),
       interruption_count: interruptionCount,

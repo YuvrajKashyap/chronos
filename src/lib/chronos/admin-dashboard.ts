@@ -38,6 +38,7 @@ export type AdminRecentSession = {
   id: string;
   skill_id: string;
   skill_name: string;
+  is_downtime?: boolean | null;
   started_at: string;
   ended_at?: string | null;
   source: "timer" | "manual" | "system";
@@ -77,6 +78,10 @@ export type AdminTimerState = {
   };
   skills: AdminSkill[];
   active_session?: AdminActiveSession | null;
+  idle_session?: {
+    started_at: string;
+    current_idle_elapsed_seconds: number;
+  } | null;
   pending_sessions?: AdminPendingSession[];
   recent_sessions: AdminRecentSession[];
 };

@@ -195,6 +195,7 @@ export default async function AdminPage({
         updateSkillAction: updateChronosSkill,
       }}
       isAuthenticated
+      idleSession={state.idle_session}
       message={actionError}
       pendingSessions={state.pending_sessions ?? []}
       skills={transformAdminDashboardToSkills(state)}

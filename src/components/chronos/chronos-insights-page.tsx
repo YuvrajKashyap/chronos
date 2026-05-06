@@ -205,6 +205,7 @@ export function ChronosInsightsPage({
           <InsightMetric label="Quality" value={score(insights.behavior.average_quality_score)} note={`${insights.totals.rated_session_count} sessions include a rating signal.`} />
           <InsightMetric label="Planned Fit" value={percent(insights.behavior.planned_adherence)} note={`${compactTime(insights.totals.planned_seconds)} planned against counted work.`} />
           <InsightMetric label="Interruptions" value={String(insights.totals.interruption_count)} note={`${compactTime(insights.totals.paused_seconds)} paused across observed sessions.`} />
+          <InsightMetric label="Idle / Downtime" value={compactTime(insights.totals.idle_seconds)} note="Automatically captured time with no active timer." />
         </section>
 
         <section className="insight-section-grid">
