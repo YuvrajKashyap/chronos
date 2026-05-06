@@ -1242,8 +1242,8 @@ a {
 }
 
 .skill-modal-panel {
-  width: min(760px, 100%);
-  max-height: min(820px, calc(100svh - 44px));
+  width: min(920px, 100%);
+  max-height: min(920px, calc(100svh - 36px));
   padding: clamp(24px, calc(var(--ui) * 0.023), 44px);
   position: relative;
   overflow: auto;

@@ -2,7 +2,8 @@
 
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export function SkillModal({
   children,
@@ -15,6 +16,12 @@ export function SkillModal({
   onClose: () => void;
   title: string;
 }) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -26,7 +33,11 @@ export function SkillModal({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
-  return (
+  if (!isMounted) {
+    return null;
+  }
+
+  return createPortal(
     <div className="skill-modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section className="skill-modal-panel" role="dialog" aria-modal="true" aria-labelledby="skill-modal-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="skill-modal-close" type="button" onClick={onClose} aria-label="Close">
@@ -36,6 +47,7 @@ export function SkillModal({
         <h2 id="skill-modal-title">{title}</h2>
         {children}
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
