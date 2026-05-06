@@ -126,7 +126,6 @@ export function SkillFormFields({
           <input
             type="search"
             value={iconSearch}
-            placeholder="School, code, fitness..."
             onChange={(event) => setIconSearch(event.target.value)}
           />
         </label>
