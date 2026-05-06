@@ -1239,6 +1239,120 @@ a {
   font-weight: 700;
 }
 
+.pending-session-panel {
+  margin: 18px 0 var(--hero-gap);
+  padding: clamp(18px, calc(var(--ui) * 0.016), 30px);
+  display: grid;
+  grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.25fr);
+  gap: clamp(16px, calc(var(--ui) * 0.016), 32px);
+  align-items: center;
+  border: 1px solid rgba(var(--nav-active-rgb), 0.24);
+  border-radius: clamp(18px, calc(var(--ui) * 0.013), 26px);
+  background:
+    radial-gradient(circle at 6% 0%, rgba(var(--nav-active-rgb), 0.08), transparent 42%),
+    var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+
+.pending-session-panel span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pending-session-panel h2 {
+  margin: 8px 0 8px;
+  font-family: var(--font-display);
+  font-size: clamp(27px, calc(var(--ui) * 0.02), 42px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.pending-session-panel p {
+  max-width: 520px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: clamp(13px, calc(var(--ui) * 0.009), 17px);
+  line-height: 1.55;
+}
+
+.pending-session-list {
+  display: grid;
+  gap: 10px;
+}
+
+.pending-session-row {
+  min-height: 76px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+:root[data-theme="light"] .pending-session-row {
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.pending-session-row strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(23px, calc(var(--ui) * 0.016), 34px);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.pending-session-row span {
+  color: var(--nav-active);
+  font-size: clamp(18px, calc(var(--ui) * 0.013), 28px);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.session-decision-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.session-decision-button {
+  min-height: 42px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.session-decision-button.is-count {
+  border: 1px solid rgba(39, 183, 135, 0.42);
+  background: rgba(39, 183, 135, 0.1);
+  color: #27b787;
+}
+
+.session-decision-button.is-skip {
+  border: 1px solid var(--divider);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text-secondary);
+}
+
+.session-decision-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .active-timer-panel {
   margin-top: 22px;
   padding: clamp(24px, calc(var(--ui) * 0.022), 42px);
@@ -1617,6 +1731,17 @@ a {
   .admin-hero-panel,
   .active-timer-panel {
     grid-template-columns: 1fr;
+  }
+
+  .pending-session-panel,
+  .pending-session-row {
+    grid-template-columns: 1fr;
+  }
+
+  .session-decision-actions,
+  .session-decision-actions form,
+  .session-decision-button {
+    width: 100%;
   }
 
   .admin-identity,

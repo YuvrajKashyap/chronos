@@ -83,3 +83,36 @@ export async function stopChronosTimer(formData: FormData) {
   revalidatePath("/admin");
   redirect(nextPath);
 }
+
+export async function confirmChronosTimerSession(formData: FormData) {
+  const sessionId = String(formData.get("sessionId") ?? "");
+  const decision = String(formData.get("countTowardsLifetime") ?? "");
+  const nextPath = getSafeNextPath(formData);
+
+  if (!sessionId) {
+    redirectWithAdminError("Choose a stopped session before updating the lifetime total.", nextPath);
+  }
+
+  if (decision !== "true" && decision !== "false") {
+    redirectWithAdminError("Choose whether this stopped session should count toward lifetime totals.", nextPath);
+  }
+
+  const supabase = await createChronosServerClient();
+  const { data, error } = await supabase.rpc("confirm_timer_session", {
+    p_session_id: sessionId,
+    p_count_towards_lifetime: decision === "true",
+  });
+
+  if (error) {
+    redirectWithAdminError(error.message, nextPath);
+  }
+
+  const message = getRpcErrorMessage(data, "Stopped session could not be updated.");
+  if (data && typeof data === "object" && "success" in data && data.success === false) {
+    redirectWithAdminError(message, nextPath);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  redirect(nextPath);
+}

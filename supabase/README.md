@@ -8,7 +8,7 @@ Do not create Chronos tables in `public`, and do not alter `axis.*`, `capital.*`
 
 1. Open the Supabase dashboard for `yk-portfolio`.
 2. Go to SQL Editor.
-3. Run `supabase/migrations/20260504120000_chronos_foundation.sql`.
+3. Run the SQL files in `supabase/migrations/` in timestamp order.
 4. Confirm the objects are created under `chronos.*`.
 
 The rollback file `supabase/migrations/20260504120000_chronos_foundation.down.sql` is provided for manual rollback only. It drops the `chronos` schema and should not be run after production data exists unless that data has been backed up.

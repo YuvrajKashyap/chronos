@@ -9,7 +9,7 @@ import {
   transformPublicDashboardToSkills,
 } from "@/lib/chronos/transform-dashboard";
 import { createChronosServerClient } from "@/lib/supabase/server";
-import { startChronosTimer, stopChronosTimer } from "./admin/actions";
+import { confirmChronosTimerSession, startChronosTimer, stopChronosTimer } from "./admin/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +47,7 @@ async function getAuthenticatedDashboard() {
 
     return {
       activeSessionCount: getAdminActiveSessionCount(state),
+      pendingSessions: state.pending_sessions ?? [],
       skills: transformAdminDashboardToSkills(state),
     };
   } catch {
@@ -70,11 +71,13 @@ export default async function Home({
         controls={{
           mode: "admin",
           nextPath: "/",
+          confirmSessionAction: confirmChronosTimerSession,
           startAction: startChronosTimer,
           stopAction: stopChronosTimer,
         }}
         isAuthenticated
         message={actionError}
+        pendingSessions={adminDashboard.pendingSessions}
         skills={adminDashboard.skills}
       />
     );

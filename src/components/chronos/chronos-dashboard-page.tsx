@@ -1,7 +1,9 @@
 import type { ChronosSkill } from "@/lib/chronos-sample-data";
-import type { startChronosTimer, stopChronosTimer } from "@/app/admin/actions";
+import type { AdminPendingSession } from "@/lib/chronos/admin-dashboard";
+import type { confirmChronosTimerSession, startChronosTimer, stopChronosTimer } from "@/app/admin/actions";
 import { ChronosShell } from "./chronos-shell";
 import { DashboardFooterHint } from "./dashboard-footer-hint";
+import { PendingSessionReview } from "./pending-session-review";
 import { SkillTimerGrid } from "./skill-timer-grid";
 
 export type DashboardControls =
@@ -11,6 +13,7 @@ export type DashboardControls =
       mode: "admin";
       startAction: typeof startChronosTimer;
       stopAction: typeof stopChronosTimer;
+      confirmSessionAction: typeof confirmChronosTimerSession;
       nextPath: string;
     };
 
@@ -19,12 +22,14 @@ export function ChronosDashboardPage({
   controls = { mode: "readonly" },
   isAuthenticated = false,
   message,
+  pendingSessions = [],
   skills,
 }: {
   activeSessionCount?: number;
   controls?: DashboardControls;
   isAuthenticated?: boolean;
   message?: string | null;
+  pendingSessions?: AdminPendingSession[];
   skills: ChronosSkill[];
 }) {
   const sessionLabel = activeSessionCount === 1 ? "1 active session" : `${activeSessionCount} active sessions`;
@@ -40,6 +45,13 @@ export function ChronosDashboardPage({
           </div>
         </section>
         {message ? <p className="admin-inline-message is-error">{message}</p> : null}
+        {controls.mode === "admin" ? (
+          <PendingSessionReview
+            action={controls.confirmSessionAction}
+            nextPath={controls.nextPath}
+            sessions={pendingSessions}
+          />
+        ) : null}
         <SkillTimerGrid controls={controls} skills={skills} />
         <DashboardFooterHint />
       </main>

@@ -6,7 +6,7 @@ import { ChronosShell } from "@/components/chronos/chronos-shell";
 import { getAdminTimerState } from "@/lib/chronos/admin-dashboard";
 import { getAdminActiveSessionCount, transformAdminDashboardToSkills } from "@/lib/chronos/transform-admin-dashboard";
 import { createChronosServerClient } from "@/lib/supabase/server";
-import { logoutFromChronos, startChronosTimer, stopChronosTimer } from "./actions";
+import { confirmChronosTimerSession, logoutFromChronos, startChronosTimer, stopChronosTimer } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -173,11 +173,13 @@ export default async function AdminPage({
       controls={{
         mode: "admin",
         nextPath: "/admin",
+        confirmSessionAction: confirmChronosTimerSession,
         startAction: startChronosTimer,
         stopAction: stopChronosTimer,
       }}
       isAuthenticated
       message={actionError}
+      pendingSessions={state.pending_sessions ?? []}
       skills={transformAdminDashboardToSkills(state)}
     />
   );

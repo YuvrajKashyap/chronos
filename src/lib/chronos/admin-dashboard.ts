@@ -38,6 +38,16 @@ export type AdminRecentSession = {
   ended_at?: string | null;
   source: "timer" | "manual" | "system";
   is_private: boolean;
+  counts_toward_lifetime?: boolean | null;
+  duration_seconds: number;
+};
+
+export type AdminPendingSession = {
+  id: string;
+  skill_id: string;
+  skill_name: string;
+  started_at: string;
+  ended_at: string;
   duration_seconds: number;
 };
 
@@ -54,6 +64,7 @@ export type AdminTimerState = {
   };
   skills: AdminSkill[];
   active_session?: AdminActiveSession | null;
+  pending_sessions?: AdminPendingSession[];
   recent_sessions: AdminRecentSession[];
 };
 
