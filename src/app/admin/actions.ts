@@ -57,18 +57,6 @@ export type SmoothStopTimerActionResult =
   | { success: true; session: SmoothStoppedSession }
   | { success: false; error: string };
 
-export type SessionTrackingPayload = {
-  qualityScore?: number | null;
-  energyScore?: number | null;
-  focusScore?: number | null;
-  outcome?: string | null;
-  projectKey?: string | null;
-  tagNames?: string[];
-  plannedSeconds?: number | null;
-  interruptionCount?: number | null;
-  pausedSeconds?: number | null;
-};
-
 function getSessionPayload(data: unknown): TimerSessionPayload | null {
   if (!data || typeof data !== "object" || !("session" in data)) {
     return null;
@@ -89,6 +77,15 @@ function getDurationSeconds(startedAt?: string, endedAt?: string | null) {
 
   const duration = Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000);
   return Number.isFinite(duration) ? Math.max(0, duration) : 0;
+}
+
+function getSafeDurationOverride(durationSeconds: number | null | undefined) {
+  if (durationSeconds === null || durationSeconds === undefined) {
+    return null;
+  }
+
+  const duration = Math.floor(Number(durationSeconds));
+  return Number.isFinite(duration) ? Math.max(0, duration) : null;
 }
 
 function getSkillFormPayload(formData: FormData) {
@@ -131,49 +128,6 @@ function getBoundedInteger(value: FormDataEntryValue | number | null | undefined
   }
 
   return Math.min(max, Math.max(min, numeric));
-}
-
-function cleanTags(value: string | null | undefined) {
-  return (value ?? "")
-    .split(",")
-    .map((tag) => tag.trim().toLowerCase())
-    .filter(Boolean)
-    .slice(0, 12);
-}
-
-function normalizeTrackingPayload(payload: SessionTrackingPayload = {}) {
-  return {
-    p_quality_score: getBoundedInteger(payload.qualityScore, 1, 5, null),
-    p_energy_score: getBoundedInteger(payload.energyScore, 1, 5, null),
-    p_focus_score: getBoundedInteger(payload.focusScore, 1, 5, null),
-    p_outcome: payload.outcome?.trim() || null,
-    p_project_key: payload.projectKey?.trim().toLowerCase() || null,
-    p_tag_names: payload.tagNames?.map((tag) => tag.trim().toLowerCase()).filter(Boolean).slice(0, 12) ?? [],
-    p_planned_seconds: payload.plannedSeconds === null || payload.plannedSeconds === undefined
-      ? null
-      : Math.max(0, Math.floor(payload.plannedSeconds)),
-    p_interruption_count: getBoundedInteger(payload.interruptionCount, 0, 999, 0),
-    p_paused_seconds: payload.pausedSeconds === null || payload.pausedSeconds === undefined
-      ? 0
-      : Math.max(0, Math.floor(payload.pausedSeconds)),
-  };
-}
-
-function getTrackingPayloadFromForm(formData: FormData): SessionTrackingPayload {
-  const plannedMinutes = getBoundedInteger(formData.get("plannedMinutes"), 0, 99999, null);
-  const pausedMinutes = getBoundedInteger(formData.get("pausedMinutes"), 0, 99999, 0);
-
-  return {
-    qualityScore: getBoundedInteger(formData.get("qualityScore"), 1, 5, null),
-    energyScore: getBoundedInteger(formData.get("energyScore"), 1, 5, null),
-    focusScore: getBoundedInteger(formData.get("focusScore"), 1, 5, null),
-    outcome: String(formData.get("outcome") ?? "").trim(),
-    projectKey: String(formData.get("projectKey") ?? "").trim(),
-    tagNames: cleanTags(String(formData.get("tagNames") ?? "")),
-    plannedSeconds: plannedMinutes === null ? null : plannedMinutes * 60,
-    interruptionCount: getBoundedInteger(formData.get("interruptionCount"), 0, 999, 0),
-    pausedSeconds: (pausedMinutes ?? 0) * 60,
-  };
 }
 
 export async function logoutFromChronos() {
@@ -336,6 +290,47 @@ export async function stopChronosTimerSmooth(
   }
 }
 
+async function applySessionDurationOverride(
+  supabase: Awaited<ReturnType<typeof createChronosServerClient>>,
+  sessionId: string,
+  durationSeconds: number | null,
+) {
+  if (durationSeconds === null) {
+    return null;
+  }
+
+  const { data: session, error: selectError } = await supabase
+    .schema("chronos")
+    .from("sessions")
+    .select("started_at")
+    .eq("id", sessionId)
+    .is("counts_toward_lifetime", null)
+    .maybeSingle();
+
+  if (selectError) {
+    return selectError.message;
+  }
+
+  if (!session?.started_at) {
+    return "Stopped timer could not be adjusted.";
+  }
+
+  const startedAtMs = new Date(String(session.started_at)).getTime();
+  if (!Number.isFinite(startedAtMs)) {
+    return "Stopped timer start time could not be read.";
+  }
+
+  const endedAt = new Date(startedAtMs + (durationSeconds * 1000)).toISOString();
+  const { error: updateError } = await supabase
+    .schema("chronos")
+    .from("sessions")
+    .update({ ended_at: endedAt })
+    .eq("id", sessionId)
+    .is("counts_toward_lifetime", null);
+
+  return updateError?.message ?? null;
+}
+
 export async function confirmChronosTimerSession(formData: FormData) {
   const sessionId = String(formData.get("sessionId") ?? "");
   const decision = String(formData.get("countTowardsLifetime") ?? "");
@@ -353,7 +348,6 @@ export async function confirmChronosTimerSession(formData: FormData) {
   const { data, error } = await supabase.rpc("confirm_timer_session", {
     p_session_id: sessionId,
     p_count_towards_lifetime: decision === "true",
-    ...normalizeTrackingPayload(getTrackingPayloadFromForm(formData)),
   });
 
   if (error) {
@@ -373,7 +367,7 @@ export async function confirmChronosTimerSession(formData: FormData) {
 export async function confirmChronosTimerSessionSmooth(
   sessionId: string,
   countTowardsLifetime: boolean,
-  tracking: SessionTrackingPayload = {},
+  durationSeconds?: number,
 ): Promise<SmoothTimerActionResult> {
   if (!sessionId) {
     return { success: false, error: "Choose a stopped session before updating the lifetime total." };
@@ -381,10 +375,15 @@ export async function confirmChronosTimerSessionSmooth(
 
   try {
     const supabase = await createChronosServerClient();
+    const durationError = await applySessionDurationOverride(supabase, sessionId, getSafeDurationOverride(durationSeconds));
+
+    if (durationError) {
+      return { success: false, error: durationError };
+    }
+
     const { data, error } = await supabase.rpc("confirm_timer_session", {
       p_session_id: sessionId,
       p_count_towards_lifetime: countTowardsLifetime,
-      ...normalizeTrackingPayload(tracking),
     });
 
     if (error) {

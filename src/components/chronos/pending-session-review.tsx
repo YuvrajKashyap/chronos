@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import type { confirmChronosTimerSessionSmooth } from "@/app/admin/actions";
-import type { SessionTrackingPayload } from "@/app/admin/actions";
 import type { AdminPendingSession } from "@/lib/chronos/admin-dashboard";
 import { LifetimeDecisionModal } from "./smooth-timer-control";
 
@@ -44,7 +43,7 @@ export function PendingSessionReview({
     return null;
   }
 
-  function handleDecision(countTowardsLifetime: boolean, tracking: SessionTrackingPayload) {
+  function handleDecision(countTowardsLifetime: boolean, durationSeconds: number) {
     if (!modalSession || isPending) {
       return;
     }
@@ -52,7 +51,7 @@ export function PendingSessionReview({
     setError(null);
     setDecisionPending(countTowardsLifetime ? "count" : "skip");
     startTransition(async () => {
-      const result = await action(modalSession.id, countTowardsLifetime, tracking);
+      const result = await action(modalSession.id, countTowardsLifetime, durationSeconds);
 
       if (!result.success) {
         setError(result.error);

@@ -3,10 +3,10 @@
 import { Check, Loader2, Pause, Play, Square, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 
 import type {
   confirmChronosTimerSessionSmooth,
-  SessionTrackingPayload,
   SmoothStoppedSession,
   startChronosTimerSmooth,
   stopChronosTimerSmooth,
@@ -52,6 +52,26 @@ function getStoppedAtIso(startedAtMs: number | null, elapsedSeconds: number) {
   }
 
   return new Date(startedAtMs + (Math.max(0, elapsedSeconds) * 1000)).toISOString();
+}
+
+function splitDurationSeconds(durationSeconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(durationSeconds));
+
+  return {
+    hours: Math.floor(safeSeconds / 3600),
+    minutes: Math.floor((safeSeconds % 3600) / 60),
+    seconds: safeSeconds % 60,
+  };
+}
+
+function getDurationInputValue(value: string, max?: number) {
+  const parsed = Math.floor(Number(value));
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+
+  const bounded = Math.max(0, parsed);
+  return typeof max === "number" ? Math.min(max, bounded) : bounded;
 }
 
 export function TimerCardRuntime({
@@ -327,7 +347,7 @@ export function SmoothTimerControl({
     onPause?.();
   }
 
-  function handleDecision(countTowardsLifetime: boolean, tracking: SessionTrackingPayload) {
+  function handleDecision(countTowardsLifetime: boolean, durationSeconds: number) {
     if (!stoppedSession || decisionPending || !stoppedSession.id) {
       return;
     }
@@ -336,7 +356,7 @@ export function SmoothTimerControl({
     setDecisionPending(decision);
     setError(null);
     startTransition(async () => {
-      const result = await confirmAction(stoppedSession.id, countTowardsLifetime, tracking);
+      const result = await confirmAction(stoppedSession.id, countTowardsLifetime, durationSeconds);
 
       if (!result.success) {
         setError(result.error);
@@ -393,7 +413,7 @@ type LifetimeDecisionModalProps = {
   error: string | null;
   isSyncing?: boolean;
   session: SmoothStoppedSession;
-  onDecision: (countTowardsLifetime: boolean, tracking: SessionTrackingPayload) => void;
+  onDecision: (countTowardsLifetime: boolean, durationSeconds: number) => void;
 };
 
 export function LifetimeDecisionModal({
@@ -403,40 +423,29 @@ export function LifetimeDecisionModal({
   session,
   onDecision,
 }: LifetimeDecisionModalProps) {
-  const duration = useMemo(() => formatSecondsAsTimer(session.durationSeconds), [session.durationSeconds]);
-  const [qualityScore, setQualityScore] = useState("");
-  const [energyScore, setEnergyScore] = useState("");
-  const [focusScore, setFocusScore] = useState("");
-  const [plannedMinutes, setPlannedMinutes] = useState("");
-  const [interruptionCount, setInterruptionCount] = useState("0");
-  const [pausedMinutes, setPausedMinutes] = useState("0");
-  const [projectKey, setProjectKey] = useState("");
-  const [tagNames, setTagNames] = useState("");
-  const [outcome, setOutcome] = useState("");
+  const initialParts = useMemo(() => splitDurationSeconds(session.durationSeconds), [session.durationSeconds]);
+  const [mounted, setMounted] = useState(false);
+  const [isEditingDuration, setIsEditingDuration] = useState(false);
+  const [hours, setHours] = useState(String(initialParts.hours));
+  const [minutes, setMinutes] = useState(String(initialParts.minutes));
+  const [seconds, setSeconds] = useState(String(initialParts.seconds));
+  const editedDurationSeconds =
+    (getDurationInputValue(hours) * 3600) + (getDurationInputValue(minutes, 59) * 60) + getDurationInputValue(seconds, 59);
+  const duration = useMemo(() => formatSecondsAsTimer(editedDurationSeconds), [editedDurationSeconds]);
 
-  function numericOrNull(value: string) {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  function getTrackingPayload(): SessionTrackingPayload {
-    const planned = numericOrNull(plannedMinutes);
-    const paused = numericOrNull(pausedMinutes);
+  useEffect(() => {
+    const nextParts = splitDurationSeconds(session.durationSeconds);
+    setHours(String(nextParts.hours));
+    setMinutes(String(nextParts.minutes));
+    setSeconds(String(nextParts.seconds));
+    setIsEditingDuration(false);
+  }, [session.id, session.durationSeconds]);
 
-    return {
-      qualityScore: numericOrNull(qualityScore),
-      energyScore: numericOrNull(energyScore),
-      focusScore: numericOrNull(focusScore),
-      plannedSeconds: planned === null ? null : Math.max(0, Math.floor(planned)) * 60,
-      interruptionCount: numericOrNull(interruptionCount) ?? 0,
-      pausedSeconds: Math.max(0, Math.floor(paused ?? 0)) * 60,
-      projectKey,
-      tagNames: tagNames.split(",").map((tag) => tag.trim()).filter(Boolean),
-      outcome,
-    };
-  }
-
-  return (
+  const modal = (
     <div className="lifetime-decision-backdrop" role="presentation">
       <section className="lifetime-decision-panel" role="dialog" aria-modal="true" aria-labelledby="lifetime-decision-title">
         <div className="lifetime-decision-aura" aria-hidden="true" />
@@ -444,50 +453,50 @@ export function LifetimeDecisionModal({
         <h2 id="lifetime-decision-title">Count this toward lifetime?</h2>
         <div className="lifetime-decision-session">
           <span>{session.skillName}</span>
-          <strong>{duration}</strong>
+          {isEditingDuration ? (
+            <div className="lifetime-duration-inputs" aria-label="Edit elapsed duration">
+              <label>
+                <span>H</span>
+                <input
+                  inputMode="numeric"
+                  min="0"
+                  type="number"
+                  value={hours}
+                  onChange={(event) => setHours(event.target.value)}
+                />
+              </label>
+              <label>
+                <span>M</span>
+                <input
+                  inputMode="numeric"
+                  max="59"
+                  min="0"
+                  type="number"
+                  value={minutes}
+                  onChange={(event) => setMinutes(event.target.value)}
+                />
+              </label>
+              <label>
+                <span>S</span>
+                <input
+                  inputMode="numeric"
+                  max="59"
+                  min="0"
+                  type="number"
+                  value={seconds}
+                  onChange={(event) => setSeconds(event.target.value)}
+                />
+              </label>
+            </div>
+          ) : (
+            <button className="lifetime-duration-button" type="button" onClick={() => setIsEditingDuration(true)}>
+              <strong>{duration}</strong>
+            </button>
+          )}
         </div>
         <p>
-          Lifetime totals stay unchanged until you choose. Counting adds this session to the dashboard total; skipping leaves
-          it out.
+          Lifetime totals stay unchanged until you choose. Counting adds the elapsed time shown here; skipping leaves it out.
         </p>
-        <div className="session-tracking-grid">
-          <label>
-            <span>Quality</span>
-            <input value={qualityScore} onChange={(event) => setQualityScore(event.target.value)} type="number" min="1" max="5" placeholder="1-5" />
-          </label>
-          <label>
-            <span>Energy</span>
-            <input value={energyScore} onChange={(event) => setEnergyScore(event.target.value)} type="number" min="1" max="5" placeholder="1-5" />
-          </label>
-          <label>
-            <span>Focus</span>
-            <input value={focusScore} onChange={(event) => setFocusScore(event.target.value)} type="number" min="1" max="5" placeholder="1-5" />
-          </label>
-          <label>
-            <span>Planned min</span>
-            <input value={plannedMinutes} onChange={(event) => setPlannedMinutes(event.target.value)} type="number" min="0" placeholder="Optional" />
-          </label>
-          <label>
-            <span>Interruptions</span>
-            <input value={interruptionCount} onChange={(event) => setInterruptionCount(event.target.value)} type="number" min="0" />
-          </label>
-          <label>
-            <span>Paused min</span>
-            <input value={pausedMinutes} onChange={(event) => setPausedMinutes(event.target.value)} type="number" min="0" />
-          </label>
-        </div>
-        <label className="session-tracking-field">
-          <span>Project</span>
-          <input value={projectKey} onChange={(event) => setProjectKey(event.target.value)} placeholder="client, product, campaign..." maxLength={80} />
-        </label>
-        <label className="session-tracking-field">
-          <span>Tags</span>
-          <input value={tagNames} onChange={(event) => setTagNames(event.target.value)} placeholder="deep work, design, research" maxLength={240} />
-        </label>
-        <label className="session-tracking-field">
-          <span>Outcome</span>
-          <textarea value={outcome} onChange={(event) => setOutcome(event.target.value)} placeholder="What changed because this session happened?" maxLength={500} />
-        </label>
         {error ? <p className="lifetime-decision-error">{error}</p> : null}
         {isSyncing ? <p className="lifetime-decision-sync">Finalizing the stopped session...</p> : null}
         <div className="lifetime-decision-actions">
@@ -495,7 +504,7 @@ export function LifetimeDecisionModal({
             className="session-decision-button is-skip"
             type="button"
             disabled={Boolean(decisionPending) || isSyncing}
-            onClick={() => onDecision(false, getTrackingPayload())}
+            onClick={() => onDecision(false, editedDurationSeconds)}
           >
             {decisionPending === "skip" ? <Loader2 className="timer-button-spinner" size={18} /> : <X size={18} />}
             <span>{decisionPending === "skip" ? "Skipping" : "Skip it"}</span>
@@ -504,7 +513,7 @@ export function LifetimeDecisionModal({
             className="session-decision-button is-count"
             type="button"
             disabled={Boolean(decisionPending) || isSyncing}
-            onClick={() => onDecision(true, getTrackingPayload())}
+            onClick={() => onDecision(true, editedDurationSeconds)}
           >
             {decisionPending === "count" ? <Loader2 className="timer-button-spinner" size={18} /> : <Check size={18} />}
             <span>{decisionPending === "count" ? "Counting" : "Count it"}</span>
@@ -513,4 +522,6 @@ export function LifetimeDecisionModal({
       </section>
     </div>
   );
+
+  return mounted ? createPortal(modal, document.body) : null;
 }
