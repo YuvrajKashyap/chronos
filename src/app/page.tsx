@@ -9,7 +9,14 @@ import {
   transformPublicDashboardToSkills,
 } from "@/lib/chronos/transform-dashboard";
 import { createChronosServerClient } from "@/lib/supabase/server";
-import { confirmChronosTimerSession, startChronosTimer, stopChronosTimer } from "./admin/actions";
+import {
+  confirmChronosTimerSession,
+  createChronosSkill,
+  deleteChronosSkill,
+  startChronosTimer,
+  stopChronosTimer,
+  updateChronosSkill,
+} from "./admin/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -72,8 +79,11 @@ export default async function Home({
           mode: "admin",
           nextPath: "/",
           confirmSessionAction: confirmChronosTimerSession,
+          createSkillAction: createChronosSkill,
+          deleteSkillAction: deleteChronosSkill,
           startAction: startChronosTimer,
           stopAction: stopChronosTimer,
+          updateSkillAction: updateChronosSkill,
         }}
         isAuthenticated
         message={actionError}

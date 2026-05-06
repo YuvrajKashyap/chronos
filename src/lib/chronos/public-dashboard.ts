@@ -8,6 +8,7 @@ export type PublicDashboardSkill = {
   icon_key?: string | null;
   accent_key?: string | null;
   accent_color?: string | null;
+  visibility?: "public" | "private" | null;
   sort_order?: number | null;
   lifetime_seconds?: number | null;
   today_seconds?: number | null;

@@ -3,6 +3,7 @@ import type { DashboardControls } from "./chronos-dashboard-page";
 import { CardMotif } from "./card-motif";
 import { LoginPromptButton } from "./login-prompt-button";
 import { LiveTimerValue } from "./live-timer-value";
+import { SkillCardFrame } from "./skill-card-frame";
 import { TimerSubmitButton } from "./timer-submit-button";
 
 export function SkillTimerCard({
@@ -16,9 +17,27 @@ export function SkillTimerCard({
 }) {
   const Icon = skill.icon;
   const isDisabledStart = controls.mode === "admin" && hasActiveTimer && !skill.isActive;
+  const cardClassName = `skill-card accent-${skill.accent} ${skill.isActive ? "is-active" : ""}`;
 
   return (
-    <article className={`skill-card accent-${skill.accent} ${skill.isActive ? "is-active" : ""}`}>
+    <SkillCardFrame
+      className={cardClassName}
+      manage={
+        controls.mode === "admin"
+          ? {
+              accentKey: skill.accentKey,
+              deleteAction: controls.deleteSkillAction,
+              iconKey: skill.iconKey,
+              id: skill.id,
+              isActive: skill.isActive,
+              name: skill.title,
+              nextPath: controls.nextPath,
+              updateAction: controls.updateSkillAction,
+              visibility: skill.visibility,
+            }
+          : undefined
+      }
+    >
       <div className="card-glow" aria-hidden="true" />
       <div className="card-header-row">
         <div className="skill-icon">
@@ -60,6 +79,6 @@ export function SkillTimerCard({
         </button>
       )}
       <CardMotif type={skill.motif} />
-    </article>
+    </SkillCardFrame>
   );
 }

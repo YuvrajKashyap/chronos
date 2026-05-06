@@ -1,6 +1,13 @@
 import type { ChronosSkill } from "@/lib/chronos-sample-data";
 import type { AdminPendingSession } from "@/lib/chronos/admin-dashboard";
-import type { confirmChronosTimerSession, startChronosTimer, stopChronosTimer } from "@/app/admin/actions";
+import type {
+  confirmChronosTimerSession,
+  createChronosSkill,
+  deleteChronosSkill,
+  startChronosTimer,
+  stopChronosTimer,
+  updateChronosSkill,
+} from "@/app/admin/actions";
 import { ChronosShell } from "./chronos-shell";
 import { DashboardFooterHint } from "./dashboard-footer-hint";
 import { PendingSessionReview } from "./pending-session-review";
@@ -14,6 +21,9 @@ export type DashboardControls =
       startAction: typeof startChronosTimer;
       stopAction: typeof stopChronosTimer;
       confirmSessionAction: typeof confirmChronosTimerSession;
+      createSkillAction: typeof createChronosSkill;
+      updateSkillAction: typeof updateChronosSkill;
+      deleteSkillAction: typeof deleteChronosSkill;
       nextPath: string;
     };
 

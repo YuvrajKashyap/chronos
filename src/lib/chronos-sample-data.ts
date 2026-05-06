@@ -12,9 +12,13 @@ export type SkillMotif = "contour" | "flow" | "branch" | "quill" | "mesh" | "clo
 
 export type ChronosSkill = {
   id: string;
+  slug?: string;
   title: string;
+  iconKey?: string;
   icon: LucideIcon;
   accent: string;
+  accentKey?: string;
+  visibility?: "public" | "private";
   isActive: boolean;
   badge?: string;
   label: string;

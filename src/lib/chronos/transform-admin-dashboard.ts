@@ -16,6 +16,7 @@ export function transformAdminDashboardToSkills(state: AdminTimerState): Chronos
       icon_key: skill.icon_key,
       accent_key: skill.accent_key,
       accent_color: skill.accent_color,
+      visibility: skill.visibility,
       sort_order: skill.sort_order,
       lifetime_seconds: skill.lifetime_seconds,
       active_session_started_at: skill.active_session_started_at,

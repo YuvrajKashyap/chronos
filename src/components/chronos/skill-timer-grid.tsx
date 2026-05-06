@@ -1,5 +1,6 @@
 import type { ChronosSkill } from "@/lib/chronos-sample-data";
 import type { DashboardControls } from "./chronos-dashboard-page";
+import { AddSkillCard } from "./add-skill-card";
 import { SkillTimerCard } from "./skill-timer-card";
 
 export function SkillTimerGrid({
@@ -16,6 +17,9 @@ export function SkillTimerGrid({
       {skills.map((skill) => (
         <SkillTimerCard controls={controls} hasActiveTimer={hasActiveTimer} key={skill.id} skill={skill} />
       ))}
+      {controls.mode === "admin" ? (
+        <AddSkillCard action={controls.createSkillAction} nextPath={controls.nextPath} />
+      ) : null}
     </section>
   );
 }

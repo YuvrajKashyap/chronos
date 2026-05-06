@@ -6,7 +6,15 @@ import { ChronosShell } from "@/components/chronos/chronos-shell";
 import { getAdminTimerState } from "@/lib/chronos/admin-dashboard";
 import { getAdminActiveSessionCount, transformAdminDashboardToSkills } from "@/lib/chronos/transform-admin-dashboard";
 import { createChronosServerClient } from "@/lib/supabase/server";
-import { confirmChronosTimerSession, logoutFromChronos, startChronosTimer, stopChronosTimer } from "./actions";
+import {
+  confirmChronosTimerSession,
+  createChronosSkill,
+  deleteChronosSkill,
+  logoutFromChronos,
+  startChronosTimer,
+  stopChronosTimer,
+  updateChronosSkill,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -174,8 +182,11 @@ export default async function AdminPage({
         mode: "admin",
         nextPath: "/admin",
         confirmSessionAction: confirmChronosTimerSession,
+        createSkillAction: createChronosSkill,
+        deleteSkillAction: deleteChronosSkill,
         startAction: startChronosTimer,
         stopAction: stopChronosTimer,
+        updateSkillAction: updateChronosSkill,
       }}
       isAuthenticated
       message={actionError}

@@ -1,0 +1,41 @@
+"use client";
+
+import { X } from "lucide-react";
+import type { ReactNode } from "react";
+import { useEffect } from "react";
+
+export function SkillModal({
+  children,
+  eyebrow,
+  onClose,
+  title,
+}: {
+  children: ReactNode;
+  eyebrow: string;
+  onClose: () => void;
+  title: string;
+}) {
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  return (
+    <div className="skill-modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section className="skill-modal-panel" role="dialog" aria-modal="true" aria-labelledby="skill-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+        <button className="skill-modal-close" type="button" onClick={onClose} aria-label="Close">
+          <X size={18} aria-hidden="true" />
+        </button>
+        <p className="skill-modal-kicker">{eyebrow}</p>
+        <h2 id="skill-modal-title">{title}</h2>
+        {children}
+      </section>
+    </div>
+  );
+}
