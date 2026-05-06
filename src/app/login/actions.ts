@@ -25,12 +25,23 @@ function getOwnerLoginConfig() {
   return { username, email };
 }
 
+function getSafeNextPath(value: FormDataEntryValue | null) {
+  const nextPath = String(value ?? "/admin");
+
+  if (nextPath === "/insights" || nextPath === "/settings" || nextPath === "/admin") {
+    return nextPath;
+  }
+
+  return "/admin";
+}
+
 export async function signInToChronos(
   _previousState: LoginFormState,
   formData: FormData,
 ): Promise<LoginFormState> {
   const username = normalizeUsername(formData.get("chronos-access-name"));
   const password = String(formData.get("password") ?? "");
+  const nextPath = getSafeNextPath(formData.get("nextPath"));
   const config = getOwnerLoginConfig();
 
   if (!config) {
@@ -63,5 +74,5 @@ export async function signInToChronos(
     };
   }
 
-  redirect("/admin");
+  redirect(nextPath);
 }
