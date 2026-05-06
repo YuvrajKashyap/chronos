@@ -33,18 +33,46 @@ export default async function LoginPage({
         />
       </div>
       <main className="auth-modal-backdrop" aria-labelledby="login-title">
-        <section className="auth-panel auth-modal-panel" role="dialog" aria-modal="true" aria-labelledby="login-title">
+        <section className="auth-modal-panel chronos-auth-card" role="dialog" aria-modal="true" aria-labelledby="login-title">
           <Link className="auth-modal-close" href="/" aria-label="Close login">
             <X size={18} aria-hidden="true" />
           </Link>
-          <p className="auth-kicker">Private ledger access</p>
-          <h1 id="login-title">Admin Login</h1>
-          <p className="auth-copy">Private Chronos control access.</p>
-          {authError ? <p className="auth-message is-error">Auth callback: {authError}</p> : null}
-          <LoginForm />
-          <Link className="auth-secondary-link" href="/">
-            Back to public dashboard
-          </Link>
+          <aside className="auth-brand-pane" aria-hidden="true">
+            <div className="auth-brand-lockup">
+              <span className="auth-mini-seal">C</span>
+              <span>CHRONOS</span>
+            </div>
+            <div className="auth-orbit-mark">
+              <span className="auth-orbit-ring auth-orbit-ring-one" />
+              <span className="auth-orbit-ring auth-orbit-ring-two" />
+              <span className="auth-orbit-ring auth-orbit-ring-three" />
+              <img
+                className="auth-orbit-logo auth-orbit-logo-light"
+                src="/assets/chronos-logo-light.png"
+                alt=""
+                width="876"
+                height="876"
+              />
+              <img
+                className="auth-orbit-logo auth-orbit-logo-dark"
+                src="/assets/chronos-logo-dark.png"
+                alt=""
+                width="1072"
+                height="1072"
+              />
+            </div>
+            <p className="auth-brand-motto">
+              Time is not spent.
+              <span>It's invested.</span>
+            </p>
+          </aside>
+          <div className="auth-form-pane">
+            <p className="auth-kicker">Private ledger access</p>
+            <h1 id="login-title">Welcome back</h1>
+            <p className="auth-copy">Sign in to securely access your Chronos control center.</p>
+            {authError ? <p className="auth-message is-error">Auth callback: {authError}</p> : null}
+            <LoginForm />
+          </div>
         </section>
       </main>
     </div>
