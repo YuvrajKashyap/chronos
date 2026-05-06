@@ -1,17 +1,12 @@
-import { ChronosRoutePage } from "@/components/chronos/chronos-route-page";
+import { ChronosInsightsPage } from "@/components/chronos/chronos-insights-page";
 import { getChronosAuthState } from "@/lib/chronos/auth-state";
+import { getChronosInsights } from "@/lib/chronos/insights";
 
 export const dynamic = "force-dynamic";
 
 export default async function InsightsPage() {
   const { isAuthenticated } = await getChronosAuthState();
+  const insights = await getChronosInsights(isAuthenticated);
 
-  return (
-    <ChronosRoutePage
-      description="Private analysis and public proof-of-work insight views will be added here."
-      eyebrow="Analysis"
-      isAuthenticated={isAuthenticated}
-      title="Insights"
-    />
-  );
+  return <ChronosInsightsPage insights={insights} isAuthenticated={isAuthenticated} />;
 }

@@ -2345,6 +2345,247 @@ a {
   flex-wrap: wrap;
 }
 
+.insights-main {
+  width: min(calc(100% - (var(--main-x) * 2)), 1818px);
+  margin: 0 auto;
+  padding: clamp(24px, calc(var(--ui) * 0.021), 44px) 0 clamp(30px, calc(var(--ui) * 0.025), 54px);
+  position: relative;
+  z-index: 1;
+}
+
+.insights-hero {
+  max-width: 980px;
+  margin-bottom: clamp(18px, calc(var(--ui) * 0.018), 36px);
+}
+
+.insights-hero h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(44px, calc(var(--ui) * 0.04), 82px);
+  font-weight: 600;
+  line-height: 0.94;
+  letter-spacing: 0;
+}
+
+.insights-hero p:not(.auth-kicker):not(.admin-inline-message) {
+  max-width: 720px;
+  margin: 14px 0 0;
+  color: var(--text-secondary);
+  font-size: clamp(15px, calc(var(--ui) * 0.01), 20px);
+  line-height: 1.5;
+}
+
+.insight-metric-grid,
+.insight-section-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(12px, calc(var(--ui) * 0.01), 20px);
+}
+
+.insight-section-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: clamp(14px, calc(var(--ui) * 0.012), 24px);
+}
+
+.insight-metric,
+.insight-panel,
+.insight-issue,
+.insight-milestone {
+  border: 1px solid var(--divider);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(var(--nav-active-rgb), 0.08), transparent 42%),
+    var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+
+.insight-metric {
+  min-height: 150px;
+  padding: clamp(16px, calc(var(--ui) * 0.014), 26px);
+  border-radius: clamp(16px, calc(var(--ui) * 0.012), 24px);
+}
+
+.insight-metric span,
+.insight-panel-heading span,
+.insight-issue span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.insight-metric strong {
+  display: block;
+  margin-top: 12px;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(30px, calc(var(--ui) * 0.024), 52px);
+  font-weight: 600;
+  line-height: 0.95;
+}
+
+.insight-metric p,
+.insight-issue p,
+.insight-milestone p {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.insight-panel {
+  min-width: 0;
+  padding: clamp(18px, calc(var(--ui) * 0.016), 32px);
+  border-radius: clamp(18px, calc(var(--ui) * 0.014), 28px);
+}
+
+.insight-panel-heading {
+  margin-bottom: 18px;
+}
+
+.insight-panel-heading h2 {
+  margin: 7px 0 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(28px, calc(var(--ui) * 0.02), 44px);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.insight-rank-list,
+.insight-issue-list,
+.insight-milestone-list,
+.insight-projection-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.insight-rank-row {
+  min-height: 60px;
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(80px, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.insight-rank-row strong,
+.insight-milestone strong,
+.insight-issue strong {
+  display: block;
+  color: var(--text-primary);
+  font-weight: 850;
+}
+
+.insight-rank-row span,
+.insight-milestone span,
+.insight-milestone em,
+.insight-rank-row em {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 750;
+}
+
+.insight-rank-bar {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+:root[data-theme="light"] .insight-rank-bar {
+  background: rgba(16, 37, 35, 0.08);
+}
+
+.insight-rank-bar span {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: rgb(var(--nav-active-rgb));
+  box-shadow: 0 0 18px rgba(var(--nav-active-rgb), 0.26);
+}
+
+.insight-timeline {
+  min-height: 230px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.insight-day {
+  min-width: 0;
+  height: 220px;
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.insight-day > span {
+  width: 100%;
+  min-height: 7px;
+  border: 1px solid rgba(var(--nav-active-rgb), 0.24);
+  border-radius: 999px 999px 8px 8px;
+  background:
+    linear-gradient(180deg, rgba(var(--nav-active-rgb), 0.42), rgba(var(--nav-active-rgb), 0.08)),
+    rgba(var(--nav-active-rgb), 0.08);
+}
+
+.insight-day strong,
+.insight-day em {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 750;
+  line-height: 1.1;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.insight-day em {
+  color: var(--text-muted);
+}
+
+.insight-issue,
+.insight-milestone {
+  padding: 14px;
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.insight-issue.is-good {
+  border-color: rgba(39, 183, 135, 0.28);
+}
+
+.insight-issue.is-warn {
+  border-color: rgba(255, 186, 65, 0.34);
+}
+
+.insight-milestone {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.insight-empty {
+  margin: 0;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.insight-generated {
+  margin: 24px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
 .admin-main {
   width: min(calc(100% - (var(--main-x) * 2)), 1480px);
   margin: 0 auto;
@@ -3669,6 +3910,35 @@ a {
   .admin-main {
     width: 100%;
     padding: 44px 20px 34px;
+  }
+
+  .insights-main {
+    width: 100%;
+    padding: 44px 20px 34px;
+  }
+
+  .insights-hero h1 {
+    font-size: 43px;
+  }
+
+  .insight-metric-grid,
+  .insight-section-grid,
+  .insight-milestone {
+    grid-template-columns: 1fr;
+  }
+
+  .insight-rank-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .insight-timeline {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    overflow-x: auto;
+  }
+
+  .insight-day {
+    min-width: 42px;
   }
 
   .admin-hero-panel,
