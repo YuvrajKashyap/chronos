@@ -61,7 +61,7 @@ export function ChronosDashboardPage({
     <ChronosShell isAuthenticated={isAuthenticated}>
       <main className="dashboard-main">
         <section className="dashboard-hero" aria-label="Dashboard status">
-          <div className="status-row">
+          <div className={controls.mode === "login" ? "status-row has-view-only-note" : "status-row"}>
             <span className="status-dot" aria-hidden="true" />
             <span>{isIdleTracking ? "Idle tracking active" : sessionLabel}</span>
             {isIdleTracking && idleSession ? (
@@ -73,8 +73,8 @@ export function ChronosDashboardPage({
             ) : null}
             {controls.mode === "login" ? (
               <span className="status-view-only-note">
-                <span>Public view only. Edits require Yuvraj to sign in.</span>
-                <span>Majority tracked since Yuvraj turned 21.</span>
+                <span>Public view of Yuvraj's current stats. Editing is available only when Yuvraj signs in.</span>
+                <span>P.S. The majority of these stats have only been tracked since Yuvraj turned 21.</span>
               </span>
             ) : null}
           </div>

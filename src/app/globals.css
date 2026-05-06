@@ -482,6 +482,7 @@ a {
 }
 
 .status-row {
+  position: relative;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -489,6 +490,10 @@ a {
   color: var(--text-secondary);
   font-size: clamp(14px, calc(var(--ui) * 0.01), 20px);
   font-weight: 500;
+}
+
+.status-row.has-view-only-note {
+  min-height: 46px;
 }
 
 .status-dot {
@@ -509,33 +514,25 @@ a {
 }
 
 .status-view-only-note {
-  margin-left: auto;
-  min-width: min(520px, 100%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
+  width: min(620px, 100%);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  gap: 4px;
   color: color-mix(in srgb, var(--text-secondary) 82%, var(--text-muted));
-  font-size: clamp(12px, calc(var(--ui) * 0.008), 15px);
+  font-size: 14px;
   font-weight: 600;
-  line-height: 1.25;
-  text-align: right;
+  line-height: 1.45;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .status-view-only-note span + span {
   color: var(--text-muted);
-}
-
-.status-view-only-note span + span::before {
-  content: "";
-  width: 4px;
-  height: 4px;
-  margin-right: 10px;
-  display: inline-block;
-  border-radius: 999px;
-  background: currentColor;
-  opacity: 0.48;
-  vertical-align: middle;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .skill-grid {
@@ -4330,11 +4327,9 @@ a {
 
   .status-view-only-note {
     width: 100%;
-    min-width: 0;
-    margin-left: 0;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    text-align: left;
+    position: static;
+    transform: none;
+    text-align: center;
   }
 
   .auth-main {
