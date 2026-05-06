@@ -1,6 +1,31 @@
 import type { SkillMotif } from "@/lib/chronos-sample-data";
 
 export function CardMotif({ type }: { type: SkillMotif }) {
+  if (type === "campaign") {
+    return (
+      <svg className="card-motif campaign-motif" viewBox="0 0 300 250" aria-hidden="true">
+        <path d="M28 210 C68 154 106 123 158 115 C202 108 235 78 276 30" />
+        <path d="M48 220 C88 173 124 147 174 139 C216 132 245 107 285 72" />
+        <path d="M78 230 C119 197 151 179 194 173 C235 167 261 147 295 120" />
+        <path d="M82 106 L159 72 L159 171 L82 137Z" />
+        <path d="M159 72 C191 85 214 102 232 123 C214 143 191 159 159 171" />
+        <path d="M82 137 L62 156 L47 146 L69 120" />
+        <path d="M70 118 L56 103 L74 88 L89 105" />
+        <path d="M98 142 L122 204" />
+        <path d="M126 130 L149 193" />
+        <g className="signal-bars">
+          <path d="M224 61 C242 75 254 94 259 116" />
+          <path d="M245 38 C269 58 285 84 292 115" />
+        </g>
+        <g className="dot-cluster">
+          {Array.from({ length: 30 }).map((_, index) => (
+            <circle key={index} cx={190 + (index % 6) * 15} cy={156 + Math.floor(index / 6) * 13} r="1.9" />
+          ))}
+        </g>
+      </svg>
+    );
+  }
+
   if (type === "branch") {
     return (
       <svg className="card-motif branch-motif" viewBox="0 0 240 280" aria-hidden="true">
