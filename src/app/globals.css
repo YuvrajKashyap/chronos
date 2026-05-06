@@ -526,29 +526,14 @@ a {
 .dashboard-main {
   width: min(calc(100% - (var(--main-x) * 2)), 1818px);
   margin: 0 auto;
-  padding: var(--hero-top) 0 clamp(12px, calc(var(--ui) * 0.012), 24px);
+  padding: clamp(18px, calc(var(--ui) * 0.017), 34px) 0 clamp(12px, calc(var(--ui) * 0.012), 24px);
   box-sizing: border-box;
   position: relative;
   z-index: 1;
 }
 
 .dashboard-hero {
-  margin-bottom: var(--hero-gap);
-}
-
-.dashboard-hero h1 {
-  margin: 0 0 18px;
-  font-family: var(--font-display);
-  font-size: clamp(33px, calc(var(--ui) * 0.032), 64px);
-  font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: 0;
-  color: var(--text-primary);
-  text-shadow: 0 3px 15px rgba(0, 0, 0, 0.25);
-}
-
-:root[data-theme="light"] .dashboard-hero h1 {
-  text-shadow: 0 8px 20px rgba(17, 47, 45, 0.12);
+  margin-bottom: clamp(16px, calc(var(--ui) * 0.014), 28px);
 }
 
 .status-row {
@@ -602,6 +587,92 @@ a {
     radial-gradient(circle at 12% 0%, rgba(var(--accent-rgb), 0.07), transparent 45%),
     radial-gradient(circle at 100% 100%, rgba(var(--accent-rgb), 0.08), transparent 40%),
     var(--card-bg);
+}
+
+.skill-card.is-ad-tracker-card {
+  border-color: rgba(239, 163, 32, 0.44);
+  background:
+    radial-gradient(circle at 13% 2%, rgba(255, 195, 88, 0.13), transparent 39%),
+    radial-gradient(circle at 91% 100%, rgba(63, 141, 255, 0.11), transparent 42%),
+    linear-gradient(145deg, rgba(12, 14, 20, 0.92), rgba(5, 10, 19, 0.8) 58%, rgba(14, 13, 16, 0.88));
+  box-shadow:
+    var(--card-shadow),
+    inset 0 1px 0 rgba(255, 231, 185, 0.07),
+    0 0 42px rgba(239, 163, 32, 0.11);
+}
+
+:root[data-theme="light"] .skill-card.is-ad-tracker-card {
+  border-color: rgba(194, 128, 20, 0.3);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(238, 170, 56, 0.12), transparent 41%),
+    radial-gradient(circle at 95% 100%, rgba(63, 141, 255, 0.1), transparent 41%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(248, 249, 243, 0.76));
+  box-shadow:
+    0 22px 48px rgba(92, 70, 32, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    0 0 34px rgba(239, 163, 32, 0.08);
+}
+
+.skill-card.is-ad-tracker-card .skill-icon {
+  position: relative;
+  border-color: rgba(239, 163, 32, 0.48);
+  background:
+    radial-gradient(circle at 35% 22%, rgba(255, 235, 173, 0.2), transparent 33%),
+    rgba(239, 163, 32, 0.11);
+  box-shadow:
+    inset 0 0 22px rgba(239, 163, 32, 0.08),
+    0 15px 30px rgba(239, 163, 32, 0.11);
+}
+
+.skill-card.is-ad-tracker-card .metric-label,
+.skill-card.is-ad-tracker-card .timer-button {
+  color: #ffba41;
+}
+
+.skill-card.is-ad-tracker-card .card-rule {
+  width: min(88%, 320px);
+  background: linear-gradient(90deg, rgba(239, 163, 32, 0.34), rgba(63, 141, 255, 0.06));
+}
+
+.ad-tracker-signal {
+  position: absolute;
+  top: clamp(24px, calc(var(--ui) * 0.02), 40px);
+  right: clamp(24px, calc(var(--ui) * 0.022), 46px);
+  width: clamp(76px, calc(var(--ui) * 0.066), 136px);
+  height: clamp(52px, calc(var(--ui) * 0.044), 92px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: clamp(6px, calc(var(--ui) * 0.005), 10px);
+  opacity: 0.34;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ad-tracker-signal span {
+  width: clamp(8px, calc(var(--ui) * 0.007), 14px);
+  border: 1px solid rgba(255, 186, 65, 0.48);
+  border-radius: 999px 999px 6px 6px;
+  background:
+    linear-gradient(180deg, rgba(255, 210, 102, 0.32), rgba(255, 186, 65, 0.05)),
+    rgba(255, 186, 65, 0.04);
+  box-shadow: 0 0 18px rgba(239, 163, 32, 0.16);
+}
+
+.ad-tracker-signal span:nth-child(1) {
+  height: 38%;
+}
+
+.ad-tracker-signal span:nth-child(2) {
+  height: 68%;
+}
+
+.ad-tracker-signal span:nth-child(3) {
+  height: 50%;
+}
+
+.ad-tracker-signal span:nth-child(4) {
+  height: 88%;
 }
 
 .accent-coral {
@@ -1393,6 +1464,18 @@ a {
   width: 45%;
   height: 76%;
   opacity: 0.23;
+}
+
+.campaign-motif {
+  width: 47%;
+  height: 74%;
+  right: -2px;
+  bottom: -5px;
+  opacity: 0.25;
+}
+
+.campaign-motif .signal-bars path {
+  stroke-width: 1.7;
 }
 
 .clouds-motif path:first-child,
@@ -2408,10 +2491,6 @@ a {
 
   .admin-skill-grid {
     grid-template-columns: 1fr;
-  }
-
-  .dashboard-hero h1 {
-    font-size: 43px;
   }
 
   .skill-grid {
