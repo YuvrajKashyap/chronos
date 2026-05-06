@@ -52,6 +52,13 @@ export type InsightMilestone = {
   eta_days: number | null;
 };
 
+export type InsightDataHealth = {
+  label: string;
+  value: string;
+  detail: string;
+  tone: "good" | "warn" | "neutral";
+};
+
 export type InsightIssue = {
   title: string;
   detail: string;
@@ -85,6 +92,11 @@ export type ChronosInsights = {
     pending_session_count: number;
     active_session_count: number;
     skill_count: number;
+    deep_work_seconds: number;
+    micro_session_seconds: number;
+    manual_seconds: number;
+    timer_seconds: number;
+    system_seconds: number;
   };
   behavior: {
     average_session_seconds: number;
@@ -99,6 +111,16 @@ export type ChronosInsights = {
     current_streak_days: number;
     longest_streak_days: number;
     active_day_count: number;
+    observed_span_days: number;
+    days_since_last_session: number | null;
+    deep_work_session_count: number;
+    micro_session_count: number;
+    switch_count: number;
+    context_switch_rate: number;
+    skill_coverage: number;
+    entropy_score: number;
+    stale_skill_count: number;
+    recovery_gap_days: number;
     best_day: InsightDay | null;
     peak_hour: { hour: number; seconds: number } | null;
     peak_weekday: { weekday: string; seconds: number } | null;
@@ -110,19 +132,29 @@ export type ChronosInsights = {
     projected_month_seconds: number;
     projected_year_seconds: number;
     yesterday_delta_seconds: number;
+    previous_week_seconds: number;
+    weekly_delta_seconds: number;
+    acceleration_ratio: number;
+    lifetime_daily_average_seconds: number;
+    days_to_double_lifetime: number | null;
   };
   rankings: {
     skills_by_lifetime: InsightRank[];
     skills_by_recent: InsightRank[];
+    skills_by_staleness: InsightRank[];
     session_lengths: InsightRank[];
     weekday_heatmap: InsightRank[];
     hourly_heatmap: InsightRank[];
+    source_breakdown: InsightRank[];
+    privacy_breakdown: InsightRank[];
   };
   timelines: {
     last_14_days: InsightDay[];
+    last_30_days: InsightDay[];
     last_8_weeks: InsightDay[];
   };
   milestones: InsightMilestone[];
+  data_health: InsightDataHealth[];
   issues: InsightIssue[];
 };
 
@@ -330,6 +362,11 @@ function deriveInsights({
   const pendingSessions = usefulSessions.filter((session) => session.ended_at && session.counts_toward_lifetime === null);
   const privateSessions = usefulSessions.filter((session) => session.is_private);
   const publicSessions = usefulSessions.filter((session) => !session.is_private);
+  const manualSessions = usefulSessions.filter((session) => session.source === "manual");
+  const timerSessions = usefulSessions.filter((session) => session.source === "timer");
+  const systemSessions = usefulSessions.filter((session) => session.source === "system");
+  const deepWorkSessions = usefulSessions.filter((session) => session.duration_seconds >= 90 * 60);
+  const microSessions = usefulSessions.filter((session) => session.duration_seconds > 0 && session.duration_seconds <= 10 * 60);
   const durations = usefulSessions.map((session) => session.duration_seconds);
   const observedSeconds = sum(durations);
   const countedSeconds = sum(countedSessions.map((session) => session.duration_seconds));
@@ -337,6 +374,11 @@ function deriveInsights({
   const pendingSeconds = sum(pendingSessions.map((session) => session.duration_seconds));
   const privateSeconds = sum(privateSessions.map((session) => session.duration_seconds));
   const publicSeconds = sum(publicSessions.map((session) => session.duration_seconds));
+  const manualSeconds = sum(manualSessions.map((session) => session.duration_seconds));
+  const timerSeconds = sum(timerSessions.map((session) => session.duration_seconds));
+  const systemSeconds = sum(systemSessions.map((session) => session.duration_seconds));
+  const deepWorkSeconds = sum(deepWorkSessions.map((session) => session.duration_seconds));
+  const microSessionSeconds = sum(microSessions.map((session) => session.duration_seconds));
   const lifetimeSeconds = Math.max(sum(skills.map((skill) => skill.lifetime_seconds)), countedSeconds);
   const activeSeconds = sum(skills.map((skill) => skill.active_seconds));
   const daySeries = emptyDaySeries(90, now);
@@ -367,8 +409,14 @@ function deriveInsights({
   const today = daySeries.at(-1) ?? null;
   const yesterday = daySeries.at(-2) ?? null;
   const last7 = daySeries.slice(-7);
+  const previous7 = daySeries.slice(-14, -7);
   const last30 = daySeries.slice(-30);
   const last14 = daySeries.slice(-14);
+  const sortedSessions = usefulSessions
+    .slice()
+    .sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
+  const firstSessionDate = dateOrNull(sortedSessions[0]?.started_at);
+  const lastSessionDate = dateOrNull(sortedSessions.at(-1)?.started_at);
   const last8Weeks = Array.from({ length: 8 }, (_, index) => {
     const weekDays = daySeries.slice(Math.max(0, daySeries.length - ((8 - index) * 7)), daySeries.length - ((7 - index) * 7));
     const first = weekDays[0];
@@ -382,6 +430,7 @@ function deriveInsights({
     };
   });
   const weekSeconds = sum(last7.map((day) => day.seconds));
+  const previousWeekSeconds = sum(previous7.map((day) => day.seconds));
   const monthSeconds = sum(last30.map((day) => day.seconds));
   const activeDays = daySeries.filter((day) => day.seconds > 0);
   const streaks = computeStreaks(daySeries);
@@ -395,6 +444,23 @@ function deriveInsights({
   const peakWeekdayRank = weekdayRanks[0];
   const skillLifetimeRanks = rankFromMap(skillLifetimeMap, lifetimeSeconds, "lifetime").slice(0, 8);
   const skillRecentRanks = rankFromMap(skillRecentMap, weekSeconds, "last 90 days").slice(0, 8);
+  const sourceBreakdown = rankFromMap(
+    new Map([
+      ["Timer", timerSeconds],
+      ["Manual", manualSeconds],
+      ["System", systemSeconds],
+    ]),
+    observedSeconds,
+    "source",
+  );
+  const privacyBreakdown = rankFromMap(
+    new Map([
+      ["Public", publicSeconds],
+      ["Private", privateSeconds],
+    ]),
+    observedSeconds,
+    "visibility",
+  );
   const sessionLengthRanks = usefulSessions
     .slice()
     .sort((a, b) => b.duration_seconds - a.duration_seconds)
@@ -405,11 +471,59 @@ function deriveInsights({
       share: ratio(session.duration_seconds, observedSeconds),
       meta: dateOrNull(session.started_at)?.toISOString().slice(0, 10) ?? "session",
     }));
+  const staleRanks = skills
+    .filter((skill) => skill.lifetime_seconds > 0)
+    .map((skill) => {
+      const last = dateOrNull(skill.last_session_at);
+      const daysStale = last ? Math.max(0, Math.floor((now.getTime() - last.getTime()) / DAY_MS)) : 999;
+
+      return {
+        label: skill.name,
+        value: daysStale,
+        share: ratio(daysStale, 90),
+        meta: last ? `last ${last.toISOString().slice(0, 10)}` : "no session date",
+      };
+    })
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8);
   const focusScore = sum(skillLifetimeRanks.map((rank) => rank.share * rank.share));
   const consistencyScore = clampPercent(activeDays.length / Math.min(90, daySeries.length));
   const balanceScore = clampPercent(1 - focusScore);
+  const entropyScore = clampPercent(
+    -sum(skillLifetimeRanks.map((rank) => (rank.share > 0 ? rank.share * Math.log2(rank.share) : 0))) /
+      Math.max(1, Math.log2(Math.max(2, skills.filter((skill) => skill.lifetime_seconds > 0).length))),
+  );
+  const switchCount = sortedSessions.reduce((count, session, index) => {
+    if (index === 0) {
+      return count;
+    }
+
+    return sortedSessions[index - 1].skill_id === session.skill_id ? count : count + 1;
+  }, 0);
+  const observedSpanDays = firstSessionDate && lastSessionDate
+    ? Math.max(1, Math.ceil((lastSessionDate.getTime() - firstSessionDate.getTime()) / DAY_MS) + 1)
+    : 0;
+  const daysSinceLastSession = lastSessionDate ? Math.max(0, Math.floor((now.getTime() - lastSessionDate.getTime()) / DAY_MS)) : null;
+  const lifetimeDailyAverage = observedSpanDays > 0 ? Math.round(lifetimeSeconds / observedSpanDays) : 0;
+  const staleSkillCount = staleRanks.filter((rank) => rank.value >= 14).length;
+  const skillCoverage = ratio(skills.filter((skill) => skill.session_count > 0 || skill.lifetime_seconds > 0).length, skills.length);
+  const recoveryGapDays = Math.max(0, ...daySeries.map((day, index) => {
+    if (day.seconds > 0) {
+      return 0;
+    }
+
+    let gap = 0;
+    for (let cursor = index; cursor >= 0 && daySeries[cursor].seconds === 0; cursor -= 1) {
+      gap += 1;
+    }
+
+    return gap;
+  }));
   const dailyAverage7 = Math.round(weekSeconds / 7);
   const dailyAverage30 = Math.round(monthSeconds / 30);
+  const weeklyDelta = weekSeconds - previousWeekSeconds;
+  const accelerationRatio = previousWeekSeconds > 0 ? weekSeconds / previousWeekSeconds : weekSeconds > 0 ? 1 : 0;
+  const daysToDoubleLifetime = dailyAverage30 > 0 && lifetimeSeconds > 0 ? Math.ceil(lifetimeSeconds / dailyAverage30) : null;
   const milestones = skills
     .filter((skill) => !skill.is_downtime)
     .map((skill) => {
@@ -433,6 +547,32 @@ function deriveInsights({
   const neglectedSkill = skills
     .filter((skill) => skill.lifetime_seconds > 0)
     .sort((a, b) => String(a.last_session_at ?? "").localeCompare(String(b.last_session_at ?? "")))[0];
+  const dataHealth: InsightDataHealth[] = [
+    {
+      label: "Lifetime Storage",
+      value: lifetimeSeconds > 0 ? "active" : "ready",
+      detail: "Lifetime seconds are kept as durable skill totals and can be snapshotted by the new tracking migration.",
+      tone: "good",
+    },
+    {
+      label: "Session Completeness",
+      value: `${Math.round(ratio(countedSessions.length + skippedSessions.length, usefulSessions.length) * 100)}%`,
+      detail: `${pendingSessions.length} sessions are waiting for count/skip decisions.`,
+      tone: pendingSessions.length > 0 ? "warn" : "good",
+    },
+    {
+      label: "Coverage",
+      value: `${Math.round(skillCoverage * 100)}%`,
+      detail: `${skills.filter((skill) => skill.session_count > 0 || skill.lifetime_seconds > 0).length} of ${skills.length} trackers have recorded investment.`,
+      tone: skillCoverage < 0.5 && skills.length > 0 ? "warn" : "neutral",
+    },
+    {
+      label: "Manual Adjustment Share",
+      value: `${Math.round(ratio(manualSeconds, observedSeconds) * 100)}%`,
+      detail: "High manual share is useful, but should stay intentional so the ledger remains trustworthy.",
+      tone: ratio(manualSeconds, observedSeconds) > 0.35 ? "warn" : "neutral",
+    },
+  ];
 
   if (topSkill) {
     issues.push({
@@ -469,6 +609,22 @@ function deriveInsights({
       title: "Longest neglected lane",
       detail: `${neglectedSkill.name} has the oldest last-session timestamp among active tracked skills.`,
       tone: "neutral",
+    });
+  }
+
+  if (deepWorkSessions.length > 0) {
+    issues.push({
+      title: "Deep work is present",
+      detail: `${deepWorkSessions.length} sessions cleared the 90-minute threshold.`,
+      tone: "good",
+    });
+  }
+
+  if (staleSkillCount > 0) {
+    issues.push({
+      title: "Stale trackers detected",
+      detail: `${staleSkillCount} invested trackers have gone 14+ days without a counted session.`,
+      tone: "warn",
     });
   }
 
@@ -510,6 +666,11 @@ function deriveInsights({
       pending_session_count: pendingSessions.length,
       active_session_count: activeSessionCount,
       skill_count: skills.length,
+      deep_work_seconds: deepWorkSeconds,
+      micro_session_seconds: microSessionSeconds,
+      manual_seconds: manualSeconds,
+      timer_seconds: timerSeconds,
+      system_seconds: systemSeconds,
     },
     behavior: {
       average_session_seconds: usefulSessions.length > 0 ? Math.round(observedSeconds / usefulSessions.length) : 0,
@@ -524,6 +685,16 @@ function deriveInsights({
       current_streak_days: streaks.current,
       longest_streak_days: streaks.longest,
       active_day_count: activeDays.length,
+      observed_span_days: observedSpanDays,
+      days_since_last_session: daysSinceLastSession,
+      deep_work_session_count: deepWorkSessions.length,
+      micro_session_count: microSessions.length,
+      switch_count: switchCount,
+      context_switch_rate: ratio(switchCount, Math.max(1, usefulSessions.length - 1)),
+      skill_coverage: skillCoverage,
+      entropy_score: entropyScore,
+      stale_skill_count: staleSkillCount,
+      recovery_gap_days: recoveryGapDays,
       best_day: bestDay,
       peak_hour: peakHourRank ? { hour: Number.parseInt(peakHourRank.label, 10), seconds: peakHourRank.value } : null,
       peak_weekday: peakWeekdayRank ? { weekday: peakWeekdayRank.label, seconds: peakWeekdayRank.value } : null,
@@ -535,19 +706,29 @@ function deriveInsights({
       projected_month_seconds: dailyAverage30 * 30,
       projected_year_seconds: dailyAverage30 * 365,
       yesterday_delta_seconds: (today?.seconds ?? 0) - (yesterday?.seconds ?? 0),
+      previous_week_seconds: previousWeekSeconds,
+      weekly_delta_seconds: weeklyDelta,
+      acceleration_ratio: accelerationRatio,
+      lifetime_daily_average_seconds: lifetimeDailyAverage,
+      days_to_double_lifetime: daysToDoubleLifetime,
     },
     rankings: {
       skills_by_lifetime: skillLifetimeRanks,
       skills_by_recent: skillRecentRanks,
+      skills_by_staleness: staleRanks,
       session_lengths: sessionLengthRanks,
       weekday_heatmap: weekdayRanks,
       hourly_heatmap: hourlyRanks,
+      source_breakdown: sourceBreakdown,
+      privacy_breakdown: privacyBreakdown,
     },
     timelines: {
       last_14_days: last14,
+      last_30_days: last30,
       last_8_weeks: last8Weeks,
     },
     milestones,
+    data_health: dataHealth,
     issues,
   };
 }
