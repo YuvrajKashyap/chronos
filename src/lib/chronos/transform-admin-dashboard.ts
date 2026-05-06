@@ -19,6 +19,10 @@ export function transformAdminDashboardToSkills(state: AdminTimerState): Chronos
       visibility: skill.visibility,
       sort_order: skill.sort_order,
       lifetime_seconds: skill.lifetime_seconds,
+      weekly_target_seconds: skill.weekly_target_seconds,
+      target_sessions_per_week: skill.target_sessions_per_week,
+      priority_weight: skill.priority_weight,
+      goal_note: skill.goal_note,
       active_session_started_at: skill.active_session_started_at,
       current_active_elapsed_seconds: skill.current_active_elapsed_seconds,
     }));

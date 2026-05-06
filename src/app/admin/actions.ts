@@ -57,6 +57,18 @@ export type SmoothStopTimerActionResult =
   | { success: true; session: SmoothStoppedSession }
   | { success: false; error: string };
 
+export type SessionTrackingPayload = {
+  qualityScore?: number | null;
+  energyScore?: number | null;
+  focusScore?: number | null;
+  outcome?: string | null;
+  projectKey?: string | null;
+  tagNames?: string[];
+  plannedSeconds?: number | null;
+  interruptionCount?: number | null;
+  pausedSeconds?: number | null;
+};
+
 function getSessionPayload(data: unknown): TimerSessionPayload | null {
   if (!data || typeof data !== "object" || !("session" in data)) {
     return null;
@@ -103,6 +115,65 @@ function getLifetimeSeconds(formData: FormData) {
   const seconds = Math.min(59, Math.max(0, Math.floor(Number(formData.get("lifetimeSeconds") ?? 0) || 0)));
 
   return (hours * 3600) + (minutes * 60) + seconds;
+}
+
+function getWeeklyTargetSeconds(formData: FormData) {
+  const hours = Math.max(0, Math.floor(Number(formData.get("weeklyTargetHours") ?? 0) || 0));
+  const minutes = Math.min(59, Math.max(0, Math.floor(Number(formData.get("weeklyTargetMinutes") ?? 0) || 0)));
+
+  return (hours * 3600) + (minutes * 60);
+}
+
+function getBoundedInteger(value: FormDataEntryValue | number | null | undefined, min: number, max: number, fallback: number | null) {
+  const numeric = Math.floor(Number(value));
+  if (!Number.isFinite(numeric)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, numeric));
+}
+
+function cleanTags(value: string | null | undefined) {
+  return (value ?? "")
+    .split(",")
+    .map((tag) => tag.trim().toLowerCase())
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
+function normalizeTrackingPayload(payload: SessionTrackingPayload = {}) {
+  return {
+    p_quality_score: getBoundedInteger(payload.qualityScore, 1, 5, null),
+    p_energy_score: getBoundedInteger(payload.energyScore, 1, 5, null),
+    p_focus_score: getBoundedInteger(payload.focusScore, 1, 5, null),
+    p_outcome: payload.outcome?.trim() || null,
+    p_project_key: payload.projectKey?.trim().toLowerCase() || null,
+    p_tag_names: payload.tagNames?.map((tag) => tag.trim().toLowerCase()).filter(Boolean).slice(0, 12) ?? [],
+    p_planned_seconds: payload.plannedSeconds === null || payload.plannedSeconds === undefined
+      ? null
+      : Math.max(0, Math.floor(payload.plannedSeconds)),
+    p_interruption_count: getBoundedInteger(payload.interruptionCount, 0, 999, 0),
+    p_paused_seconds: payload.pausedSeconds === null || payload.pausedSeconds === undefined
+      ? 0
+      : Math.max(0, Math.floor(payload.pausedSeconds)),
+  };
+}
+
+function getTrackingPayloadFromForm(formData: FormData): SessionTrackingPayload {
+  const plannedMinutes = getBoundedInteger(formData.get("plannedMinutes"), 0, 99999, null);
+  const pausedMinutes = getBoundedInteger(formData.get("pausedMinutes"), 0, 99999, 0);
+
+  return {
+    qualityScore: getBoundedInteger(formData.get("qualityScore"), 1, 5, null),
+    energyScore: getBoundedInteger(formData.get("energyScore"), 1, 5, null),
+    focusScore: getBoundedInteger(formData.get("focusScore"), 1, 5, null),
+    outcome: String(formData.get("outcome") ?? "").trim(),
+    projectKey: String(formData.get("projectKey") ?? "").trim(),
+    tagNames: cleanTags(String(formData.get("tagNames") ?? "")),
+    plannedSeconds: plannedMinutes === null ? null : plannedMinutes * 60,
+    interruptionCount: getBoundedInteger(formData.get("interruptionCount"), 0, 999, 0),
+    pausedSeconds: (pausedMinutes ?? 0) * 60,
+  };
 }
 
 export async function logoutFromChronos() {
@@ -282,6 +353,7 @@ export async function confirmChronosTimerSession(formData: FormData) {
   const { data, error } = await supabase.rpc("confirm_timer_session", {
     p_session_id: sessionId,
     p_count_towards_lifetime: decision === "true",
+    ...normalizeTrackingPayload(getTrackingPayloadFromForm(formData)),
   });
 
   if (error) {
@@ -301,6 +373,7 @@ export async function confirmChronosTimerSession(formData: FormData) {
 export async function confirmChronosTimerSessionSmooth(
   sessionId: string,
   countTowardsLifetime: boolean,
+  tracking: SessionTrackingPayload = {},
 ): Promise<SmoothTimerActionResult> {
   if (!sessionId) {
     return { success: false, error: "Choose a stopped session before updating the lifetime total." };
@@ -311,6 +384,7 @@ export async function confirmChronosTimerSessionSmooth(
     const { data, error } = await supabase.rpc("confirm_timer_session", {
       p_session_id: sessionId,
       p_count_towards_lifetime: countTowardsLifetime,
+      ...normalizeTrackingPayload(tracking),
     });
 
     if (error) {
@@ -368,6 +442,10 @@ export async function updateChronosSkill(formData: FormData) {
   const skillId = String(formData.get("skillId") ?? "");
   const payload = getSkillFormPayload(formData);
   const lifetimeSeconds = getLifetimeSeconds(formData);
+  const weeklyTargetSeconds = getWeeklyTargetSeconds(formData);
+  const targetSessionsPerWeek = getBoundedInteger(formData.get("targetSessionsPerWeek"), 0, 99, 0) ?? 0;
+  const priorityWeight = getBoundedInteger(formData.get("priorityWeight"), 1, 5, 3) ?? 3;
+  const goalNote = String(formData.get("goalNote") ?? "").trim();
 
   if (!skillId) {
     redirectWithAdminError("Choose a dashboard card before editing it.", nextPath);
@@ -384,6 +462,10 @@ export async function updateChronosSkill(formData: FormData) {
     p_icon_key: payload.iconKey,
     p_accent_key: payload.accentKey,
     p_visibility: payload.visibility,
+    p_weekly_target_seconds: weeklyTargetSeconds,
+    p_target_sessions_per_week: targetSessionsPerWeek,
+    p_priority_weight: priorityWeight,
+    p_goal_note: goalNote,
   });
 
   if (error) {

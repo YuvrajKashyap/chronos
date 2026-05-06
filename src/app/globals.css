@@ -1303,6 +1303,7 @@ a {
 }
 
 .skill-modal-field input,
+.skill-modal-field textarea,
 .skill-lifetime-grid input {
   height: 54px;
   padding: 0 18px;
@@ -1315,12 +1316,21 @@ a {
   outline: 0;
 }
 
+.skill-modal-field textarea {
+  min-height: 92px;
+  padding: 14px 18px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
 :root[data-theme="light"] .skill-modal-field input,
+:root[data-theme="light"] .skill-modal-field textarea,
 :root[data-theme="light"] .skill-lifetime-grid input {
   background: rgba(255, 255, 255, 0.72);
 }
 
 .skill-modal-field input:focus,
+.skill-modal-field textarea:focus,
 .skill-lifetime-grid input:focus {
   border-color: rgba(var(--nav-active-rgb), 0.48);
   box-shadow: 0 0 0 4px rgba(var(--nav-active-rgb), 0.1);
@@ -1659,10 +1669,11 @@ a {
 }
 
 .lifetime-decision-panel {
-  width: min(520px, 100%);
+  width: min(640px, 100%);
+  max-height: min(90vh, 900px);
   padding: clamp(26px, calc(var(--ui) * 0.024), 46px);
   position: relative;
-  overflow: hidden;
+  overflow: auto;
   border: 1px solid rgba(var(--nav-active-rgb), 0.28);
   border-radius: clamp(22px, calc(var(--ui) * 0.017), 32px);
   background:
@@ -1756,6 +1767,75 @@ a {
   position: relative;
   color: var(--text-secondary);
   line-height: 1.6;
+}
+
+.session-tracking-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  position: relative;
+}
+
+.session-tracking-grid label,
+.session-tracking-field {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.session-tracking-grid span,
+.session-tracking-field span {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.session-tracking-grid input,
+.session-tracking-field input,
+.session-tracking-field textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--divider);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 750;
+  outline: 0;
+}
+
+.session-tracking-grid input,
+.session-tracking-field input {
+  height: 46px;
+  padding: 0 13px;
+}
+
+.session-tracking-field {
+  margin-top: 10px;
+  position: relative;
+}
+
+.session-tracking-field textarea {
+  min-height: 76px;
+  padding: 12px 13px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+:root[data-theme="light"] .session-tracking-grid input,
+:root[data-theme="light"] .session-tracking-field input,
+:root[data-theme="light"] .session-tracking-field textarea {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.session-tracking-grid input:focus,
+.session-tracking-field input:focus,
+.session-tracking-field textarea:focus {
+  border-color: rgba(var(--nav-active-rgb), 0.48);
+  box-shadow: 0 0 0 4px rgba(var(--nav-active-rgb), 0.1);
 }
 
 .lifetime-decision-error {
@@ -4329,6 +4409,10 @@ a {
   .lifetime-decision-session {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .session-tracking-grid {
+    grid-template-columns: 1fr;
   }
 
   .timer-motion-pulse {

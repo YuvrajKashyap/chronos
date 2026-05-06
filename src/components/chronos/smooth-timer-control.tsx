@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import type {
   confirmChronosTimerSessionSmooth,
+  SessionTrackingPayload,
   SmoothStoppedSession,
   startChronosTimerSmooth,
   stopChronosTimerSmooth,
@@ -326,7 +327,7 @@ export function SmoothTimerControl({
     onPause?.();
   }
 
-  function handleDecision(countTowardsLifetime: boolean) {
+  function handleDecision(countTowardsLifetime: boolean, tracking: SessionTrackingPayload) {
     if (!stoppedSession || decisionPending || !stoppedSession.id) {
       return;
     }
@@ -335,7 +336,7 @@ export function SmoothTimerControl({
     setDecisionPending(decision);
     setError(null);
     startTransition(async () => {
-      const result = await confirmAction(stoppedSession.id, countTowardsLifetime);
+      const result = await confirmAction(stoppedSession.id, countTowardsLifetime, tracking);
 
       if (!result.success) {
         setError(result.error);
@@ -392,7 +393,7 @@ type LifetimeDecisionModalProps = {
   error: string | null;
   isSyncing?: boolean;
   session: SmoothStoppedSession;
-  onDecision: (countTowardsLifetime: boolean) => void;
+  onDecision: (countTowardsLifetime: boolean, tracking: SessionTrackingPayload) => void;
 };
 
 export function LifetimeDecisionModal({
@@ -403,6 +404,37 @@ export function LifetimeDecisionModal({
   onDecision,
 }: LifetimeDecisionModalProps) {
   const duration = useMemo(() => formatSecondsAsTimer(session.durationSeconds), [session.durationSeconds]);
+  const [qualityScore, setQualityScore] = useState("");
+  const [energyScore, setEnergyScore] = useState("");
+  const [focusScore, setFocusScore] = useState("");
+  const [plannedMinutes, setPlannedMinutes] = useState("");
+  const [interruptionCount, setInterruptionCount] = useState("0");
+  const [pausedMinutes, setPausedMinutes] = useState("0");
+  const [projectKey, setProjectKey] = useState("");
+  const [tagNames, setTagNames] = useState("");
+  const [outcome, setOutcome] = useState("");
+
+  function numericOrNull(value: string) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function getTrackingPayload(): SessionTrackingPayload {
+    const planned = numericOrNull(plannedMinutes);
+    const paused = numericOrNull(pausedMinutes);
+
+    return {
+      qualityScore: numericOrNull(qualityScore),
+      energyScore: numericOrNull(energyScore),
+      focusScore: numericOrNull(focusScore),
+      plannedSeconds: planned === null ? null : Math.max(0, Math.floor(planned)) * 60,
+      interruptionCount: numericOrNull(interruptionCount) ?? 0,
+      pausedSeconds: Math.max(0, Math.floor(paused ?? 0)) * 60,
+      projectKey,
+      tagNames: tagNames.split(",").map((tag) => tag.trim()).filter(Boolean),
+      outcome,
+    };
+  }
 
   return (
     <div className="lifetime-decision-backdrop" role="presentation">
@@ -418,6 +450,44 @@ export function LifetimeDecisionModal({
           Lifetime totals stay unchanged until you choose. Counting adds this session to the dashboard total; skipping leaves
           it out.
         </p>
+        <div className="session-tracking-grid">
+          <label>
+            <span>Quality</span>
+            <input value={qualityScore} onChange={(event) => setQualityScore(event.target.value)} type="number" min="1" max="5" placeholder="1-5" />
+          </label>
+          <label>
+            <span>Energy</span>
+            <input value={energyScore} onChange={(event) => setEnergyScore(event.target.value)} type="number" min="1" max="5" placeholder="1-5" />
+          </label>
+          <label>
+            <span>Focus</span>
+            <input value={focusScore} onChange={(event) => setFocusScore(event.target.value)} type="number" min="1" max="5" placeholder="1-5" />
+          </label>
+          <label>
+            <span>Planned min</span>
+            <input value={plannedMinutes} onChange={(event) => setPlannedMinutes(event.target.value)} type="number" min="0" placeholder="Optional" />
+          </label>
+          <label>
+            <span>Interruptions</span>
+            <input value={interruptionCount} onChange={(event) => setInterruptionCount(event.target.value)} type="number" min="0" />
+          </label>
+          <label>
+            <span>Paused min</span>
+            <input value={pausedMinutes} onChange={(event) => setPausedMinutes(event.target.value)} type="number" min="0" />
+          </label>
+        </div>
+        <label className="session-tracking-field">
+          <span>Project</span>
+          <input value={projectKey} onChange={(event) => setProjectKey(event.target.value)} placeholder="client, product, campaign..." maxLength={80} />
+        </label>
+        <label className="session-tracking-field">
+          <span>Tags</span>
+          <input value={tagNames} onChange={(event) => setTagNames(event.target.value)} placeholder="deep work, design, research" maxLength={240} />
+        </label>
+        <label className="session-tracking-field">
+          <span>Outcome</span>
+          <textarea value={outcome} onChange={(event) => setOutcome(event.target.value)} placeholder="What changed because this session happened?" maxLength={500} />
+        </label>
         {error ? <p className="lifetime-decision-error">{error}</p> : null}
         {isSyncing ? <p className="lifetime-decision-sync">Finalizing the stopped session...</p> : null}
         <div className="lifetime-decision-actions">
@@ -425,7 +495,7 @@ export function LifetimeDecisionModal({
             className="session-decision-button is-skip"
             type="button"
             disabled={Boolean(decisionPending) || isSyncing}
-            onClick={() => onDecision(false)}
+            onClick={() => onDecision(false, getTrackingPayload())}
           >
             {decisionPending === "skip" ? <Loader2 className="timer-button-spinner" size={18} /> : <X size={18} />}
             <span>{decisionPending === "skip" ? "Skipping" : "Skip it"}</span>
@@ -434,7 +504,7 @@ export function LifetimeDecisionModal({
             className="session-decision-button is-count"
             type="button"
             disabled={Boolean(decisionPending) || isSyncing}
-            onClick={() => onDecision(true)}
+            onClick={() => onDecision(true, getTrackingPayload())}
           >
             {decisionPending === "count" ? <Loader2 className="timer-button-spinner" size={18} /> : <Check size={18} />}
             <span>{decisionPending === "count" ? "Counting" : "Count it"}</span>

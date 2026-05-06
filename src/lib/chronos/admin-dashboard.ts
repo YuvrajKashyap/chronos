@@ -14,6 +14,10 @@ export type AdminSkill = {
   sort_order: number;
   archived_at?: string | null;
   lifetime_seconds: number;
+  weekly_target_seconds?: number | null;
+  target_sessions_per_week?: number | null;
+  priority_weight?: number | null;
+  goal_note?: string | null;
   active_session_started_at?: string | null;
   current_active_elapsed_seconds?: number | null;
 };
@@ -40,6 +44,15 @@ export type AdminRecentSession = {
   is_private: boolean;
   counts_toward_lifetime?: boolean | null;
   duration_seconds: number;
+  planned_seconds?: number | null;
+  quality_score?: number | null;
+  energy_score?: number | null;
+  focus_score?: number | null;
+  outcome?: string | null;
+  project_key?: string | null;
+  tag_names?: string[] | null;
+  interruption_count?: number | null;
+  paused_seconds?: number | null;
 };
 
 export type AdminPendingSession = {

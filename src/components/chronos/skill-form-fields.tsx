@@ -24,6 +24,10 @@ export type SkillFormInitialValues = {
   iconKey?: string;
   lifetimeSeconds?: number | null;
   name?: string;
+  weeklyTargetSeconds?: number | null;
+  targetSessionsPerWeek?: number | null;
+  priorityWeight?: number | null;
+  goalNote?: string | null;
   visibility?: "public" | "private";
 };
 
@@ -75,6 +79,7 @@ export function SkillFormFields({
   const [motifKey, setMotifKey] = useState<SkillMotif>(() => getInitialMotif(initialValues));
   const [visibility, setVisibility] = useState<"public" | "private">(initialValues.visibility ?? "public");
   const lifetime = splitSeconds(initialValues.lifetimeSeconds);
+  const weeklyTarget = splitSeconds(initialValues.weeklyTargetSeconds);
   const selectedIconKey = iconKey.startsWith("emoji:") ? "custom" : iconKey;
   const isCustomAccent = Boolean(getSkillCustomAccent(accentKey));
   const selectedAccentKey = isCustomAccent ? getSkillAccentKeyFromHex(customAccentColor) : accentKey;
@@ -175,6 +180,34 @@ export function SkillFormFields({
               <input name="lifetimeSeconds" type="number" min="0" max="59" defaultValue={lifetime.seconds} />
             </label>
           </div>
+        </fieldset>
+      ) : null}
+
+      {showLifetime ? (
+        <fieldset className="skill-modal-fieldset">
+          <legend>Goal tracking</legend>
+          <div className="skill-lifetime-grid">
+            <label>
+              <span>Target h/wk</span>
+              <input name="weeklyTargetHours" type="number" min="0" max="999" defaultValue={weeklyTarget.hours} />
+            </label>
+            <label>
+              <span>Target m/wk</span>
+              <input name="weeklyTargetMinutes" type="number" min="0" max="59" defaultValue={weeklyTarget.minutes} />
+            </label>
+            <label>
+              <span>Sessions/wk</span>
+              <input name="targetSessionsPerWeek" type="number" min="0" max="99" defaultValue={initialValues.targetSessionsPerWeek ?? 0} />
+            </label>
+            <label>
+              <span>Priority</span>
+              <input name="priorityWeight" type="number" min="1" max="5" defaultValue={initialValues.priorityWeight ?? 3} />
+            </label>
+          </div>
+          <label className="skill-modal-field">
+            <span>Goal note</span>
+            <textarea name="goalNote" defaultValue={initialValues.goalNote ?? ""} placeholder="What should this tracker mean long term?" maxLength={500} />
+          </label>
         </fieldset>
       ) : null}
 

@@ -15,6 +15,15 @@ type RawSessionRow = {
   source: "timer" | "manual" | "system";
   is_private: boolean;
   counts_toward_lifetime?: boolean | null;
+  planned_seconds?: number | null;
+  quality_score?: number | null;
+  energy_score?: number | null;
+  focus_score?: number | null;
+  outcome?: string | null;
+  project_key?: string | null;
+  tag_names?: string[] | null;
+  interruption_count?: number | null;
+  paused_seconds?: number | null;
 };
 
 export type InsightSession = AdminRecentSession;
@@ -25,6 +34,10 @@ export type InsightSkill = {
   visibility: "public" | "private";
   is_downtime: boolean;
   lifetime_seconds: number;
+  weekly_target_seconds: number;
+  target_sessions_per_week: number;
+  priority_weight: number;
+  goal_note: string | null;
   active_seconds: number;
   session_count: number;
   last_session_at: string | null;
@@ -97,6 +110,10 @@ export type ChronosInsights = {
     manual_seconds: number;
     timer_seconds: number;
     system_seconds: number;
+    planned_seconds: number;
+    rated_session_count: number;
+    interruption_count: number;
+    paused_seconds: number;
   };
   behavior: {
     average_session_seconds: number;
@@ -124,6 +141,11 @@ export type ChronosInsights = {
     best_day: InsightDay | null;
     peak_hour: { hour: number; seconds: number } | null;
     peak_weekday: { weekday: string; seconds: number } | null;
+    average_quality_score: number;
+    average_energy_score: number;
+    average_focus_rating: number;
+    planned_adherence: number;
+    goal_coverage: number;
   };
   velocity: {
     daily_average_7d_seconds: number;
@@ -147,6 +169,9 @@ export type ChronosInsights = {
     hourly_heatmap: InsightRank[];
     source_breakdown: InsightRank[];
     privacy_breakdown: InsightRank[];
+    project_breakdown: InsightRank[];
+    tag_breakdown: InsightRank[];
+    goal_progress: InsightRank[];
   };
   timelines: {
     last_14_days: InsightDay[];
@@ -281,7 +306,7 @@ async function getAdminSessionRows(): Promise<{ sessions: RawSessionRow[]; error
     const supabase = await createChronosServerClient();
     const { data, error } = await supabase
       .from("sessions")
-      .select("id, skill_id, started_at, ended_at, source, is_private, counts_toward_lifetime")
+      .select("id, skill_id, started_at, ended_at, source, is_private, counts_toward_lifetime, planned_seconds, quality_score, energy_score, focus_score, outcome, project_key, tag_names, interruption_count, paused_seconds")
       .order("started_at", { ascending: false })
       .limit(750);
 
@@ -315,7 +340,31 @@ function normalizeAdminSessions(rows: RawSessionRow[], skills: AdminSkill[], fal
     is_private: row.is_private,
     counts_toward_lifetime: row.counts_toward_lifetime,
     duration_seconds: secondsBetween(row.started_at, row.ended_at),
+    planned_seconds: row.planned_seconds,
+    quality_score: row.quality_score,
+    energy_score: row.energy_score,
+    focus_score: row.focus_score,
+    outcome: row.outcome,
+    project_key: row.project_key,
+    tag_names: row.tag_names,
+    interruption_count: row.interruption_count,
+    paused_seconds: row.paused_seconds,
   }));
+}
+
+async function recordAdminInsightSnapshot(insights: ChronosInsights) {
+  if (!hasChronosSupabaseEnv() || insights.mode !== "admin") {
+    return;
+  }
+
+  try {
+    const supabase = await createChronosServerClient();
+    await supabase.rpc("record_insight_snapshot", {
+      p_payload: insights,
+    });
+  } catch {
+    // Snapshot recording should never block the Insights page.
+  }
 }
 
 function buildSkillSummaries(skills: AdminSkill[], sessions: InsightSession[]) {
@@ -333,6 +382,10 @@ function buildSkillSummaries(skills: AdminSkill[], sessions: InsightSession[]) {
       visibility: skill.visibility,
       is_downtime: skill.is_downtime,
       lifetime_seconds: asNumber(skill.lifetime_seconds),
+      weekly_target_seconds: asNumber(skill.weekly_target_seconds),
+      target_sessions_per_week: asNumber(skill.target_sessions_per_week),
+      priority_weight: asNumber(skill.priority_weight) || 3,
+      goal_note: skill.goal_note ?? null,
       active_seconds: asNumber(skill.current_active_elapsed_seconds),
       session_count: skillSessions.length,
       last_session_at: lastSession,
@@ -367,6 +420,9 @@ function deriveInsights({
   const systemSessions = usefulSessions.filter((session) => session.source === "system");
   const deepWorkSessions = usefulSessions.filter((session) => session.duration_seconds >= 90 * 60);
   const microSessions = usefulSessions.filter((session) => session.duration_seconds > 0 && session.duration_seconds <= 10 * 60);
+  const ratedQualitySessions = usefulSessions.filter((session) => asNumber(session.quality_score) > 0);
+  const ratedEnergySessions = usefulSessions.filter((session) => asNumber(session.energy_score) > 0);
+  const ratedFocusSessions = usefulSessions.filter((session) => asNumber(session.focus_score) > 0);
   const durations = usefulSessions.map((session) => session.duration_seconds);
   const observedSeconds = sum(durations);
   const countedSeconds = sum(countedSessions.map((session) => session.duration_seconds));
@@ -379,6 +435,18 @@ function deriveInsights({
   const systemSeconds = sum(systemSessions.map((session) => session.duration_seconds));
   const deepWorkSeconds = sum(deepWorkSessions.map((session) => session.duration_seconds));
   const microSessionSeconds = sum(microSessions.map((session) => session.duration_seconds));
+  const plannedSeconds = sum(usefulSessions.map((session) => asNumber(session.planned_seconds)));
+  const interruptionCount = sum(usefulSessions.map((session) => asNumber(session.interruption_count)));
+  const pausedSeconds = sum(usefulSessions.map((session) => asNumber(session.paused_seconds)));
+  const averageQualityScore = ratedQualitySessions.length > 0
+    ? sum(ratedQualitySessions.map((session) => asNumber(session.quality_score))) / ratedQualitySessions.length
+    : 0;
+  const averageEnergyScore = ratedEnergySessions.length > 0
+    ? sum(ratedEnergySessions.map((session) => asNumber(session.energy_score))) / ratedEnergySessions.length
+    : 0;
+  const averageFocusRating = ratedFocusSessions.length > 0
+    ? sum(ratedFocusSessions.map((session) => asNumber(session.focus_score))) / ratedFocusSessions.length
+    : 0;
   const lifetimeSeconds = Math.max(sum(skills.map((skill) => skill.lifetime_seconds)), countedSeconds);
   const activeSeconds = sum(skills.map((skill) => skill.active_seconds));
   const daySeries = emptyDaySeries(90, now);
@@ -387,6 +455,8 @@ function deriveInsights({
   const skillLifetimeMap = new Map(skills.map((skill) => [skill.name, skill.lifetime_seconds]));
   const weekdayMap = new Map<string, number>();
   const hourlyMap = new Map<string, number>();
+  const projectMap = new Map<string, number>();
+  const tagMap = new Map<string, number>();
 
   for (const session of countedSessions) {
     const started = dateOrNull(session.started_at);
@@ -404,11 +474,20 @@ function deriveInsights({
 
     addToMap(weekdayMap, weekdayLabel(started), session.duration_seconds);
     addToMap(hourlyMap, String(started.getUTCHours()).padStart(2, "0"), session.duration_seconds);
+
+    if (session.project_key) {
+      addToMap(projectMap, session.project_key, session.duration_seconds);
+    }
+
+    for (const tagName of session.tag_names ?? []) {
+      addToMap(tagMap, tagName, session.duration_seconds);
+    }
   }
 
   const today = daySeries.at(-1) ?? null;
   const yesterday = daySeries.at(-2) ?? null;
   const last7 = daySeries.slice(-7);
+  const last7Keys = new Set(last7.map((day) => day.key));
   const previous7 = daySeries.slice(-14, -7);
   const last30 = daySeries.slice(-30);
   const last14 = daySeries.slice(-14);
@@ -461,6 +540,43 @@ function deriveInsights({
     observedSeconds,
     "visibility",
   );
+  const projectBreakdown = rankFromMap(projectMap, countedSeconds, "project").slice(0, 10);
+  const tagBreakdown = rankFromMap(tagMap, countedSeconds, "tag").slice(0, 12);
+  const skillWeekMap = new Map<string, number>();
+  const skillWeekSessionCount = new Map<string, number>();
+
+  for (const session of countedSessions) {
+    const started = dateOrNull(session.started_at);
+    if (started && last7Keys.has(dayKey(started))) {
+      addToMap(skillWeekMap, session.skill_id, session.duration_seconds);
+      skillWeekSessionCount.set(session.skill_id, (skillWeekSessionCount.get(session.skill_id) ?? 0) + 1);
+    }
+  }
+
+  const goalProgress = skills
+    .filter((skill) => skill.weekly_target_seconds > 0 || skill.target_sessions_per_week > 0)
+    .map((skill) => {
+      const recentSeconds = skillWeekMap.get(skill.id) ?? 0;
+      const targetSeconds = Math.max(1, skill.weekly_target_seconds);
+      const targetSessions = Math.max(1, skill.target_sessions_per_week);
+      const recentSessionCount = skillWeekSessionCount.get(skill.id) ?? 0;
+      const secondsProgress = skill.weekly_target_seconds > 0 ? ratio(recentSeconds, targetSeconds) : 0;
+      const sessionProgress = skill.target_sessions_per_week > 0 ? ratio(recentSessionCount, targetSessions) : 0;
+      const score = skill.weekly_target_seconds > 0 && skill.target_sessions_per_week > 0
+        ? (secondsProgress + sessionProgress) / 2
+        : Math.max(secondsProgress, sessionProgress);
+
+      return {
+        label: skill.name,
+        value: Math.round(clampPercent(score) * 100),
+        share: clampPercent(score),
+        meta: skill.weekly_target_seconds > 0
+          ? `${Math.round(recentSeconds / HOUR_SECONDS)}h of ${Math.round(skill.weekly_target_seconds / HOUR_SECONDS)}h target`
+          : `${recentSessionCount} sessions tracked`,
+      };
+    })
+    .sort((a, b) => a.share - b.share)
+    .slice(0, 10);
   const sessionLengthRanks = usefulSessions
     .slice()
     .sort((a, b) => b.duration_seconds - a.duration_seconds)
@@ -507,6 +623,8 @@ function deriveInsights({
   const lifetimeDailyAverage = observedSpanDays > 0 ? Math.round(lifetimeSeconds / observedSpanDays) : 0;
   const staleSkillCount = staleRanks.filter((rank) => rank.value >= 14).length;
   const skillCoverage = ratio(skills.filter((skill) => skill.session_count > 0 || skill.lifetime_seconds > 0).length, skills.length);
+  const goalCoverage = ratio(skills.filter((skill) => skill.weekly_target_seconds > 0 || skill.target_sessions_per_week > 0 || skill.goal_note).length, skills.length);
+  const plannedAdherence = plannedSeconds > 0 ? clampPercent(1 - (Math.abs(countedSeconds - plannedSeconds) / plannedSeconds)) : 0;
   const recoveryGapDays = Math.max(0, ...daySeries.map((day, index) => {
     if (day.seconds > 0) {
       return 0;
@@ -572,6 +690,18 @@ function deriveInsights({
       detail: "High manual share is useful, but should stay intentional so the ledger remains trustworthy.",
       tone: ratio(manualSeconds, observedSeconds) > 0.35 ? "warn" : "neutral",
     },
+    {
+      label: "Intent Coverage",
+      value: `${Math.round(goalCoverage * 100)}%`,
+      detail: `${skills.filter((skill) => skill.weekly_target_seconds > 0 || skill.target_sessions_per_week > 0 || skill.goal_note).length} trackers have goals, cadence, or priority intent.`,
+      tone: goalCoverage < 0.5 && skills.length > 0 ? "warn" : "good",
+    },
+    {
+      label: "Quality Coverage",
+      value: `${Math.round(ratio(ratedQualitySessions.length, usefulSessions.length) * 100)}%`,
+      detail: `${ratedQualitySessions.length} sessions include a quality score.`,
+      tone: ratedQualitySessions.length === 0 && usefulSessions.length > 0 ? "warn" : "neutral",
+    },
   ];
 
   if (topSkill) {
@@ -628,6 +758,30 @@ function deriveInsights({
     });
   }
 
+  if (goalCoverage < 1 && skills.length > 0) {
+    issues.push({
+      title: "Intent data can improve",
+      detail: "Trackers without weekly targets, cadence, or priority are harder to judge against actual goals.",
+      tone: goalCoverage < 0.5 ? "warn" : "neutral",
+    });
+  }
+
+  if (ratedQualitySessions.length > 0) {
+    issues.push({
+      title: "Quality signal is active",
+      detail: `Average quality is ${averageQualityScore.toFixed(1)} out of 5 across rated sessions.`,
+      tone: averageQualityScore >= 4 ? "good" : "neutral",
+    });
+  }
+
+  if (interruptionCount > 0) {
+    issues.push({
+      title: "Interruptions are being captured",
+      detail: `${interruptionCount} interruptions are recorded across observed sessions.`,
+      tone: ratio(interruptionCount, usefulSessions.length) > 1 ? "warn" : "neutral",
+    });
+  }
+
   if (usefulSessions.length === 0) {
     issues.push({
       title: "No session history yet",
@@ -671,6 +825,10 @@ function deriveInsights({
       manual_seconds: manualSeconds,
       timer_seconds: timerSeconds,
       system_seconds: systemSeconds,
+      planned_seconds: plannedSeconds,
+      rated_session_count: Math.max(ratedQualitySessions.length, ratedEnergySessions.length, ratedFocusSessions.length),
+      interruption_count: interruptionCount,
+      paused_seconds: pausedSeconds,
     },
     behavior: {
       average_session_seconds: usefulSessions.length > 0 ? Math.round(observedSeconds / usefulSessions.length) : 0,
@@ -698,6 +856,11 @@ function deriveInsights({
       best_day: bestDay,
       peak_hour: peakHourRank ? { hour: Number.parseInt(peakHourRank.label, 10), seconds: peakHourRank.value } : null,
       peak_weekday: peakWeekdayRank ? { weekday: peakWeekdayRank.label, seconds: peakWeekdayRank.value } : null,
+      average_quality_score: averageQualityScore,
+      average_energy_score: averageEnergyScore,
+      average_focus_rating: averageFocusRating,
+      planned_adherence: plannedAdherence,
+      goal_coverage: goalCoverage,
     },
     velocity: {
       daily_average_7d_seconds: dailyAverage7,
@@ -721,6 +884,9 @@ function deriveInsights({
       hourly_heatmap: hourlyRanks,
       source_breakdown: sourceBreakdown,
       privacy_breakdown: privacyBreakdown,
+      project_breakdown: projectBreakdown,
+      tag_breakdown: tagBreakdown,
+      goal_progress: goalProgress,
     },
     timelines: {
       last_14_days: last14,
@@ -740,6 +906,10 @@ function publicSkills(payload: PublicDashboardPayload | null): InsightSkill[] {
     visibility: "public",
     is_downtime: false,
     lifetime_seconds: asNumber(skill.lifetime_seconds),
+    weekly_target_seconds: asNumber(skill.weekly_target_seconds),
+    target_sessions_per_week: asNumber(skill.target_sessions_per_week),
+    priority_weight: asNumber(skill.priority_weight) || 3,
+    goal_note: skill.goal_note ?? null,
     active_seconds: asNumber(skill.current_active_elapsed_seconds),
     session_count: 0,
     last_session_at: null,
@@ -773,7 +943,7 @@ export async function getChronosInsights(isAuthenticated: boolean): Promise<Chro
 
     if (state) {
       const sessions = normalizeAdminSessions(sessionRows, state.skills, state.recent_sessions ?? []);
-      return deriveInsights({
+      const insights = deriveInsights({
         activeSessionCount: state.active_session ? 1 : 0,
         error: sessionError,
         generatedAt: state.generated_at,
@@ -781,6 +951,9 @@ export async function getChronosInsights(isAuthenticated: boolean): Promise<Chro
         sessions,
         skills: buildSkillSummaries(state.skills, sessions),
       });
+
+      await recordAdminInsightSnapshot(insights);
+      return insights;
     }
 
     return emptyInsights(stateError ?? sessionError ?? "Chronos admin insight data is unavailable.");

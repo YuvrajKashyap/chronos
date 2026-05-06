@@ -56,6 +56,10 @@ export function transformPublicDashboardToSkills(payload: PublicDashboardPayload
         activeStartedAt: skill.active_session_started_at ?? undefined,
         initialElapsedSeconds,
         lifetimeSeconds: skill.lifetime_seconds,
+        weeklyTargetSeconds: skill.weekly_target_seconds,
+        targetSessionsPerWeek: skill.target_sessions_per_week,
+        priorityWeight: skill.priority_weight,
+        goalNote: skill.goal_note,
       };
     });
 }

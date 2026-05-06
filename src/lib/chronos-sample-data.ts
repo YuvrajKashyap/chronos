@@ -31,6 +31,10 @@ export type ChronosSkill = {
   activeStartedAt?: string;
   initialElapsedSeconds?: number;
   lifetimeSeconds?: number | null;
+  weeklyTargetSeconds?: number | null;
+  targetSessionsPerWeek?: number | null;
+  priorityWeight?: number | null;
+  goalNote?: string | null;
 };
 
 export const chronosSkills: ChronosSkill[] = [

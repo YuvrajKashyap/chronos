@@ -34,6 +34,10 @@ function signedTime(seconds: number) {
   return `${seconds > 0 ? "+" : "-"}${compactTime(Math.abs(seconds))}`;
 }
 
+function score(value: number) {
+  return value > 0 ? value.toFixed(1) : "none";
+}
+
 function InsightMetric({
   label,
   value,
@@ -121,6 +125,29 @@ function DataHealthList({ items }: { items: InsightDataHealth[] }) {
   );
 }
 
+function ProgressList({ ranks }: { ranks: InsightRank[] }) {
+  if (ranks.length === 0) {
+    return <p className="insight-empty">No goals set yet.</p>;
+  }
+
+  return (
+    <div className="insight-rank-list">
+      {ranks.map((rank) => (
+        <div className="insight-rank-row" key={`${rank.label}-${rank.meta}`}>
+          <div>
+            <strong>{rank.label}</strong>
+            <span>{rank.meta}</span>
+          </div>
+          <div className="insight-rank-bar" aria-hidden="true">
+            <span style={{ width: `${Math.max(4, Math.round(rank.share * 100))}%` }} />
+          </div>
+          <em>{Math.round(rank.share * 100)}%</em>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Milestones({ milestones }: { milestones: InsightMilestone[] }) {
   if (milestones.length === 0) {
     return <p className="insight-empty">Milestones appear once tracked skills have lifetime totals.</p>;
@@ -174,6 +201,10 @@ export function ChronosInsightsPage({
           <InsightMetric label="Micro Sessions" value={String(insights.behavior.micro_session_count)} note={`${compactTime(insights.totals.micro_session_seconds)} in sessions under 10 minutes.`} />
           <InsightMetric label="Switch Rate" value={percent(insights.behavior.context_switch_rate)} note={`${insights.behavior.switch_count} skill switches across observed sessions.`} />
           <InsightMetric label="Entropy" value={percent(insights.behavior.entropy_score)} note="Higher means allocation is distributed across more lanes." />
+          <InsightMetric label="Goal Coverage" value={percent(insights.behavior.goal_coverage)} note="Trackers with target, cadence, or priority intent." />
+          <InsightMetric label="Quality" value={score(insights.behavior.average_quality_score)} note={`${insights.totals.rated_session_count} sessions include a rating signal.`} />
+          <InsightMetric label="Planned Fit" value={percent(insights.behavior.planned_adherence)} note={`${compactTime(insights.totals.planned_seconds)} planned against counted work.`} />
+          <InsightMetric label="Interruptions" value={String(insights.totals.interruption_count)} note={`${compactTime(insights.totals.paused_seconds)} paused across observed sessions.`} />
         </section>
 
         <section className="insight-section-grid">
@@ -216,6 +247,34 @@ export function ChronosInsightsPage({
               <h2>Last 90 Days by Skill</h2>
             </div>
             <RankList ranks={insights.rankings.skills_by_recent} />
+          </article>
+        </section>
+
+        <section className="insight-section-grid">
+          <article className="insight-panel">
+            <div className="insight-panel-heading">
+              <span>Intent</span>
+              <h2>Goal Progress</h2>
+            </div>
+            <ProgressList ranks={insights.rankings.goal_progress} />
+          </article>
+
+          <article className="insight-panel">
+            <div className="insight-panel-heading">
+              <span>Context</span>
+              <h2>Project Breakdown</h2>
+            </div>
+            <RankList ranks={insights.rankings.project_breakdown} />
+          </article>
+        </section>
+
+        <section className="insight-section-grid">
+          <article className="insight-panel is-wide">
+            <div className="insight-panel-heading">
+              <span>Context</span>
+              <h2>Tag Breakdown</h2>
+            </div>
+            <RankList ranks={insights.rankings.tag_breakdown} />
           </article>
         </section>
 
@@ -342,6 +401,8 @@ export function ChronosInsightsPage({
           <InsightMetric label="Manual Source" value={compactTime(insights.totals.manual_seconds)} note="Time added or corrected manually." />
           <InsightMetric label="Longest Session" value={compactTime(insights.behavior.longest_session_seconds)} note={`Shortest: ${compactTime(insights.behavior.shortest_session_seconds)}.`} />
           <InsightMetric label="Completion Rate" value={percent(insights.behavior.completion_rate)} note="Share of observed sessions counted toward lifetime." />
+          <InsightMetric label="Energy" value={score(insights.behavior.average_energy_score)} note="Average optional energy score." />
+          <InsightMetric label="Focus Rating" value={score(insights.behavior.average_focus_rating)} note="Average optional focus score." />
         </section>
 
         <p className="insight-generated">Generated {new Date(insights.generated_at).toLocaleString()} · raw timer format {formatSecondsAsTimer(insights.totals.lifetime_seconds)}</p>

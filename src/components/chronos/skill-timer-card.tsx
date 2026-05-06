@@ -58,6 +58,10 @@ export function SkillTimerCard({
               lifetimeSeconds: skill.lifetimeSeconds,
               name: skill.title,
               nextPath: controls.nextPath,
+              weeklyTargetSeconds: skill.weeklyTargetSeconds,
+              targetSessionsPerWeek: skill.targetSessionsPerWeek,
+              priorityWeight: skill.priorityWeight,
+              goalNote: skill.goalNote,
               updateAction: controls.updateSkillAction,
               visibility: skill.visibility,
             }

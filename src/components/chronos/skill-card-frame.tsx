@@ -19,6 +19,10 @@ export type SkillCardManageProps = {
   lifetimeSeconds?: number | null;
   name: string;
   nextPath: string;
+  weeklyTargetSeconds?: number | null;
+  targetSessionsPerWeek?: number | null;
+  priorityWeight?: number | null;
+  goalNote?: string | null;
   updateAction: SkillAction;
   visibility?: "public" | "private";
 };
@@ -139,6 +143,10 @@ export function SkillCardFrame({
                 iconKey: manage.iconKey,
                 lifetimeSeconds: manage.lifetimeSeconds,
                 name: manage.name,
+                weeklyTargetSeconds: manage.weeklyTargetSeconds,
+                targetSessionsPerWeek: manage.targetSessionsPerWeek,
+                priorityWeight: manage.priorityWeight,
+                goalNote: manage.goalNote,
                 visibility: manage.visibility,
               }}
               showLifetime
