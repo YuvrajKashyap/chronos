@@ -98,6 +98,7 @@ import {
   ShieldCheck,
   Ship,
   Shirt,
+  School,
   ShoppingBag,
   Soup,
   Sparkles,
@@ -367,6 +368,7 @@ const BASE_ICON_OPTIONS: SkillIconOption[] = [
   { key: "bookmarked", label: "Reading", category: "Learning", icon: BookMarked },
   { key: "newspaper", label: "News", category: "Learning", icon: Newspaper },
   { key: "graduation", label: "Study", category: "Learning", icon: GraduationCap },
+  { key: "school", label: "School", category: "Learning", icon: School },
   { key: "languages", label: "Language", category: "Learning", icon: Languages },
   { key: "brain", label: "Thinking", category: "Learning", icon: Brain },
   { key: "heartpulse", label: "Health", category: "Wellness", icon: HeartPulse },
@@ -495,7 +497,6 @@ const MORE_ICON_OPTIONS: SkillIconOption[] = [
   { key: "inbox", label: "Inbox", category: "Work", icon: LucideIcons.Inbox },
   { key: "squarekanban", label: "Kanban", category: "Work", icon: LucideIcons.SquareKanban },
   { key: "signature", label: "Signature", category: "Work", icon: LucideIcons.Signature },
-  { key: "school", label: "School", category: "Learning", icon: LucideIcons.School },
   { key: "library", label: "Library", category: "Learning", icon: LucideIcons.Library },
   { key: "bookcopy", label: "Books", category: "Learning", icon: LucideIcons.BookCopy },
   { key: "booka", label: "Vocabulary", category: "Learning", icon: LucideIcons.BookA },
@@ -586,6 +587,8 @@ const ALIASES: Record<string, string> = {
   metaads: "megaphone",
   paidads: "megaphone",
   research: "search",
+  school: "school",
+  study: "graduation",
 };
 
 const ACCENT_ALIASES: Record<string, SkillAccentKey> = {
@@ -613,7 +616,9 @@ const ACCENT_ALIASES: Record<string, SkillAccentKey> = {
   paidads: "amber",
   pencil: "violet",
   research: "teal",
+  school: "indigo",
   search: "teal",
+  study: "indigo",
 };
 
 export function normalizeSkillKey(value: string | null | undefined) {
