@@ -2,7 +2,6 @@
 
 import {
   BarChart3,
-  CalendarDays,
   Grid2X2,
   Settings,
 } from "lucide-react";
@@ -13,7 +12,6 @@ import { UserPill } from "./user-pill";
 
 const navItems = [
   { label: "Dashboard", icon: Grid2X2, href: "/" },
-  { label: "Sessions", icon: CalendarDays, href: "/sessions" },
   { label: "Insights", icon: BarChart3, href: "/insights" },
   { label: "Settings", icon: Settings, href: "/settings" },
 ];

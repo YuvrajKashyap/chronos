@@ -64,6 +64,12 @@ export async function logoutFromChronos() {
   redirect("/login");
 }
 
+export async function logoutFromChronosToDashboard() {
+  const supabase = await createChronosServerClient();
+  await supabase.auth.signOut();
+  redirect("/");
+}
+
 export async function startChronosTimer(formData: FormData) {
   const skillId = String(formData.get("skillId") ?? "");
   const nextPath = getSafeNextPath(formData);
