@@ -514,7 +514,8 @@ a {
 }
 
 .status-view-only-note {
-  width: min(calc((100% - (var(--grid-gap-x) * 2)) / 3), 620px);
+  width: max-content;
+  max-width: calc(100vw - 48px);
   position: absolute;
   left: 50%;
   top: 50%;
@@ -537,6 +538,7 @@ a {
   color: var(--text-muted);
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .skill-grid {
