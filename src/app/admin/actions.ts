@@ -57,6 +57,9 @@ export type SmoothStopTimerActionResult =
   | { success: true; session: SmoothStoppedSession }
   | { success: false; error: string };
 
+type ChronosSupabaseClient = Awaited<ReturnType<typeof createChronosServerClient>>;
+type ConfirmTimerResult = { success: true } | { success: false; error: string };
+
 function getSessionPayload(data: unknown): TimerSessionPayload | null {
   if (!data || typeof data !== "object" || !("session" in data)) {
     return null;
@@ -128,6 +131,71 @@ function getBoundedInteger(value: FormDataEntryValue | number | null | undefined
   }
 
   return Math.min(max, Math.max(min, numeric));
+}
+
+function isAlreadyResolvedDecision(message: string) {
+  return message.toLowerCase().includes("no stopped timer is awaiting a lifetime decision");
+}
+
+async function confirmTimerSessionDecision(
+  supabase: ChronosSupabaseClient,
+  sessionId: string,
+  countTowardsLifetime: boolean,
+): Promise<ConfirmTimerResult> {
+  const fullSignatureArgs = {
+    p_session_id: sessionId,
+    p_count_towards_lifetime: countTowardsLifetime,
+    p_quality_score: null,
+    p_energy_score: null,
+    p_focus_score: null,
+    p_outcome: null,
+    p_project_key: null,
+    p_tag_names: [],
+    p_planned_seconds: null,
+    p_interruption_count: 0,
+    p_paused_seconds: 0,
+  };
+  const minimalSignatureArgs = {
+    p_session_id: sessionId,
+    p_count_towards_lifetime: countTowardsLifetime,
+  };
+  const errors: string[] = [];
+
+  for (const args of [fullSignatureArgs, minimalSignatureArgs]) {
+    const { data, error } = await supabase.rpc("confirm_timer_session", args);
+
+    if (error) {
+      errors.push(error.message);
+      continue;
+    }
+
+    const message = getRpcErrorMessage(data, "Stopped session could not be updated.");
+    if (data && typeof data === "object" && "success" in data && data.success === false) {
+      return isAlreadyResolvedDecision(message) ? { success: true } : { success: false, error: message };
+    }
+
+    return { success: true };
+  }
+
+  const { data: updatedSession, error: updateError } = await supabase
+    .schema("chronos")
+    .from("sessions")
+    .update({ counts_toward_lifetime: countTowardsLifetime })
+    .eq("id", sessionId)
+    .not("ended_at", "is", null)
+    .is("counts_toward_lifetime", null)
+    .select("id")
+    .maybeSingle();
+
+  if (updateError) {
+    return { success: false, error: updateError.message || errors.at(0) || "Stopped session could not be updated." };
+  }
+
+  if (!updatedSession) {
+    return { success: true };
+  }
+
+  return { success: true };
 }
 
 export async function logoutFromChronos() {
@@ -345,18 +413,10 @@ export async function confirmChronosTimerSession(formData: FormData) {
   }
 
   const supabase = await createChronosServerClient();
-  const { data, error } = await supabase.rpc("confirm_timer_session", {
-    p_session_id: sessionId,
-    p_count_towards_lifetime: decision === "true",
-  });
+  const result = await confirmTimerSessionDecision(supabase, sessionId, decision === "true");
 
-  if (error) {
-    redirectWithAdminError(error.message, nextPath);
-  }
-
-  const message = getRpcErrorMessage(data, "Stopped session could not be updated.");
-  if (data && typeof data === "object" && "success" in data && data.success === false) {
-    redirectWithAdminError(message, nextPath);
+  if (!result.success) {
+    redirectWithAdminError(result.error, nextPath);
   }
 
   revalidatePath("/");
@@ -381,18 +441,10 @@ export async function confirmChronosTimerSessionSmooth(
       return { success: false, error: durationError };
     }
 
-    const { data, error } = await supabase.rpc("confirm_timer_session", {
-      p_session_id: sessionId,
-      p_count_towards_lifetime: countTowardsLifetime,
-    });
+    const result = await confirmTimerSessionDecision(supabase, sessionId, countTowardsLifetime);
 
-    if (error) {
-      return { success: false, error: error.message };
-    }
-
-    const message = getRpcErrorMessage(data, "Stopped session could not be updated.");
-    if (data && typeof data === "object" && "success" in data && data.success === false) {
-      return { success: false, error: message };
+    if (!result.success) {
+      return result;
     }
 
     revalidatePath("/");
