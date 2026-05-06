@@ -22,12 +22,33 @@ export function AddSkillCard({
     <>
       <article className="skill-card add-skill-card">
         <button className="add-skill-card-button" type="button" onClick={() => setIsOpen(true)}>
-          <span className="add-skill-icon" aria-hidden="true">
-            <Plus size={34} strokeWidth={1.8} />
+          <span className="add-skill-glow" aria-hidden="true" />
+          <span className="add-skill-orbit" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
+          <span className="add-skill-topline">
+            <span className="add-skill-icon" aria-hidden="true">
+              <Plus size={34} strokeWidth={1.8} />
+            </span>
+            <span className="add-skill-status" aria-hidden="true">
+              New
+            </span>
           </span>
           <span className="add-skill-copy">
+            <span className="add-skill-kicker">Dashboard card</span>
             <strong>Add tracker</strong>
-            <span>Choose a logo, accent, and visibility.</span>
+          </span>
+          <span className="add-skill-rule" aria-hidden="true" />
+          <span className="add-skill-preview" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
+          <span className="add-skill-action" aria-hidden="true">
+            <Plus size={16} strokeWidth={2.2} />
+            Create
           </span>
         </button>
       </article>
