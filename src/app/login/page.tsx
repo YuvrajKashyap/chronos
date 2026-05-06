@@ -33,13 +33,29 @@ export default async function LoginPage({
         />
       </div>
       <main className="auth-modal-backdrop" aria-labelledby="login-title">
+        <Link className="auth-backdrop-dismiss" href="/" aria-label="Back to dashboard" />
         <section className="auth-modal-panel chronos-auth-card" role="dialog" aria-modal="true" aria-labelledby="login-title">
           <Link className="auth-modal-close" href="/" aria-label="Close login">
             <X size={18} aria-hidden="true" />
           </Link>
           <aside className="auth-brand-pane" aria-hidden="true">
             <div className="auth-brand-lockup">
-              <span className="auth-mini-seal">C</span>
+              <span className="auth-mini-seal">
+                <img
+                  className="auth-mini-logo auth-mini-logo-light"
+                  src="/assets/chronos-logo-light.png"
+                  alt=""
+                  width="876"
+                  height="876"
+                />
+                <img
+                  className="auth-mini-logo auth-mini-logo-dark"
+                  src="/assets/chronos-logo-dark.png"
+                  alt=""
+                  width="1072"
+                  height="1072"
+                />
+              </span>
               <span>CHRONOS</span>
             </div>
             <div className="auth-orbit-mark">
@@ -67,7 +83,7 @@ export default async function LoginPage({
             </p>
           </aside>
           <div className="auth-form-pane">
-            <h1 id="login-title">Welcome back</h1>
+            <h1 id="login-title">Welcome Back</h1>
             <p className="auth-copy">Sign in if you&apos;re me.</p>
             {authError ? <p className="auth-message is-error">Auth callback: {authError}</p> : null}
             <LoginForm />
