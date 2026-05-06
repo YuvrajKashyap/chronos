@@ -2057,6 +2057,17 @@ a {
   font-weight: 600;
 }
 
+.footer-view-only-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.footer-view-only-copy p + p {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .auth-main {
   width: min(calc(100% - (var(--main-x) * 2)), 960px);
   min-height: calc(100svh - var(--header-h) - 2px);

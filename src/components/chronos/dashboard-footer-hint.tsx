@@ -10,11 +10,14 @@ export function DashboardFooterHint({ isViewOnly = false }: { isViewOnly?: boole
         </div>
         <span />
       </div>
-      <p>
-        {isViewOnly
-          ? "Public view of Yuvraj's current stats. Editing is available only when Yuvraj signs in."
-          : "Only one timer can run at a time."}
-      </p>
+      {isViewOnly ? (
+        <div className="footer-view-only-copy">
+          <p>Public view of Yuvraj's current stats. Editing is available only when Yuvraj signs in.</p>
+          <p>P.S. The majority of these stats have only been tracked since Yuvraj turned 21.</p>
+        </div>
+      ) : (
+        <p>Only one timer can run at a time.</p>
+      )}
     </footer>
   );
 }
