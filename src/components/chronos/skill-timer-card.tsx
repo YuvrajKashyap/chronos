@@ -2,6 +2,7 @@ import type { ChronosSkill } from "@/lib/chronos-sample-data";
 import type { CSSProperties } from "react";
 import type { DashboardControls } from "./chronos-dashboard-page";
 import { CardMotif } from "./card-motif";
+import { LiveTimerValue } from "./live-timer-value";
 import { LoginPromptButton } from "./login-prompt-button";
 import { SkillCardFrame } from "./skill-card-frame";
 import { TimerCardRuntime } from "./smooth-timer-control";
@@ -114,7 +115,15 @@ export function SkillTimerCard({
           <div className="card-body">
             <h2>{skill.title}</h2>
             {!skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
-            <div className={skill.isActive ? "metric-value active-value" : "metric-value"}>{skill.value}</div>
+            {skill.isActive ? (
+              <LiveTimerValue
+                className="metric-value active-value"
+                initialSeconds={skill.initialElapsedSeconds}
+                startedAt={skill.activeStartedAt}
+              />
+            ) : (
+              <div className="metric-value">{skill.value}</div>
+            )}
             {skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
           </div>
           <div className="card-rule" aria-hidden="true" />

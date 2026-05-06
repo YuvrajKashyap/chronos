@@ -352,19 +352,21 @@ export function SmoothTimerControl({
       return;
     }
 
+    const sessionToConfirm = stoppedSession;
     const decision = countTowardsLifetime ? "count" : "skip";
     setDecisionPending(decision);
     setError(null);
+    setStoppedSession(null);
     startTransition(async () => {
-      const result = await confirmAction(stoppedSession.id, countTowardsLifetime, durationSeconds);
+      const result = await confirmAction(sessionToConfirm.id, countTowardsLifetime, durationSeconds);
 
       if (!result.success) {
         setError(result.error);
+        setStoppedSession(sessionToConfirm);
         setDecisionPending(null);
         return;
       }
 
-      setStoppedSession(null);
       setDecisionPending(null);
       router.refresh();
     });

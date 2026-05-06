@@ -48,22 +48,28 @@ export function PendingSessionReview({
       return;
     }
 
+    const sessionToConfirm = modalSession;
     setError(null);
     setDecisionPending(countTowardsLifetime ? "count" : "skip");
+    setDismissedSessionIds((current) => {
+      const next = new Set(current);
+      next.add(sessionToConfirm.id);
+      return next;
+    });
     startTransition(async () => {
-      const result = await action(modalSession.id, countTowardsLifetime, durationSeconds);
+      const result = await action(sessionToConfirm.id, countTowardsLifetime, durationSeconds);
 
       if (!result.success) {
         setError(result.error);
         setDecisionPending(null);
+        setDismissedSessionIds((current) => {
+          const next = new Set(current);
+          next.delete(sessionToConfirm.id);
+          return next;
+        });
         return;
       }
 
-      setDismissedSessionIds((current) => {
-        const next = new Set(current);
-        next.add(modalSession.id);
-        return next;
-      });
       setDecisionPending(null);
       router.refresh();
     });
