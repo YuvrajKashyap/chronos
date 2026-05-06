@@ -46,6 +46,18 @@ function getSkillFormPayload(formData: FormData) {
   };
 }
 
+function getLifetimeSeconds(formData: FormData) {
+  if (!formData.has("lifetimeHours") && !formData.has("lifetimeMinutes") && !formData.has("lifetimeSeconds")) {
+    return null;
+  }
+
+  const hours = Math.max(0, Math.floor(Number(formData.get("lifetimeHours") ?? 0) || 0));
+  const minutes = Math.min(59, Math.max(0, Math.floor(Number(formData.get("lifetimeMinutes") ?? 0) || 0)));
+  const seconds = Math.min(59, Math.max(0, Math.floor(Number(formData.get("lifetimeSeconds") ?? 0) || 0)));
+
+  return (hours * 3600) + (minutes * 60) + seconds;
+}
+
 export async function logoutFromChronos() {
   const supabase = await createChronosServerClient();
   await supabase.auth.signOut();
@@ -167,6 +179,7 @@ export async function updateChronosSkill(formData: FormData) {
   const nextPath = getSafeNextPath(formData);
   const skillId = String(formData.get("skillId") ?? "");
   const payload = getSkillFormPayload(formData);
+  const lifetimeSeconds = getLifetimeSeconds(formData);
 
   if (!skillId) {
     redirectWithAdminError("Choose a dashboard card before editing it.", nextPath);
@@ -192,6 +205,22 @@ export async function updateChronosSkill(formData: FormData) {
   const message = getRpcErrorMessage(data, "Dashboard card could not be updated.");
   if (data && typeof data === "object" && "success" in data && data.success === false) {
     redirectWithAdminError(message, nextPath);
+  }
+
+  if (lifetimeSeconds !== null) {
+    const { data: lifetimeData, error: lifetimeError } = await supabase.rpc("set_skill_lifetime_seconds", {
+      p_skill_id: skillId,
+      p_lifetime_seconds: lifetimeSeconds,
+    });
+
+    if (lifetimeError) {
+      redirectWithAdminError(lifetimeError.message, nextPath);
+    }
+
+    const lifetimeMessage = getRpcErrorMessage(lifetimeData, "Lifetime total could not be updated.");
+    if (lifetimeData && typeof lifetimeData === "object" && "success" in lifetimeData && lifetimeData.success === false) {
+      redirectWithAdminError(lifetimeMessage, nextPath);
+    }
   }
 
   revalidatePath("/");

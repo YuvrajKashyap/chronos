@@ -2,21 +2,42 @@
 
 import { useMemo, useState } from "react";
 
-import { ACCENT_OPTIONS, ICON_OPTIONS } from "@/lib/chronos/skill-style-options";
+import { ACCENT_OPTIONS, CUSTOM_EMOJI_OPTIONS, ICON_OPTIONS, getSkillEmoji } from "@/lib/chronos/skill-style-options";
 
 export type SkillFormInitialValues = {
   accentKey?: string;
   iconKey?: string;
+  lifetimeSeconds?: number | null;
   name?: string;
   visibility?: "public" | "private";
 };
 
-const CATEGORY_ORDER = ["Core", "Sport", "Creative", "Work", "Learning", "Wellness", "Life", "Travel", "Tech"];
+const CATEGORY_ORDER = ["Core", "Creative", "Work", "Learning", "Wellness", "Life", "Travel", "Tech"];
 
-export function SkillFormFields({ initialValues = {} }: { initialValues?: SkillFormInitialValues }) {
+function splitSeconds(totalSeconds: number | null | undefined) {
+  const safeSeconds = Math.max(0, Math.floor(totalSeconds ?? 0));
+
+  return {
+    hours: Math.floor(safeSeconds / 3600),
+    minutes: Math.floor((safeSeconds % 3600) / 60),
+    seconds: safeSeconds % 60,
+  };
+}
+
+export function SkillFormFields({
+  initialValues = {},
+  showLifetime = false,
+}: {
+  initialValues?: SkillFormInitialValues;
+  showLifetime?: boolean;
+}) {
   const [accentKey, setAccentKey] = useState(initialValues.accentKey ?? "coral");
-  const [iconKey, setIconKey] = useState(initialValues.iconKey ?? "sparkles");
+  const initialEmoji = getSkillEmoji(initialValues.iconKey) ?? CUSTOM_EMOJI_OPTIONS[0];
+  const [customEmoji, setCustomEmoji] = useState(initialEmoji);
+  const [iconKey, setIconKey] = useState(initialValues.iconKey?.startsWith("emoji:") ? `emoji:${initialEmoji}` : (initialValues.iconKey ?? "sparkles"));
   const [visibility, setVisibility] = useState<"public" | "private">(initialValues.visibility ?? "public");
+  const lifetime = splitSeconds(initialValues.lifetimeSeconds);
+  const selectedIconKey = iconKey.startsWith("emoji:") ? "custom" : iconKey;
 
   const groupedIcons = useMemo(() => {
     return CATEGORY_ORDER.map((category) => ({
@@ -45,7 +66,7 @@ export function SkillFormFields({ initialValues = {} }: { initialValues?: SkillF
               <div className="skill-icon-bank-grid">
                 {group.icons.map((option) => {
                   const Icon = option.icon;
-                  const isSelected = option.key === iconKey;
+                  const isSelected = option.key === selectedIconKey;
 
                   return (
                     <button
@@ -54,7 +75,7 @@ export function SkillFormFields({ initialValues = {} }: { initialValues?: SkillF
                       key={option.key}
                       aria-pressed={isSelected}
                       title={option.label}
-                      onClick={() => setIconKey(option.key)}
+                      onClick={() => setIconKey(option.key === "custom" ? `emoji:${customEmoji}` : option.key)}
                     >
                       <Icon size={19} strokeWidth={2} aria-hidden="true" />
                       <span>{option.label}</span>
@@ -66,6 +87,52 @@ export function SkillFormFields({ initialValues = {} }: { initialValues?: SkillF
           ))}
         </div>
       </fieldset>
+
+      {selectedIconKey === "custom" ? (
+        <fieldset className="skill-modal-fieldset">
+          <legend>Emoji mark</legend>
+          <div className="skill-emoji-grid">
+            {CUSTOM_EMOJI_OPTIONS.map((emoji) => {
+              const isSelected = emoji === customEmoji;
+
+              return (
+                <button
+                  className={isSelected ? "skill-emoji-choice is-selected" : "skill-emoji-choice"}
+                  type="button"
+                  key={emoji}
+                  aria-pressed={isSelected}
+                  onClick={() => {
+                    setCustomEmoji(emoji);
+                    setIconKey(`emoji:${emoji}`);
+                  }}
+                >
+                  <span aria-hidden="true">{emoji}</span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      ) : null}
+
+      {showLifetime ? (
+        <fieldset className="skill-modal-fieldset">
+          <legend>Lifetime total</legend>
+          <div className="skill-lifetime-grid">
+            <label>
+              <span>Hours</span>
+              <input name="lifetimeHours" type="number" min="0" max="99999" defaultValue={lifetime.hours} />
+            </label>
+            <label>
+              <span>Minutes</span>
+              <input name="lifetimeMinutes" type="number" min="0" max="59" defaultValue={lifetime.minutes} />
+            </label>
+            <label>
+              <span>Seconds</span>
+              <input name="lifetimeSeconds" type="number" min="0" max="59" defaultValue={lifetime.seconds} />
+            </label>
+          </div>
+        </fieldset>
+      ) : null}
 
       <fieldset className="skill-modal-fieldset">
         <legend>Accent</legend>

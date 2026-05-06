@@ -16,6 +16,7 @@ export type SkillCardManageProps = {
   iconKey?: string;
   id: string;
   isActive: boolean;
+  lifetimeSeconds?: number | null;
   name: string;
   nextPath: string;
   updateAction: SkillAction;
@@ -133,9 +134,11 @@ export function SkillCardFrame({
               initialValues={{
                 accentKey: manage.accentKey,
                 iconKey: manage.iconKey,
+                lifetimeSeconds: manage.lifetimeSeconds,
                 name: manage.name,
                 visibility: manage.visibility,
               }}
+              showLifetime
             />
             <div className="skill-modal-actions">
               <button className="skill-modal-secondary" type="button" onClick={() => setModal(null)}>

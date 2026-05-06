@@ -3,6 +3,7 @@ import {
   AlarmClock,
   Apple,
   Archive,
+  Atom,
   BadgeCheck,
   Banknote,
   Bed,
@@ -16,6 +17,7 @@ import {
   BriefcaseBusiness,
   Brush,
   Bus,
+  Calculator,
   CalendarCheck,
   Camera,
   Car,
@@ -23,7 +25,6 @@ import {
   ChefHat,
   Church,
   CircuitBoard,
-  CircleDot,
   Clapperboard,
   ClipboardList,
   Cloud,
@@ -32,15 +33,19 @@ import {
   Compass,
   CookingPot,
   Cpu,
+  Crown,
   Crosshair,
   Database,
   Dices,
   Dog,
   Dumbbell,
+  Eye,
   Film,
+  Flame,
   Flower2,
   FolderKanban,
   Gamepad2,
+  Gem,
   Globe2,
   Goal,
   GraduationCap,
@@ -52,10 +57,13 @@ import {
   HeartPulse,
   Home,
   Joystick,
+  KeyRound,
   Languages,
   Laptop,
   Leaf,
+  Lightbulb,
   LineChart,
+  LockKeyhole,
   Mail,
   Map as MapIcon,
   MapPinned,
@@ -65,6 +73,7 @@ import {
   Monitor,
   Mountain,
   Music,
+  Network,
   Newspaper,
   NotebookPen,
   Package,
@@ -83,6 +92,7 @@ import {
   Scale,
   Scissors,
   Search,
+  Send,
   Server,
   ShieldCheck,
   Ship,
@@ -99,13 +109,13 @@ import {
   Trees,
   Trophy,
   Users,
-  Volleyball,
   Wallet,
   Waves,
   Wifi,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
+import { forwardRef, type ComponentProps } from "react";
 
 import type { SkillMotif } from "@/lib/chronos-sample-data";
 
@@ -114,12 +124,13 @@ export type SkillAccentKey = "coral" | "blue" | "amber" | "violet" | "teal" | "i
 export type SkillIconOption = {
   key: string;
   label: string;
-  category: "Core" | "Sport" | "Creative" | "Work" | "Learning" | "Wellness" | "Life" | "Travel" | "Tech";
+  category: "Core" | "Creative" | "Work" | "Learning" | "Wellness" | "Life" | "Travel" | "Tech";
   icon: LucideIcon;
 };
 
 export type SkillStyle = {
   icon: LucideIcon;
+  emoji?: string;
   accent: SkillAccentKey;
   motif: SkillMotif;
 };
@@ -133,6 +144,74 @@ export const ACCENT_OPTIONS: Array<{ key: SkillAccentKey; label: string; motif: 
   { key: "indigo", label: "Indigo", motif: "clouds" },
 ];
 
+export const CUSTOM_EMOJI_OPTIONS = [
+  "✨",
+  "⭐",
+  "🔥",
+  "⚡",
+  "💎",
+  "🎯",
+  "🧠",
+  "💡",
+  "📚",
+  "✍️",
+  "🎨",
+  "🎧",
+  "🎙️",
+  "📷",
+  "🎬",
+  "💻",
+  "🧪",
+  "🔬",
+  "📈",
+  "💼",
+  "🏆",
+  "🎾",
+  "🏃",
+  "🏋️",
+  "🧘",
+  "🥗",
+  "☕",
+  "🌱",
+  "🏠",
+  "✈️",
+  "🗺️",
+  "🧰",
+];
+
+const TennisRacketIcon = forwardRef<SVGSVGElement, ComponentProps<LucideIcon>>(function TennisRacketIcon(
+  {
+    size = 24,
+    strokeWidth = 2,
+    ...props
+  },
+  ref,
+) {
+  return (
+    <svg
+      ref={ref}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={strokeWidth}
+      aria-hidden="true"
+      {...props}
+    >
+      <ellipse cx="9" cy="8" rx="4.4" ry="6.1" transform="rotate(-34 9 8)" />
+      <path d="m12.1 12.8 7 7" />
+      <path d="m16.4 18.3 1.9-1.9" />
+      <path d="M6.3 4.2 12.8 10.7" opacity="0.55" />
+      <path d="M4.8 7.4 9.6 12.2" opacity="0.55" />
+      <path d="M8.6 2.9 14.2 8.5" opacity="0.55" />
+      <circle cx="17.8" cy="6.2" r="2.1" />
+    </svg>
+  );
+});
+
 export const ICON_OPTIONS: SkillIconOption[] = [
   { key: "code", label: "Code", category: "Core", icon: Code2 },
   { key: "dumbbell", label: "Fitness", category: "Core", icon: Dumbbell },
@@ -140,14 +219,31 @@ export const ICON_OPTIONS: SkillIconOption[] = [
   { key: "pencil", label: "Writing", category: "Core", icon: Pencil },
   { key: "search", label: "Research", category: "Core", icon: Search },
   { key: "book", label: "Learning", category: "Core", icon: BookOpen },
-  { key: "tennis", label: "Tennis", category: "Sport", icon: CircleDot },
-  { key: "volleyball", label: "Volleyball", category: "Sport", icon: Volleyball },
-  { key: "trophy", label: "Competition", category: "Sport", icon: Trophy },
-  { key: "goal", label: "Goals", category: "Sport", icon: Goal },
-  { key: "bike", label: "Cycling", category: "Sport", icon: Bike },
-  { key: "waves", label: "Swimming", category: "Sport", icon: Waves },
-  { key: "target", label: "Practice", category: "Sport", icon: Target },
-  { key: "crosshair", label: "Precision", category: "Sport", icon: Crosshair },
+  { key: "custom", label: "Custom", category: "Core", icon: Sparkles },
+  { key: "tennis", label: "Tennis", category: "Core", icon: TennisRacketIcon },
+  { key: "target", label: "Target", category: "Core", icon: Target },
+  { key: "trophy", label: "Trophy", category: "Core", icon: Trophy },
+  { key: "goal", label: "Goal", category: "Core", icon: Goal },
+  { key: "sparkles", label: "Spark", category: "Core", icon: Sparkles },
+  { key: "flame", label: "Flame", category: "Core", icon: Flame },
+  { key: "lightbulb", label: "Idea", category: "Core", icon: Lightbulb },
+  { key: "brain", label: "Brain", category: "Core", icon: Brain },
+  { key: "activity", label: "Activity", category: "Core", icon: Activity },
+  { key: "alarm", label: "Time", category: "Core", icon: AlarmClock },
+  { key: "calendar", label: "Schedule", category: "Core", icon: CalendarCheck },
+  { key: "badgecheck", label: "Habit", category: "Core", icon: BadgeCheck },
+  { key: "crown", label: "Priority", category: "Core", icon: Crown },
+  { key: "gem", label: "Value", category: "Core", icon: Gem },
+  { key: "key", label: "Key", category: "Core", icon: KeyRound },
+  { key: "lock", label: "Focus", category: "Core", icon: LockKeyhole },
+  { key: "eye", label: "Review", category: "Core", icon: Eye },
+  { key: "atom", label: "Science", category: "Core", icon: Atom },
+  { key: "calculator", label: "Numbers", category: "Core", icon: Calculator },
+  { key: "send", label: "Ship", category: "Core", icon: Send },
+  { key: "network", label: "Network", category: "Core", icon: Network },
+  { key: "bike", label: "Cycling", category: "Core", icon: Bike },
+  { key: "waves", label: "Water", category: "Core", icon: Waves },
+  { key: "crosshair", label: "Precision", category: "Core", icon: Crosshair },
   { key: "music", label: "Music", category: "Creative", icon: Music },
   { key: "guitar", label: "Guitar", category: "Creative", icon: Guitar },
   { key: "mic", label: "Voice", category: "Creative", icon: Mic },
@@ -174,7 +270,6 @@ export const ICON_OPTIONS: SkillIconOption[] = [
   { key: "languages", label: "Language", category: "Learning", icon: Languages },
   { key: "brain", label: "Thinking", category: "Learning", icon: Brain },
   { key: "heartpulse", label: "Health", category: "Wellness", icon: HeartPulse },
-  { key: "activity", label: "Activity", category: "Wellness", icon: Activity },
   { key: "stethoscope", label: "Medical", category: "Wellness", icon: Stethoscope },
   { key: "heart", label: "Care", category: "Wellness", icon: Heart },
   { key: "bed", label: "Sleep", category: "Wellness", icon: Bed },
@@ -226,7 +321,6 @@ export const ICON_OPTIONS: SkillIconOption[] = [
   { key: "headphones", label: "Audio", category: "Tech", icon: Headphones },
   { key: "megaphone", label: "Marketing", category: "Tech", icon: Megaphone },
   { key: "globe", label: "World", category: "Tech", icon: Globe2 },
-  { key: "sparkles", label: "Custom", category: "Core", icon: Sparkles },
   { key: "package", label: "Package", category: "Life", icon: Package },
   { key: "box", label: "Inventory", category: "Life", icon: Box },
   { key: "blocks", label: "Blocks", category: "Creative", icon: Blocks },
@@ -236,30 +330,44 @@ export const ICON_OPTIONS: SkillIconOption[] = [
   { key: "scale", label: "Legal", category: "Work", icon: Scale },
   { key: "church", label: "Spiritual", category: "Life", icon: Church },
   { key: "calendar", label: "Schedule", category: "Work", icon: CalendarCheck },
-  { key: "alarm", label: "Time", category: "Core", icon: AlarmClock },
 ];
 
 const ICONS_BY_KEY = new Map(ICON_OPTIONS.map((option) => [option.key, option]));
 const ACCENTS_BY_KEY = new Map(ACCENT_OPTIONS.map((option) => [option.key, option]));
 
 const ALIASES: Record<string, string> = {
+  ad: "megaphone",
+  ads: "megaphone",
+  adtracker: "megaphone",
+  advertising: "megaphone",
   bookopen: "book",
   briefcasebusiness: "briefcase",
   business: "briefcase",
+  campaign: "megaphone",
+  campaigns: "megaphone",
   coding: "code",
   content: "pencil",
   dumbbell: "dumbbell",
   fitness: "dumbbell",
   learning: "book",
+  marketing: "megaphone",
+  metaads: "megaphone",
+  paidads: "megaphone",
   research: "search",
 };
 
 const ACCENT_ALIASES: Record<string, SkillAccentKey> = {
+  ad: "amber",
+  ads: "amber",
+  adtracker: "amber",
+  advertising: "amber",
   book: "indigo",
   bookopen: "indigo",
   briefcase: "amber",
   briefcasebusiness: "amber",
   business: "amber",
+  campaign: "amber",
+  campaigns: "amber",
   code: "coral",
   code2: "coral",
   coding: "coral",
@@ -267,6 +375,10 @@ const ACCENT_ALIASES: Record<string, SkillAccentKey> = {
   dumbbell: "blue",
   fitness: "blue",
   learning: "indigo",
+  marketing: "amber",
+  megaphone: "amber",
+  metaads: "amber",
+  paidads: "amber",
   pencil: "violet",
   research: "teal",
   search: "teal",
@@ -279,6 +391,14 @@ export function normalizeSkillKey(value: string | null | undefined) {
 export function getSkillIconOption(key: string | null | undefined) {
   const normalized = normalizeSkillKey(key);
   return ICONS_BY_KEY.get(ALIASES[normalized] ?? normalized) ?? ICONS_BY_KEY.get("sparkles") ?? ICON_OPTIONS[0];
+}
+
+export function getSkillEmoji(key: string | null | undefined) {
+  if (!key?.startsWith("emoji:")) {
+    return null;
+  }
+
+  return key.slice("emoji:".length) || null;
 }
 
 function findSkillIconOption(key: string | null | undefined) {
@@ -312,7 +432,8 @@ export function resolveSkillStyle({
 
   return {
     icon: iconOption.icon,
+    emoji: getSkillEmoji(iconKey) ?? undefined,
     accent: accentOption.key,
-    motif: accentOption.motif,
+    motif: iconOption.key === "megaphone" ? "campaign" : accentOption.motif,
   };
 }

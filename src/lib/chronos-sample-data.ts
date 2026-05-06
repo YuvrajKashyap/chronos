@@ -8,7 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type SkillMotif = "contour" | "flow" | "branch" | "quill" | "mesh" | "clouds";
+export type SkillMotif = "contour" | "flow" | "branch" | "quill" | "mesh" | "clouds" | "campaign";
 
 export type ChronosSkill = {
   id: string;
@@ -19,6 +19,7 @@ export type ChronosSkill = {
   accent: string;
   accentKey?: string;
   visibility?: "public" | "private";
+  iconEmoji?: string;
   isActive: boolean;
   badge?: string;
   label: string;
@@ -27,6 +28,7 @@ export type ChronosSkill = {
   motif: SkillMotif;
   activeStartedAt?: string;
   initialElapsedSeconds?: number;
+  lifetimeSeconds?: number | null;
 };
 
 export const chronosSkills: ChronosSkill[] = [

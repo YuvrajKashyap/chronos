@@ -40,6 +40,7 @@ export function transformPublicDashboardToSkills(payload: PublicDashboardPayload
         title: skill.name ?? skill.slug ?? "Skill",
         iconKey: skill.icon_key ?? undefined,
         icon: style.icon,
+        iconEmoji: style.emoji,
         accent: style.accent,
         accentKey: skill.accent_key ?? style.accent,
         visibility: skill.visibility ?? undefined,
@@ -51,6 +52,7 @@ export function transformPublicDashboardToSkills(payload: PublicDashboardPayload
         motif: style.motif,
         activeStartedAt: skill.active_session_started_at ?? undefined,
         initialElapsedSeconds,
+        lifetimeSeconds: skill.lifetime_seconds,
       };
     });
 }

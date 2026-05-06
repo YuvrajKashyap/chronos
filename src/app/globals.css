@@ -667,6 +667,13 @@ a {
   height: clamp(24px, calc(var(--ui) * 0.019), 39px);
 }
 
+.skill-emoji-icon {
+  display: block;
+  font-size: clamp(25px, calc(var(--ui) * 0.02), 42px);
+  line-height: 1;
+  filter: grayscale(1) contrast(1.08);
+}
+
 :root[data-theme="light"] .skill-icon {
   background: rgba(var(--accent-rgb), 0.055);
   box-shadow: 0 12px 21px rgba(var(--accent-rgb), 0.08);
@@ -1032,7 +1039,8 @@ a {
   text-transform: uppercase;
 }
 
-.skill-modal-field input {
+.skill-modal-field input,
+.skill-lifetime-grid input {
   height: 54px;
   padding: 0 18px;
   border: 1px solid var(--divider);
@@ -1044,11 +1052,13 @@ a {
   outline: 0;
 }
 
-:root[data-theme="light"] .skill-modal-field input {
+:root[data-theme="light"] .skill-modal-field input,
+:root[data-theme="light"] .skill-lifetime-grid input {
   background: rgba(255, 255, 255, 0.72);
 }
 
-.skill-modal-field input:focus {
+.skill-modal-field input:focus,
+.skill-lifetime-grid input:focus {
   border-color: rgba(var(--nav-active-rgb), 0.48);
   box-shadow: 0 0 0 4px rgba(var(--nav-active-rgb), 0.1);
 }
@@ -1085,13 +1095,14 @@ a {
 
 .skill-icon-bank-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
 .skill-icon-choice,
 .skill-accent-choice,
-.skill-visibility-choice {
+.skill-visibility-choice,
+.skill-emoji-choice {
   border: 1px solid var(--divider);
   background: rgba(255, 255, 255, 0.035);
   color: var(--text-secondary);
@@ -1120,6 +1131,9 @@ a {
 .skill-icon-choice.is-selected,
 .skill-icon-choice:hover,
 .skill-icon-choice:focus-visible,
+.skill-emoji-choice.is-selected,
+.skill-emoji-choice:hover,
+.skill-emoji-choice:focus-visible,
 .skill-visibility-choice.is-selected,
 .skill-visibility-choice:hover,
 .skill-visibility-choice:focus-visible {
@@ -1127,6 +1141,43 @@ a {
   background: rgba(var(--nav-active-rgb), 0.1);
   color: var(--text-primary);
   outline: 0;
+}
+
+.skill-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.skill-emoji-choice {
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+}
+
+.skill-emoji-choice span {
+  font-size: 22px;
+  line-height: 1;
+  filter: grayscale(1) contrast(1.08);
+}
+
+.skill-lifetime-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.skill-lifetime-grid label {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.skill-lifetime-grid span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .skill-accent-row,
@@ -2384,6 +2435,14 @@ a {
 
   .skill-icon-bank-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .skill-emoji-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .skill-lifetime-grid {
+    grid-template-columns: 1fr;
   }
 
   .skill-modal-actions {

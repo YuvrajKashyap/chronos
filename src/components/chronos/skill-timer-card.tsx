@@ -6,6 +6,16 @@ import { LiveTimerValue } from "./live-timer-value";
 import { SkillCardFrame } from "./skill-card-frame";
 import { TimerSubmitButton } from "./timer-submit-button";
 
+function isAdTracker(skill: ChronosSkill) {
+  const normalized = [skill.title, skill.slug, skill.iconKey]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ");
+
+  return /\b(ad|ads|advertising|marketing|campaign|campaigns)\b/.test(normalized) || normalized.includes("paid ads");
+}
+
 export function SkillTimerCard({
   controls,
   hasActiveTimer,
@@ -17,7 +27,14 @@ export function SkillTimerCard({
 }) {
   const Icon = skill.icon;
   const isDisabledStart = controls.mode === "admin" && hasActiveTimer && !skill.isActive;
-  const cardClassName = `skill-card accent-${skill.accent} ${skill.isActive ? "is-active" : ""}`;
+  const cardClassName = [
+    "skill-card",
+    `accent-${skill.accent}`,
+    skill.isActive ? "is-active" : "",
+    isAdTracker(skill) ? "is-ad-tracker-card" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <SkillCardFrame
@@ -30,6 +47,7 @@ export function SkillTimerCard({
               iconKey: skill.iconKey,
               id: skill.id,
               isActive: skill.isActive,
+              lifetimeSeconds: skill.lifetimeSeconds,
               name: skill.title,
               nextPath: controls.nextPath,
               updateAction: controls.updateSkillAction,
@@ -39,9 +57,23 @@ export function SkillTimerCard({
       }
     >
       <div className="card-glow" aria-hidden="true" />
+      {isAdTracker(skill) ? (
+        <div className="ad-tracker-signal" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+      ) : null}
       <div className="card-header-row">
         <div className="skill-icon">
-          <Icon size={42} strokeWidth={1.85} aria-hidden="true" />
+          {skill.iconEmoji ? (
+            <span className="skill-emoji-icon" aria-hidden="true">
+              {skill.iconEmoji}
+            </span>
+          ) : (
+            <Icon size={42} strokeWidth={1.85} aria-hidden="true" />
+          )}
         </div>
         {skill.badge ? (
           <span className="live-badge">
