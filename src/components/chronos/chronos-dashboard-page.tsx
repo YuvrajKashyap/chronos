@@ -47,8 +47,7 @@ export function ChronosDashboardPage({
   return (
     <ChronosShell isAuthenticated={isAuthenticated}>
       <main className="dashboard-main">
-        <section className="dashboard-hero" aria-labelledby="dashboard-title">
-          <h1 id="dashboard-title">Time Investment Ledger</h1>
+        <section className="dashboard-hero" aria-label="Dashboard status">
           <div className="status-row">
             <span className="status-dot" aria-hidden="true" />
             <span>{sessionLabel}</span>
