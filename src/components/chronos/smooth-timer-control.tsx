@@ -15,6 +15,7 @@ import { formatSecondsAsTimer } from "@/lib/chronos/format-time";
 
 const timerStartedEvent = "chronos:timer-started";
 const timerStoppedEvent = "chronos:timer-stopped";
+export const timerSessionDecisionDismissedEvent = "chronos:timer-session-decision-dismissed";
 
 type TimerMode = "idle" | "running" | "paused";
 
@@ -72,6 +73,14 @@ function getDurationInputValue(value: string, max?: number) {
 
   const bounded = Math.max(0, parsed);
   return typeof max === "number" ? Math.min(max, bounded) : bounded;
+}
+
+function notifySessionDecisionDismissed(sessionId: string, dismissed: boolean) {
+  window.dispatchEvent(
+    new CustomEvent<{ dismissed: boolean; sessionId: string }>(timerSessionDecisionDismissedEvent, {
+      detail: { dismissed, sessionId },
+    }),
+  );
 }
 
 export function TimerCardRuntime({
@@ -357,12 +366,14 @@ export function SmoothTimerControl({
     setDecisionPending(decision);
     setError(null);
     setStoppedSession(null);
+    notifySessionDecisionDismissed(sessionToConfirm.id, true);
     startTransition(async () => {
       const result = await confirmAction(sessionToConfirm.id, countTowardsLifetime, durationSeconds);
 
       if (!result.success) {
         setError(result.error);
         setStoppedSession(sessionToConfirm);
+        notifySessionDecisionDismissed(sessionToConfirm.id, false);
         setDecisionPending(null);
         return;
       }

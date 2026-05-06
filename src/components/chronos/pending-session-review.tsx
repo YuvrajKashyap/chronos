@@ -1,11 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import type { confirmChronosTimerSessionSmooth } from "@/app/admin/actions";
 import type { AdminPendingSession } from "@/lib/chronos/admin-dashboard";
-import { LifetimeDecisionModal } from "./smooth-timer-control";
+import { LifetimeDecisionModal, timerSessionDecisionDismissedEvent } from "./smooth-timer-control";
+
+function updateDismissedSessionId(current: Set<string>, sessionId: string, dismissed: boolean) {
+  const next = new Set(current);
+
+  if (dismissed) {
+    next.add(sessionId);
+  } else {
+    next.delete(sessionId);
+  }
+
+  return next;
+}
 
 export function PendingSessionReview({
   action,
@@ -19,6 +31,21 @@ export function PendingSessionReview({
   const [error, setError] = useState<string | null>(null);
   const [decisionPending, setDecisionPending] = useState<"count" | "skip" | null>(null);
   const [dismissedSessionIds, setDismissedSessionIds] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    function onSessionDecisionDismissed(event: Event) {
+      const detail = (event as CustomEvent<{ dismissed?: boolean; sessionId?: string }>).detail;
+      if (!detail?.sessionId) {
+        return;
+      }
+
+      setDismissedSessionIds((current) => updateDismissedSessionId(current, detail.sessionId!, detail.dismissed !== false));
+    }
+
+    window.addEventListener(timerSessionDecisionDismissedEvent, onSessionDecisionDismissed);
+    return () => window.removeEventListener(timerSessionDecisionDismissedEvent, onSessionDecisionDismissed);
+  }, []);
+
   const session = sessions.find((candidate) => !dismissedSessionIds.has(candidate.id)) ?? null;
   const modalSession = useMemo(() => {
     if (!session) {
@@ -51,22 +78,14 @@ export function PendingSessionReview({
     const sessionToConfirm = modalSession;
     setError(null);
     setDecisionPending(countTowardsLifetime ? "count" : "skip");
-    setDismissedSessionIds((current) => {
-      const next = new Set(current);
-      next.add(sessionToConfirm.id);
-      return next;
-    });
+    setDismissedSessionIds((current) => updateDismissedSessionId(current, sessionToConfirm.id, true));
     startTransition(async () => {
       const result = await action(sessionToConfirm.id, countTowardsLifetime, durationSeconds);
 
       if (!result.success) {
         setError(result.error);
         setDecisionPending(null);
-        setDismissedSessionIds((current) => {
-          const next = new Set(current);
-          next.delete(sessionToConfirm.id);
-          return next;
-        });
+        setDismissedSessionIds((current) => updateDismissedSessionId(current, sessionToConfirm.id, false));
         return;
       }
 
