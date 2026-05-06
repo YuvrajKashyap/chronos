@@ -76,6 +76,7 @@ export function SkillFormFields({
   const initialEmoji = getSkillEmoji(initialBaseIconKey) ?? CUSTOM_EMOJI_OPTIONS[0];
   const [customEmoji, setCustomEmoji] = useState(initialEmoji);
   const [iconKey, setIconKey] = useState(initialBaseIconKey.startsWith("emoji:") ? `emoji:${initialEmoji}` : (initialBaseIconKey || "sparkles"));
+  const [iconSearch, setIconSearch] = useState("");
   const [motifKey, setMotifKey] = useState<SkillMotif>(() => getInitialMotif(initialValues));
   const [visibility, setVisibility] = useState<"public" | "private">(initialValues.visibility ?? "public");
   const lifetime = splitSeconds(initialValues.lifetimeSeconds);
@@ -89,11 +90,23 @@ export function SkillFormFields({
   } as CSSProperties;
 
   const groupedIcons = useMemo(() => {
+    const query = iconSearch.trim().toLowerCase();
+
     return CATEGORY_ORDER.map((category) => ({
       category,
-      icons: ICON_OPTIONS.filter((option) => option.category === category),
+      icons: ICON_OPTIONS.filter((option) => {
+        if (option.category !== category) {
+          return false;
+        }
+
+        if (!query) {
+          return true;
+        }
+
+        return `${option.label} ${option.key} ${option.category}`.toLowerCase().includes(query);
+      }),
     })).filter((group) => group.icons.length > 0);
-  }, []);
+  }, [iconSearch]);
 
   return (
     <>
@@ -108,8 +121,17 @@ export function SkillFormFields({
 
       <fieldset className="skill-modal-fieldset">
         <legend>Logo bank</legend>
+        <label className="skill-icon-search">
+          <span>Search logos</span>
+          <input
+            type="search"
+            value={iconSearch}
+            placeholder="School, code, fitness..."
+            onChange={(event) => setIconSearch(event.target.value)}
+          />
+        </label>
         <div className="skill-icon-bank">
-          {groupedIcons.map((group) => (
+          {groupedIcons.length > 0 ? groupedIcons.map((group) => (
             <div className="skill-icon-bank-group" key={group.category}>
               <span>{group.category}</span>
               <div className="skill-icon-bank-grid">
@@ -133,7 +155,9 @@ export function SkillFormFields({
                 })}
               </div>
             </div>
-          ))}
+          )) : (
+            <p className="skill-icon-empty">No logos match.</p>
+          )}
         </div>
       </fieldset>
 

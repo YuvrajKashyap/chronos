@@ -1383,6 +1383,40 @@ a {
   margin-bottom: 11px;
 }
 
+.skill-icon-search {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.skill-icon-search span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.skill-icon-search input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--divider);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 750;
+  outline: 0;
+}
+
+:root[data-theme="light"] .skill-icon-search input {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.skill-icon-search input:focus {
+  border-color: rgba(var(--nav-active-rgb), 0.48);
+  box-shadow: 0 0 0 4px rgba(var(--nav-active-rgb), 0.1);
+}
+
 .skill-icon-bank {
   max-height: 360px;
   display: grid;
@@ -1390,6 +1424,13 @@ a {
   overflow: auto;
   padding-right: 10px;
   scrollbar-color: rgba(var(--nav-active-rgb), 0.32) transparent;
+}
+
+.skill-icon-empty {
+  margin: 0;
+  padding: 14px 0;
+  color: var(--text-secondary);
+  font-weight: 750;
 }
 
 .skill-icon-bank-group {
@@ -3931,6 +3972,7 @@ a {
 
 .skill-modal-field input,
 .skill-lifetime-grid input,
+.skill-icon-search input,
 .auth-input-row input,
 .auth-field-stack input {
   transition:
@@ -3942,6 +3984,7 @@ a {
 
 .skill-modal-field input:focus,
 .skill-lifetime-grid input:focus,
+.skill-icon-search input:focus,
 .auth-input-row input:focus,
 .auth-field-stack input:focus {
   transform: translateY(-1px);
