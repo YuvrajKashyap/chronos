@@ -493,7 +493,7 @@ a {
 }
 
 .status-row.has-view-only-note {
-  min-height: 46px;
+  min-height: 74px;
 }
 
 .status-dot {
@@ -514,7 +514,7 @@ a {
 }
 
 .status-view-only-note {
-  width: min(620px, 100%);
+  width: min(calc((100% - (var(--grid-gap-x) * 2)) / 3), 620px);
   position: absolute;
   left: 50%;
   top: 50%;
@@ -530,6 +530,10 @@ a {
 }
 
 .status-view-only-note span + span {
+  color: color-mix(in srgb, var(--text-secondary) 82%, var(--text-muted));
+}
+
+.status-view-only-note span:last-child {
   color: var(--text-muted);
   font-size: 13px;
   font-weight: 600;
