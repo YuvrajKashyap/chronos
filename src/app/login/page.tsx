@@ -67,9 +67,8 @@ export default async function LoginPage({
             </p>
           </aside>
           <div className="auth-form-pane">
-            <p className="auth-kicker">Private ledger access</p>
             <h1 id="login-title">Welcome back</h1>
-            <p className="auth-copy">Sign in to securely access your Chronos control center.</p>
+            <p className="auth-copy">Sign in if you&apos;re me.</p>
             {authError ? <p className="auth-message is-error">Auth callback: {authError}</p> : null}
             <LoginForm />
           </div>

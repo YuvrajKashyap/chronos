@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, EyeOff, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowRight, EyeOff, LockKeyhole, UserRound } from "lucide-react";
 import { useActionState } from "react";
 
 import { signInToChronos, type LoginFormState } from "@/app/login/actions";
@@ -44,30 +44,14 @@ export function LoginForm() {
         </div>
       </div>
 
-      <div className="auth-form-options">
-        <label className="auth-remember-control">
-          <input type="checkbox" name="remember" />
-          <span aria-hidden="true" />
-          Remember me
-        </label>
-        <button className="auth-forgot-button" type="button">
-          Forgot password?
-        </button>
-      </div>
-
       <button className="auth-submit-button" type="submit" disabled={isPending}>
-        <LockKeyhole size={18} aria-hidden="true" />
+        <span className="auth-submit-orb" aria-hidden="true">
+          <LockKeyhole size={18} />
+        </span>
         <span>{isPending ? "Signing in" : "Sign in"}</span>
-        <ArrowRight size={20} aria-hidden="true" />
+        <ArrowRight className="auth-submit-arrow" size={21} aria-hidden="true" />
       </button>
-      <p className={error ? "auth-message is-error" : "auth-message"}>
-        {error ?? (
-          <>
-            <ShieldCheck size={18} aria-hidden="true" />
-            <span>Your data is private and encrypted.</span>
-          </>
-        )}
-      </p>
+      {error ? <p className="auth-message is-error">{error}</p> : null}
     </form>
   );
 }

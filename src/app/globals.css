@@ -2226,10 +2226,10 @@ a {
 
 .chronos-auth-card .auth-copy {
   max-width: 310px;
-  margin-top: 16px;
+  margin-top: 18px;
   color: #9fa7b4;
-  font-size: 18px;
-  line-height: 1.35;
+  font-size: 17px;
+  line-height: 1.3;
 }
 
 :root[data-theme="light"] .chronos-auth-card .auth-copy {
@@ -2237,19 +2237,21 @@ a {
 }
 
 .chronos-auth-card .auth-form {
-  margin-top: 34px;
+  margin-top: 38px;
 }
 
 .chronos-auth-card .auth-field-stack {
-  gap: 12px;
+  gap: 13px;
 }
 
 .chronos-auth-card .auth-field-stack label {
+  width: 100%;
   margin: 0;
   color: #8f95a1;
   font-size: 12px;
   font-weight: 850;
   letter-spacing: 0.13em;
+  text-align: center;
 }
 
 .auth-field-shell {
@@ -2307,89 +2309,98 @@ a {
   opacity: 0.78;
 }
 
-.auth-form-options {
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.auth-remember-control {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.auth-remember-control input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.auth-remember-control span {
-  width: 18px;
-  height: 18px;
-  border: 1px solid rgba(67, 195, 158, 0.62);
-  border-radius: 5px;
-  background: rgba(67, 195, 158, 0.06);
-  box-shadow: 0 0 12px rgba(67, 195, 158, 0.1);
-}
-
-.auth-remember-control input:checked + span {
-  background:
-    radial-gradient(circle at 50% 50%, rgba(67, 195, 158, 0.95) 0 38%, transparent 42%),
-    rgba(67, 195, 158, 0.1);
-}
-
-.auth-forgot-button {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #43c39e;
-  font: inherit;
-  font-weight: 800;
-  cursor: pointer;
-}
-
 .chronos-auth-card .auth-submit-button {
-  min-height: 62px;
-  margin-top: 32px;
-  gap: 20px;
-  border: 1px solid rgba(87, 242, 213, 0.44);
-  border-radius: 14px;
+  width: min(100%, 326px);
+  min-height: 66px;
+  margin: 38px auto 0;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 42px 1fr 42px;
+  justify-items: center;
+  gap: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(128, 255, 230, 0.6);
+  border-radius: 20px;
   background:
-    radial-gradient(circle at 28% 0%, rgba(255, 255, 255, 0.34), transparent 32%),
-    linear-gradient(135deg, rgba(89, 223, 198, 0.94), rgba(21, 126, 119, 0.9));
-  color: #eafffb;
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.56), transparent 31%),
+    radial-gradient(circle at 82% 120%, rgba(64, 121, 255, 0.3), transparent 42%),
+    linear-gradient(135deg, rgba(102, 239, 214, 0.96), rgba(25, 153, 138, 0.96) 56%, rgba(24, 126, 143, 0.98));
+  color: #f3fffb;
   font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0;
   box-shadow:
-    0 16px 38px rgba(27, 171, 151, 0.28),
-    0 0 34px rgba(68, 214, 190, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+    0 24px 54px rgba(21, 190, 166, 0.34),
+    0 0 46px rgba(70, 233, 205, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.46),
+    inset 0 -16px 28px rgba(3, 53, 66, 0.22);
+  text-shadow: 0 1px 10px rgba(2, 39, 40, 0.34);
+  transform: translateZ(0);
 }
 
-.chronos-auth-card .auth-submit-button svg:last-child {
-  margin-left: auto;
+.chronos-auth-card .auth-submit-button::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent),
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.3), transparent 48%);
+  opacity: 0.78;
+}
+
+.chronos-auth-card .auth-submit-button::after {
+  content: "";
+  width: 92px;
+  height: 92px;
+  position: absolute;
+  right: -35px;
+  top: -38px;
+  z-index: -1;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  filter: blur(2px);
+  opacity: 0.74;
+}
+
+.auth-submit-orb {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(238, 255, 250, 0.38);
+  border-radius: 999px;
+  background: rgba(6, 66, 69, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.auth-submit-arrow {
+  opacity: 0.96;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.34));
+}
+
+.chronos-auth-card .auth-submit-button:hover,
+.chronos-auth-card .auth-submit-button:focus-visible {
+  border-color: rgba(210, 255, 244, 0.82);
+  box-shadow:
+    0 28px 66px rgba(22, 202, 176, 0.42),
+    0 0 60px rgba(70, 233, 205, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -16px 28px rgba(3, 53, 66, 0.2);
+  transform: translateY(-1px);
 }
 
 .chronos-auth-card .auth-message {
   min-height: 24px;
-  margin-top: 28px;
+  margin-top: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 11px;
   color: var(--text-secondary);
   font-weight: 700;
-}
-
-.chronos-auth-card .auth-message svg {
-  color: #43c39e;
 }
 
 .admin-panel {
