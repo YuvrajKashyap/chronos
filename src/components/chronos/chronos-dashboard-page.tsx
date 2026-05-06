@@ -71,6 +71,12 @@ export function ChronosDashboardPage({
                 startedAt={idleSession.started_at}
               />
             ) : null}
+            {controls.mode === "login" ? (
+              <span className="status-view-only-note">
+                <span>Public view only. Edits require Yuvraj to sign in.</span>
+                <span>Majority tracked since Yuvraj turned 21.</span>
+              </span>
+            ) : null}
           </div>
         </section>
         {message ? <p className="admin-inline-message is-error">{message}</p> : null}
@@ -81,7 +87,7 @@ export function ChronosDashboardPage({
           />
         ) : null}
         <SkillTimerGrid controls={controls} skills={skills} />
-        <DashboardFooterHint isViewOnly={controls.mode === "login"} />
+        <DashboardFooterHint />
       </main>
     </ChronosShell>
   );

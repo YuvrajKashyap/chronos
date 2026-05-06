@@ -484,6 +484,7 @@ a {
 .status-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   color: var(--text-secondary);
   font-size: clamp(14px, calc(var(--ui) * 0.01), 20px);
@@ -505,6 +506,36 @@ a {
   font-size: clamp(18px, calc(var(--ui) * 0.014), 27px);
   font-weight: 600;
   line-height: 1;
+}
+
+.status-view-only-note {
+  margin-left: auto;
+  min-width: min(520px, 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  color: color-mix(in srgb, var(--text-secondary) 82%, var(--text-muted));
+  font-size: clamp(12px, calc(var(--ui) * 0.008), 15px);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: right;
+}
+
+.status-view-only-note span + span {
+  color: var(--text-muted);
+}
+
+.status-view-only-note span + span::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  margin-right: 10px;
+  display: inline-block;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.48;
+  vertical-align: middle;
 }
 
 .skill-grid {
@@ -2043,28 +2074,6 @@ a {
 .footer-hint p {
   margin: 0;
   font-size: 15px;
-  font-weight: 600;
-}
-
-.footer-hint.is-view-only {
-  width: min(620px, 100%);
-  color: color-mix(in srgb, var(--text-secondary) 82%, var(--text-muted));
-}
-
-.footer-hint.is-view-only p {
-  font-size: 14px;
-  line-height: 1.45;
-  font-weight: 600;
-}
-
-.footer-view-only-copy {
-  display: grid;
-  gap: 4px;
-}
-
-.footer-view-only-copy p + p {
-  color: var(--text-muted);
-  font-size: 13px;
   font-weight: 600;
 }
 
@@ -4317,6 +4326,15 @@ a {
   .dashboard-main {
     width: 100%;
     padding: 28px 20px 34px;
+  }
+
+  .status-view-only-note {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    text-align: left;
   }
 
   .auth-main {
