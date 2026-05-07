@@ -3,7 +3,6 @@
 import { Moon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import type { ChronosSkill } from "@/lib/chronos-sample-data";
 import { formatSecondsAsTimer } from "@/lib/chronos/format-time";
 import { CardMotif } from "./card-motif";
 import { LiveTimerValue } from "./live-timer-value";
@@ -14,7 +13,7 @@ type DowntimeTimerCardProps = {
     started_at: string;
     current_idle_elapsed_seconds: number;
   } | null;
-  skill: ChronosSkill;
+  lifetimeSeconds?: number | null;
 };
 
 function getElapsedSeconds(startedAt: string | undefined, initialSeconds: number) {
@@ -30,9 +29,9 @@ function getElapsedSeconds(startedAt: string | undefined, initialSeconds: number
   return Math.max(initialSeconds, Math.floor((Date.now() - startedAtMs) / 1000));
 }
 
-export function DowntimeTimerCard({ idleSession, skill }: DowntimeTimerCardProps) {
+export function DowntimeTimerCard({ idleSession, lifetimeSeconds: initialLifetimeSeconds = 0 }: DowntimeTimerCardProps) {
   const [activeIdleSession, setActiveIdleSession] = useState(idleSession ?? null);
-  const [lifetimeSeconds, setLifetimeSeconds] = useState(() => Math.max(0, Math.floor(skill.lifetimeSeconds ?? 0)));
+  const [lifetimeSeconds, setLifetimeSeconds] = useState(() => Math.max(0, Math.floor(initialLifetimeSeconds ?? 0)));
   const activeIdleSessionRef = useRef(activeIdleSession);
   const isTracking = Boolean(activeIdleSession);
 
@@ -42,8 +41,8 @@ export function DowntimeTimerCard({ idleSession, skill }: DowntimeTimerCardProps
 
   useEffect(() => {
     setActiveIdleSession(idleSession ?? null);
-    setLifetimeSeconds(Math.max(0, Math.floor(skill.lifetimeSeconds ?? 0)));
-  }, [idleSession, skill.lifetimeSeconds]);
+    setLifetimeSeconds(Math.max(0, Math.floor(initialLifetimeSeconds ?? 0)));
+  }, [idleSession, initialLifetimeSeconds]);
 
   useEffect(() => {
     function onTimerStarted() {

@@ -28,7 +28,11 @@ export function SkillTimerGrid({
           nextPath: controls.nextPath,
           reorderSkillAction: controls.reorderSkillAction,
         }}
-        fixedChildren={downtimeSkill ? <DowntimeTimerCard idleSession={idleSession} skill={downtimeSkill} /> : null}
+        fixedChildren={
+          downtimeSkill ? (
+            <DowntimeTimerCard idleSession={idleSession} lifetimeSeconds={downtimeSkill.lifetimeSeconds} />
+          ) : null
+        }
         skillIds={skills.map((skill) => skill.id)}
       >
         {skills.map((skill) => (
