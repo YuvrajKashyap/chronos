@@ -1,7 +1,6 @@
 "use client";
 
 import { Children, type ReactNode, useEffect, useMemo, useRef, useState, useTransition, type DragEvent } from "react";
-import { useRouter } from "next/navigation";
 
 import { AddSkillCard } from "./add-skill-card";
 import type { DashboardControls } from "./chronos-dashboard-page";
@@ -27,6 +26,10 @@ function moveSkill(skillIds: string[], draggingId: string, targetId: string) {
   return nextSkillIds;
 }
 
+function hasSameSkillSet(left: string[], right: string[]) {
+  return left.length === right.length && left.every((id) => right.includes(id));
+}
+
 function isInteractiveDragTarget(target: EventTarget | null) {
   return target instanceof HTMLElement
     ? Boolean(target.closest("button, a, input, textarea, select, [role='menu'], [data-no-drag]"))
@@ -44,7 +47,6 @@ export function ReorderableSkillTimerGrid({
   fixedChildren?: ReactNode;
   skillIds: string[];
 }) {
-  const router = useRouter();
   const [orderedSkillIds, setOrderedSkillIds] = useState(skillIds);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
@@ -52,7 +54,9 @@ export function ReorderableSkillTimerGrid({
   const [isSaving, startTransition] = useTransition();
   const originalOrderRef = useRef(skillIds);
   const pendingOrderRef = useRef(skillIds);
+  const rollbackOrderRef = useRef(skillIds);
   const draggingIdRef = useRef<string | null>(null);
+  const savingOrderRef = useRef<string[] | null>(null);
   const didDropRef = useRef(false);
   const cardNodes = Children.toArray(children);
 
@@ -65,10 +69,40 @@ export function ReorderableSkillTimerGrid({
       return;
     }
 
+    const savingOrder = savingOrderRef.current;
+    if (savingOrder) {
+      if (isSameOrder(skillIds, savingOrder)) {
+        savingOrderRef.current = null;
+        originalOrderRef.current = skillIds;
+        pendingOrderRef.current = skillIds;
+      }
+
+      if (!hasSameSkillSet(skillIds, savingOrder)) {
+        savingOrderRef.current = null;
+        originalOrderRef.current = skillIds;
+        pendingOrderRef.current = skillIds;
+        rollbackOrderRef.current = skillIds;
+        setOrderedSkillIds(skillIds);
+      }
+
+      return;
+    }
+
+    if (!hasSameSkillSet(skillIds, originalOrderRef.current)) {
+      originalOrderRef.current = skillIds;
+      pendingOrderRef.current = skillIds;
+      rollbackOrderRef.current = skillIds;
+      setOrderedSkillIds(skillIds);
+      return;
+    }
+
+    if (isSameOrder(orderedSkillIds, originalOrderRef.current)) {
+      setOrderedSkillIds(skillIds);
+    }
+
     originalOrderRef.current = skillIds;
     pendingOrderRef.current = skillIds;
-    setOrderedSkillIds(skillIds);
-  }, [draggingId, skillIds]);
+  }, [draggingId, orderedSkillIds, skillIds]);
 
   function commitOrder(nextSkillIds: string[]) {
     if (isSameOrder(nextSkillIds, originalOrderRef.current)) {
@@ -76,18 +110,23 @@ export function ReorderableSkillTimerGrid({
     }
 
     setError(null);
+    rollbackOrderRef.current = originalOrderRef.current;
+    savingOrderRef.current = nextSkillIds;
+    setOrderedSkillIds(nextSkillIds);
     startTransition(async () => {
       const result = await controls.reorderSkillAction(nextSkillIds);
 
       if (!result.success) {
+        savingOrderRef.current = null;
         setError(result.error);
-        setOrderedSkillIds(originalOrderRef.current);
-        pendingOrderRef.current = originalOrderRef.current;
+        originalOrderRef.current = rollbackOrderRef.current;
+        setOrderedSkillIds(rollbackOrderRef.current);
+        pendingOrderRef.current = rollbackOrderRef.current;
         return;
       }
 
       originalOrderRef.current = nextSkillIds;
-      router.refresh();
+      pendingOrderRef.current = nextSkillIds;
     });
   }
 

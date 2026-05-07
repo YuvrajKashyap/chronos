@@ -662,15 +662,21 @@ export async function reorderChronosSkills(skillIds: string[]): Promise<SkillReo
     const supabase = await createChronosServerClient();
 
     for (const [index, skillId] of orderedSkillIds.entries()) {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .schema("chronos")
         .from("skills")
         .update({ sort_order: (index + 1) * 10 })
         .eq("id", skillId)
-        .is("archived_at", null);
+        .is("archived_at", null)
+        .select("id")
+        .maybeSingle();
 
       if (error) {
         return { success: false, error: error.message };
+      }
+
+      if (!data) {
+        return { success: false, error: "Dashboard card order could not be saved for one or more cards." };
       }
     }
 
