@@ -1,9 +1,13 @@
+"use client";
+
 import { Moon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import type { ChronosSkill } from "@/lib/chronos-sample-data";
 import { formatSecondsAsTimer } from "@/lib/chronos/format-time";
 import { CardMotif } from "./card-motif";
 import { LiveTimerValue } from "./live-timer-value";
+import { timerStartedEvent, timerStoppedEvent } from "./smooth-timer-control";
 
 type DowntimeTimerCardProps = {
   idleSession?: {
@@ -13,9 +17,71 @@ type DowntimeTimerCardProps = {
   skill: ChronosSkill;
 };
 
+function getElapsedSeconds(startedAt: string | undefined, initialSeconds: number) {
+  if (!startedAt) {
+    return initialSeconds;
+  }
+
+  const startedAtMs = new Date(startedAt).getTime();
+  if (Number.isNaN(startedAtMs)) {
+    return initialSeconds;
+  }
+
+  return Math.max(initialSeconds, Math.floor((Date.now() - startedAtMs) / 1000));
+}
+
 export function DowntimeTimerCard({ idleSession, skill }: DowntimeTimerCardProps) {
-  const isTracking = Boolean(idleSession);
-  const lifetimeSeconds = Math.max(0, Math.floor(skill.lifetimeSeconds ?? 0));
+  const [activeIdleSession, setActiveIdleSession] = useState(idleSession ?? null);
+  const [lifetimeSeconds, setLifetimeSeconds] = useState(() => Math.max(0, Math.floor(skill.lifetimeSeconds ?? 0)));
+  const activeIdleSessionRef = useRef(activeIdleSession);
+  const isTracking = Boolean(activeIdleSession);
+
+  useEffect(() => {
+    activeIdleSessionRef.current = activeIdleSession;
+  }, [activeIdleSession]);
+
+  useEffect(() => {
+    setActiveIdleSession(idleSession ?? null);
+    setLifetimeSeconds(Math.max(0, Math.floor(skill.lifetimeSeconds ?? 0)));
+  }, [idleSession, skill.lifetimeSeconds]);
+
+  useEffect(() => {
+    function onTimerStarted() {
+      const currentIdleSession = activeIdleSessionRef.current;
+
+      if (currentIdleSession) {
+        setLifetimeSeconds(
+          (currentLifetimeSeconds) =>
+            currentLifetimeSeconds + getElapsedSeconds(currentIdleSession.started_at, currentIdleSession.current_idle_elapsed_seconds),
+        );
+      }
+
+      activeIdleSessionRef.current = null;
+      setActiveIdleSession(null);
+    }
+
+    function onTimerStopped() {
+      if (activeIdleSessionRef.current) {
+        return;
+      }
+
+      const nextIdleSession = {
+        current_idle_elapsed_seconds: 0,
+        started_at: new Date().toISOString(),
+      };
+
+      activeIdleSessionRef.current = nextIdleSession;
+      setActiveIdleSession(nextIdleSession);
+    }
+
+    window.addEventListener(timerStartedEvent, onTimerStarted);
+    window.addEventListener(timerStoppedEvent, onTimerStopped);
+
+    return () => {
+      window.removeEventListener(timerStartedEvent, onTimerStarted);
+      window.removeEventListener(timerStoppedEvent, onTimerStopped);
+    };
+  }, []);
 
   return (
     <article className={isTracking ? "skill-card downtime-card is-auto-tracking" : "skill-card downtime-card"} aria-label="Downtime auto tracker">
@@ -24,35 +90,25 @@ export function DowntimeTimerCard({ idleSession, skill }: DowntimeTimerCardProps
         <span />
         <span />
       </div>
-      <div className="card-header-row">
+      <div className="card-header-row downtime-header-row">
         <div className="skill-icon downtime-icon">
           <Moon size={42} strokeWidth={1.75} aria-hidden="true" />
         </div>
-        <span className={isTracking ? "live-badge downtime-badge" : "live-badge downtime-badge is-muted"}>
-          <span aria-hidden="true" />
-          {isTracking ? "AUTO" : "READY"}
-        </span>
       </div>
       <div className="card-body downtime-body">
         <h2>Downtime</h2>
-        <p className="metric-label">{isTracking ? "AUTO TRACKING NOW" : "LIFETIME DOWNTIME"}</p>
-        {idleSession ? (
+        <p className="metric-label">{isTracking ? "TRACKING NOW" : "LIFETIME DOWNTIME"}</p>
+        {activeIdleSession ? (
           <LiveTimerValue
             className="metric-value active-value"
-            initialSeconds={idleSession.current_idle_elapsed_seconds}
-            startedAt={idleSession.started_at}
+            initialSeconds={activeIdleSession.current_idle_elapsed_seconds}
+            startedAt={activeIdleSession.started_at}
           />
         ) : (
           <div className="metric-value">{formatSecondsAsTimer(lifetimeSeconds)}</div>
         )}
-        <p className="downtime-copy">
-          {isTracking ? "No skill timer is active, so this is being counted automatically." : "Starts itself when every skill timer is stopped."}
-        </p>
       </div>
       <div className="card-rule" aria-hidden="true" />
-      <div className="downtime-auto-panel" aria-hidden="true">
-        <span>No manual controls</span>
-      </div>
       <CardMotif type="clouds" />
     </article>
   );

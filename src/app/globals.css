@@ -702,6 +702,8 @@ a {
 .downtime-card {
   --accent: #7ec9c3;
   --accent-rgb: 126, 201, 195;
+  align-items: center;
+  justify-content: center;
   border-color: rgba(126, 201, 195, 0.34);
   background:
     radial-gradient(circle at 13% 0%, rgba(126, 201, 195, 0.12), transparent 39%),
@@ -730,6 +732,7 @@ a {
 }
 
 .downtime-icon {
+  margin: 0 auto;
   border-color: rgba(126, 201, 195, 0.42);
   background:
     radial-gradient(circle at 35% 22%, rgba(203, 245, 240, 0.18), transparent 34%),
@@ -740,25 +743,19 @@ a {
     0 15px 30px rgba(126, 201, 195, 0.1);
 }
 
-.downtime-badge {
-  border-color: rgba(126, 201, 195, 0.34);
-  background: rgba(126, 201, 195, 0.08);
-  color: #a6e5df;
-}
-
-.downtime-badge.is-muted {
-  border-color: rgba(143, 154, 170, 0.2);
-  background: rgba(255, 255, 255, 0.035);
-  color: var(--text-muted);
-}
-
-.downtime-badge.is-muted span {
-  background: var(--text-muted);
-  box-shadow: none;
+.downtime-header-row {
+  width: 100%;
+  justify-content: center;
 }
 
 .downtime-body h2 {
   color: var(--text-primary);
+}
+
+.downtime-body {
+  width: 100%;
+  margin-top: clamp(14px, calc(var(--ui) * 0.012), 24px);
+  text-align: center;
 }
 
 .downtime-card .metric-label,
@@ -766,35 +763,18 @@ a {
   color: #a6e5df;
 }
 
-.downtime-copy {
-  max-width: 28ch;
-  margin: clamp(8px, calc(var(--ui) * 0.007), 14px) 0 0;
-  color: var(--text-secondary);
-  font-size: clamp(12px, calc(var(--ui) * 0.008), 16px);
-  font-weight: 650;
-  line-height: 1.35;
+.downtime-card .metric-label {
+  margin-bottom: clamp(10px, calc(var(--ui) * 0.008), 16px);
+}
+
+.downtime-card .metric-value {
+  margin-inline: auto;
 }
 
 .downtime-card .card-rule {
   width: min(88%, 320px);
-  margin-top: auto;
+  margin: clamp(15px, calc(var(--ui) * 0.013), 26px) auto 0;
   background: linear-gradient(90deg, rgba(126, 201, 195, 0.32), rgba(103, 130, 190, 0.08));
-}
-
-.downtime-auto-panel {
-  width: max-content;
-  margin: clamp(8px, calc(var(--ui) * 0.007), 14px) auto 0;
-  padding: clamp(7px, calc(var(--ui) * 0.006), 11px) clamp(12px, calc(var(--ui) * 0.011), 22px);
-  position: relative;
-  z-index: 2;
-  border: 1px solid rgba(126, 201, 195, 0.2);
-  border-radius: 999px;
-  background: rgba(126, 201, 195, 0.055);
-  color: color-mix(in srgb, #a6e5df 74%, var(--text-secondary));
-  font-size: clamp(11px, calc(var(--ui) * 0.008), 15px);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .downtime-orbit {

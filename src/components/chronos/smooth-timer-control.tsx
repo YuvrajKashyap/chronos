@@ -13,8 +13,8 @@ import type {
 } from "@/app/admin/actions";
 import { formatSecondsAsTimer } from "@/lib/chronos/format-time";
 
-const timerStartedEvent = "chronos:timer-started";
-const timerStoppedEvent = "chronos:timer-stopped";
+export const timerStartedEvent = "chronos:timer-started";
+export const timerStoppedEvent = "chronos:timer-stopped";
 export const timerSessionDecisionDismissedEvent = "chronos:timer-session-decision-dismissed";
 
 type TimerMode = "idle" | "running" | "paused";
