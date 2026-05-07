@@ -73,7 +73,7 @@ export function ChronosDashboardPage({
               <span className="status-view-only-note">
                 <span>Public view of Yuvraj's current stats.</span>
                 <span>Editing is available only when Yuvraj signs in.</span>
-                <span>P.S. The majority of these stats have only been tracked since Yuvraj turned 21.</span>
+                <span>P.S. The majority of these stats have only been tracked since Yuvraj turned 21. So some have been estimated.</span>
               </span>
             ) : null}
           </div>
