@@ -197,10 +197,6 @@ a {
 }
 
 .nav-link svg {
-  display: none;
-}
-
-:root[data-theme="light"] .nav-link svg {
   display: block;
 }
 
