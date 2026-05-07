@@ -119,198 +119,202 @@ export function SkillFormFields({
       <input type="hidden" name="accentKey" value={selectedAccentKey} />
       <input type="hidden" name="visibility" value={visibility} />
 
-      <fieldset className="skill-modal-fieldset skill-logo-fieldset">
-        <legend>Logo bank</legend>
-        <label className="skill-icon-search">
-          <span>Search logos</span>
-          <input
-            type="search"
-            value={iconSearch}
-            onChange={(event) => setIconSearch(event.target.value)}
-          />
-        </label>
-        <div className="skill-icon-bank">
-          {groupedIcons.length > 0 ? groupedIcons.map((group) => (
-            <div className="skill-icon-bank-group" key={group.category}>
-              <span>{group.category}</span>
-              <div className="skill-icon-bank-grid">
-                {group.icons.map((option) => {
-                  const Icon = option.icon;
-                  const isSelected = option.key === selectedIconKey;
-
-                  return (
-                    <button
-                      className={isSelected ? "skill-icon-choice is-selected" : "skill-icon-choice"}
-                      type="button"
-                      key={option.key}
-                      aria-pressed={isSelected}
-                      title={option.label}
-                      onClick={() => setIconKey(option.key === "custom" ? `emoji:${customEmoji}` : option.key)}
-                    >
-                      <Icon size={19} strokeWidth={2} aria-hidden="true" />
-                      <span>{option.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )) : (
-            <p className="skill-icon-empty">No logos match.</p>
-          )}
-        </div>
-      </fieldset>
-
-      {selectedIconKey === "custom" ? (
-        <fieldset className="skill-modal-fieldset skill-emoji-fieldset">
-          <legend>Emoji mark</legend>
-          <div className="skill-emoji-grid">
-            {CUSTOM_EMOJI_OPTIONS.map((emoji) => {
-              const isSelected = emoji === customEmoji;
-
-              return (
-                <button
-                  className={isSelected ? "skill-emoji-choice is-selected" : "skill-emoji-choice"}
-                  type="button"
-                  key={emoji}
-                  aria-pressed={isSelected}
-                  onClick={() => {
-                    setCustomEmoji(emoji);
-                    setIconKey(`emoji:${emoji}`);
-                  }}
-                >
-                  <span aria-hidden="true">{emoji}</span>
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-      ) : null}
-
-      {showLifetime ? (
-        <fieldset className="skill-modal-fieldset skill-lifetime-fieldset">
-          <legend>Lifetime total</legend>
-          <div className="skill-lifetime-grid">
-            <label>
-              <span>Hours</span>
-              <input name="lifetimeHours" type="number" min="0" max="99999" defaultValue={lifetime.hours} />
-            </label>
-            <label>
-              <span>Minutes</span>
-              <input name="lifetimeMinutes" type="number" min="0" max="59" defaultValue={lifetime.minutes} />
-            </label>
-            <label>
-              <span>Seconds</span>
-              <input name="lifetimeSeconds" type="number" min="0" max="59" defaultValue={lifetime.seconds} />
-            </label>
-          </div>
-        </fieldset>
-      ) : null}
-
-      {showLifetime ? (
-        <fieldset className="skill-modal-fieldset skill-goal-fieldset">
-          <legend>Goal tracking</legend>
-          <div className="skill-lifetime-grid">
-            <label>
-              <span>Target h/wk</span>
-              <input name="weeklyTargetHours" type="number" min="0" max="999" defaultValue={weeklyTarget.hours} />
-            </label>
-            <label>
-              <span>Target m/wk</span>
-              <input name="weeklyTargetMinutes" type="number" min="0" max="59" defaultValue={weeklyTarget.minutes} />
-            </label>
-            <label>
-              <span>Sessions/wk</span>
-              <input name="targetSessionsPerWeek" type="number" min="0" max="99" defaultValue={initialValues.targetSessionsPerWeek ?? 0} />
-            </label>
-            <label>
-              <span>Priority</span>
-              <input name="priorityWeight" type="number" min="1" max="5" defaultValue={initialValues.priorityWeight ?? 3} />
-            </label>
-          </div>
-          <label className="skill-modal-field">
-            <span>Goal note</span>
-            <textarea name="goalNote" defaultValue={initialValues.goalNote ?? ""} placeholder="What should this tracker mean long term?" maxLength={500} />
-          </label>
-        </fieldset>
-      ) : null}
-
-      <fieldset className="skill-modal-fieldset skill-accent-fieldset">
-        <legend>Accent</legend>
-        <div className="skill-accent-row">
-          {ACCENT_OPTIONS.map((option) => (
-            <button
-              className={`skill-accent-choice accent-${option.key} ${option.key === accentKey ? "is-selected" : ""}`}
-              type="button"
-              key={option.key}
-              aria-pressed={option.key === accentKey}
-              onClick={() => setAccentKey(option.key)}
-            >
-              <span aria-hidden="true" />
-              {option.label}
-            </button>
-          ))}
-          <label
-            className={`skill-accent-choice skill-accent-custom ${isCustomAccent ? "is-selected" : ""}`}
-            style={customAccentStyle}
-            title="Custom accent"
-          >
+      <div className="skill-form-left">
+        <fieldset className="skill-modal-fieldset skill-logo-fieldset">
+          <legend>Logo bank</legend>
+          <label className="skill-icon-search">
+            <span>Search logos</span>
             <input
-              type="color"
-              value={customAccentColor}
-              aria-label="Custom accent color"
-              onChange={(event) => {
-                setCustomAccentColor(event.target.value);
-                setAccentKey(getSkillAccentKeyFromHex(event.target.value));
-              }}
-              onClick={() => setAccentKey(getSkillAccentKeyFromHex(customAccentColor))}
+              type="search"
+              value={iconSearch}
+              onChange={(event) => setIconSearch(event.target.value)}
             />
-            <span className="skill-accent-wheel" aria-hidden="true" />
-            Custom
           </label>
-        </div>
-      </fieldset>
+          <div className="skill-icon-bank">
+            {groupedIcons.length > 0 ? groupedIcons.map((group) => (
+              <div className="skill-icon-bank-group" key={group.category}>
+                <span>{group.category}</span>
+                <div className="skill-icon-bank-grid">
+                  {group.icons.map((option) => {
+                    const Icon = option.icon;
+                    const isSelected = option.key === selectedIconKey;
 
-      <fieldset className="skill-modal-fieldset skill-motif-fieldset">
-        <legend>Card background</legend>
-        <div className="skill-motif-row">
-          {SKILL_MOTIF_OPTIONS.map((option) => (
-            <button
-              className={option.key === motifKey ? "skill-motif-choice is-selected" : "skill-motif-choice"}
-              type="button"
-              key={option.key}
-              aria-pressed={option.key === motifKey}
-              onClick={() => setMotifKey(option.key)}
+                    return (
+                      <button
+                        className={isSelected ? "skill-icon-choice is-selected" : "skill-icon-choice"}
+                        type="button"
+                        key={option.key}
+                        aria-pressed={isSelected}
+                        title={option.label}
+                        onClick={() => setIconKey(option.key === "custom" ? `emoji:${customEmoji}` : option.key)}
+                      >
+                        <Icon size={19} strokeWidth={2} aria-hidden="true" />
+                        <span>{option.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )) : (
+              <p className="skill-icon-empty">No logos match.</p>
+            )}
+          </div>
+        </fieldset>
+
+        {selectedIconKey === "custom" ? (
+          <fieldset className="skill-modal-fieldset skill-emoji-fieldset">
+            <legend>Emoji mark</legend>
+            <div className="skill-emoji-grid">
+              {CUSTOM_EMOJI_OPTIONS.map((emoji) => {
+                const isSelected = emoji === customEmoji;
+
+                return (
+                  <button
+                    className={isSelected ? "skill-emoji-choice is-selected" : "skill-emoji-choice"}
+                    type="button"
+                    key={emoji}
+                    aria-pressed={isSelected}
+                    onClick={() => {
+                      setCustomEmoji(emoji);
+                      setIconKey(`emoji:${emoji}`);
+                    }}
+                  >
+                    <span aria-hidden="true">{emoji}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+        ) : null}
+
+        <fieldset className="skill-modal-fieldset skill-motif-fieldset">
+          <legend>Card background</legend>
+          <div className="skill-motif-row">
+            {SKILL_MOTIF_OPTIONS.map((option) => (
+              <button
+                className={option.key === motifKey ? "skill-motif-choice is-selected" : "skill-motif-choice"}
+                type="button"
+                key={option.key}
+                aria-pressed={option.key === motifKey}
+                onClick={() => setMotifKey(option.key)}
+              >
+                <span className="skill-motif-preview" aria-hidden="true">
+                  <CardMotif type={option.key} />
+                </span>
+                <span>{option.label}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+
+      <div className="skill-form-right">
+        {showLifetime ? (
+          <fieldset className="skill-modal-fieldset skill-lifetime-fieldset">
+            <legend>Lifetime total</legend>
+            <div className="skill-lifetime-grid">
+              <label>
+                <span>Hours</span>
+                <input name="lifetimeHours" type="number" min="0" max="99999" defaultValue={lifetime.hours} />
+              </label>
+              <label>
+                <span>Minutes</span>
+                <input name="lifetimeMinutes" type="number" min="0" max="59" defaultValue={lifetime.minutes} />
+              </label>
+              <label>
+                <span>Seconds</span>
+                <input name="lifetimeSeconds" type="number" min="0" max="59" defaultValue={lifetime.seconds} />
+              </label>
+            </div>
+          </fieldset>
+        ) : null}
+
+        {showLifetime ? (
+          <fieldset className="skill-modal-fieldset skill-goal-fieldset">
+            <legend>Goal tracking</legend>
+            <div className="skill-lifetime-grid">
+              <label>
+                <span>Target h/wk</span>
+                <input name="weeklyTargetHours" type="number" min="0" max="999" defaultValue={weeklyTarget.hours} />
+              </label>
+              <label>
+                <span>Target m/wk</span>
+                <input name="weeklyTargetMinutes" type="number" min="0" max="59" defaultValue={weeklyTarget.minutes} />
+              </label>
+              <label>
+                <span>Sessions/wk</span>
+                <input name="targetSessionsPerWeek" type="number" min="0" max="99" defaultValue={initialValues.targetSessionsPerWeek ?? 0} />
+              </label>
+              <label>
+                <span>Priority</span>
+                <input name="priorityWeight" type="number" min="1" max="5" defaultValue={initialValues.priorityWeight ?? 3} />
+              </label>
+            </div>
+            <label className="skill-modal-field">
+              <span>Goal note</span>
+              <textarea name="goalNote" defaultValue={initialValues.goalNote ?? ""} placeholder="What should this tracker mean long term?" maxLength={500} />
+            </label>
+          </fieldset>
+        ) : null}
+
+        <fieldset className="skill-modal-fieldset skill-accent-fieldset">
+          <legend>Accent</legend>
+          <div className="skill-accent-row">
+            {ACCENT_OPTIONS.map((option) => (
+              <button
+                className={`skill-accent-choice accent-${option.key} ${option.key === accentKey ? "is-selected" : ""}`}
+                type="button"
+                key={option.key}
+                aria-pressed={option.key === accentKey}
+                onClick={() => setAccentKey(option.key)}
+              >
+                <span aria-hidden="true" />
+                {option.label}
+              </button>
+            ))}
+            <label
+              className={`skill-accent-choice skill-accent-custom ${isCustomAccent ? "is-selected" : ""}`}
+              style={customAccentStyle}
+              title="Custom accent"
             >
-              <span className="skill-motif-preview" aria-hidden="true">
-                <CardMotif type={option.key} />
-              </span>
-              <span>{option.label}</span>
-            </button>
-          ))}
-        </div>
-      </fieldset>
+              <input
+                type="color"
+                value={customAccentColor}
+                aria-label="Custom accent color"
+                onChange={(event) => {
+                  setCustomAccentColor(event.target.value);
+                  setAccentKey(getSkillAccentKeyFromHex(event.target.value));
+                }}
+                onClick={() => setAccentKey(getSkillAccentKeyFromHex(customAccentColor))}
+              />
+              <span className="skill-accent-wheel" aria-hidden="true" />
+              Custom
+            </label>
+          </div>
+        </fieldset>
 
-      <fieldset className="skill-modal-fieldset skill-visibility-fieldset">
-        <legend>Visibility</legend>
-        <div className="skill-visibility-row">
-          <button
-            className={visibility === "public" ? "skill-visibility-choice is-selected" : "skill-visibility-choice"}
-            type="button"
-            aria-pressed={visibility === "public"}
-            onClick={() => setVisibility("public")}
-          >
-            Public
-          </button>
-          <button
-            className={visibility === "private" ? "skill-visibility-choice is-selected" : "skill-visibility-choice"}
-            type="button"
-            aria-pressed={visibility === "private"}
-            onClick={() => setVisibility("private")}
-          >
-            Private
-          </button>
-        </div>
-      </fieldset>
+        <fieldset className="skill-modal-fieldset skill-visibility-fieldset">
+          <legend>Visibility</legend>
+          <div className="skill-visibility-row">
+            <button
+              className={visibility === "public" ? "skill-visibility-choice is-selected" : "skill-visibility-choice"}
+              type="button"
+              aria-pressed={visibility === "public"}
+              onClick={() => setVisibility("public")}
+            >
+              Public
+            </button>
+            <button
+              className={visibility === "private" ? "skill-visibility-choice is-selected" : "skill-visibility-choice"}
+              type="button"
+              aria-pressed={visibility === "private"}
+              onClick={() => setVisibility("private")}
+            >
+              Private
+            </button>
+          </div>
+        </fieldset>
+      </div>
     </>
   );
 }
