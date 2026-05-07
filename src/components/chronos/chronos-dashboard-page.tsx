@@ -5,6 +5,7 @@ import type {
   confirmChronosTimerSessionSmooth,
   createChronosSkill,
   deleteChronosSkill,
+  reorderChronosSkills,
   startChronosTimer,
   startChronosTimerSmooth,
   stopChronosTimer,
@@ -30,6 +31,7 @@ export type DashboardControls =
       createSkillAction: typeof createChronosSkill;
       updateSkillAction: typeof updateChronosSkill;
       deleteSkillAction: typeof deleteChronosSkill;
+      reorderSkillAction: typeof reorderChronosSkills;
       nextPath: string;
     };
 

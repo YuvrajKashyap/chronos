@@ -57,6 +57,8 @@ export type SmoothStopTimerActionResult =
   | { success: true; session: SmoothStoppedSession }
   | { success: false; error: string };
 
+export type SkillReorderActionResult = { success: true } | { success: false; error: string };
+
 type ChronosSupabaseClient = Awaited<ReturnType<typeof createChronosServerClient>>;
 type ConfirmTimerResult = { success: true } | { success: false; error: string };
 type UpdateSkillPayload = ReturnType<typeof getSkillFormPayload> & {
@@ -645,4 +647,41 @@ export async function deleteChronosSkill(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/admin");
   redirect(nextPath);
+}
+
+export async function reorderChronosSkills(skillIds: string[]): Promise<SkillReorderActionResult> {
+  const orderedSkillIds = Array.from(
+    new Set(skillIds.map((skillId) => String(skillId).trim()).filter(Boolean)),
+  );
+
+  if (orderedSkillIds.length === 0) {
+    return { success: true };
+  }
+
+  try {
+    const supabase = await createChronosServerClient();
+
+    for (const [index, skillId] of orderedSkillIds.entries()) {
+      const { error } = await supabase
+        .schema("chronos")
+        .from("skills")
+        .update({ sort_order: (index + 1) * 10 })
+        .eq("id", skillId)
+        .is("archived_at", null);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+    }
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Dashboard card order could not be saved.",
+    };
+  }
 }
