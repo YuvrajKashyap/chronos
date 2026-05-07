@@ -40,20 +40,28 @@ async function getAuthenticatedDashboard() {
       return null;
     }
 
-    const { data: defaultSkillsData, error: defaultSkillsError } = await supabase.rpc("ensure_default_skills");
-    if (
-      defaultSkillsError ||
-      (defaultSkillsData &&
-        typeof defaultSkillsData === "object" &&
-        "success" in defaultSkillsData &&
-        defaultSkillsData.success === false)
-    ) {
+    let { state } = await getAdminTimerState();
+    if (!state) {
       return null;
     }
 
-    const { state } = await getAdminTimerState();
-    if (!state) {
-      return null;
+    if (state.skills.length === 0) {
+      const { data: defaultSkillsData, error: defaultSkillsError } = await supabase.rpc("ensure_default_skills");
+      if (
+        defaultSkillsError ||
+        (defaultSkillsData &&
+          typeof defaultSkillsData === "object" &&
+          "success" in defaultSkillsData &&
+          defaultSkillsData.success === false)
+      ) {
+        return null;
+      }
+
+      const refreshedState = await getAdminTimerState();
+      state = refreshedState.state;
+      if (!state) {
+        return null;
+      }
     }
 
     return {

@@ -136,38 +136,7 @@ export default async function AdminPage({
     );
   }
 
-  const { data: defaultSkillsData, error: defaultSkillsError } = await supabase.rpc("ensure_default_skills");
-
-  if (defaultSkillsError) {
-    return (
-      <AdminStatusPanel
-        email={user.email ?? "Unknown email"}
-        bootstrap={(data as BootstrapPayload | null) ?? null}
-        error={defaultSkillsError.message}
-      />
-    );
-  }
-
-  if (
-    defaultSkillsData &&
-    typeof defaultSkillsData === "object" &&
-    "success" in defaultSkillsData &&
-    defaultSkillsData.success === false
-  ) {
-    return (
-      <AdminStatusPanel
-        email={user.email ?? "Unknown email"}
-        bootstrap={(data as BootstrapPayload | null) ?? null}
-        error={
-          "error" in defaultSkillsData && typeof defaultSkillsData.error === "string"
-            ? defaultSkillsData.error
-            : "Default skills could not be ensured."
-        }
-      />
-    );
-  }
-
-  const { state, error: timerStateError } = await getAdminTimerState();
+  let { state, error: timerStateError } = await getAdminTimerState();
 
   if (!state || timerStateError) {
     return (
@@ -177,6 +146,53 @@ export default async function AdminPage({
         error={timerStateError ?? "Chronos timer state is unavailable."}
       />
     );
+  }
+
+  if (state.skills.length === 0) {
+    const { data: defaultSkillsData, error: defaultSkillsError } = await supabase.rpc("ensure_default_skills");
+
+    if (defaultSkillsError) {
+      return (
+        <AdminStatusPanel
+          email={user.email ?? "Unknown email"}
+          bootstrap={(data as BootstrapPayload | null) ?? null}
+          error={defaultSkillsError.message}
+        />
+      );
+    }
+
+    if (
+      defaultSkillsData &&
+      typeof defaultSkillsData === "object" &&
+      "success" in defaultSkillsData &&
+      defaultSkillsData.success === false
+    ) {
+      return (
+        <AdminStatusPanel
+          email={user.email ?? "Unknown email"}
+          bootstrap={(data as BootstrapPayload | null) ?? null}
+          error={
+            "error" in defaultSkillsData && typeof defaultSkillsData.error === "string"
+              ? defaultSkillsData.error
+              : "Default skills could not be ensured."
+          }
+        />
+      );
+    }
+
+    const refreshedState = await getAdminTimerState();
+    state = refreshedState.state;
+    timerStateError = refreshedState.error;
+
+    if (!state || timerStateError) {
+      return (
+        <AdminStatusPanel
+          email={user.email ?? "Unknown email"}
+          bootstrap={(data as BootstrapPayload | null) ?? null}
+          error={timerStateError ?? "Chronos timer state is unavailable."}
+        />
+      );
+    }
   }
 
   return (
