@@ -3863,7 +3863,7 @@ a {
   right: 4%;
   width: min(840px, 48vw);
   height: 190px;
-  z-index: 0;
+  z-index: 2;
   color: var(--global-line);
   pointer-events: none;
 }
