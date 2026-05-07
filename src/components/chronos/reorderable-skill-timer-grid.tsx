@@ -36,10 +36,12 @@ function isInteractiveDragTarget(target: EventTarget | null) {
 export function ReorderableSkillTimerGrid({
   children,
   controls,
+  fixedChildren,
   skillIds,
 }: {
   children: ReactNode;
   controls: Pick<AdminDashboardControls, "createSkillAction" | "nextPath" | "reorderSkillAction">;
+  fixedChildren?: ReactNode;
   skillIds: string[];
 }) {
   const router = useRouter();
@@ -172,6 +174,7 @@ export function ReorderableSkillTimerGrid({
             {cardsById.get(skillId)}
           </div>
         ))}
+        {fixedChildren}
         <AddSkillCard action={controls.createSkillAction} nextPath={controls.nextPath} />
       </section>
     </>

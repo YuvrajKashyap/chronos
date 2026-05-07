@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ChronosDashboardPage } from "@/components/chronos/chronos-dashboard-page";
 import { ChronosShell } from "@/components/chronos/chronos-shell";
 import { getAdminTimerState } from "@/lib/chronos/admin-dashboard";
-import { getAdminActiveSessionCount, transformAdminDashboardToSkills } from "@/lib/chronos/transform-admin-dashboard";
+import { getAdminActiveSessionCount, transformAdminDashboardToSkills, transformAdminDowntimeSkill } from "@/lib/chronos/transform-admin-dashboard";
 import { createChronosServerClient } from "@/lib/supabase/server";
 import {
   confirmChronosTimerSession,
@@ -196,6 +196,7 @@ export default async function AdminPage({
         stopSmoothAction: stopChronosTimerSmooth,
         updateSkillAction: updateChronosSkill,
       }}
+      downtimeSkill={transformAdminDowntimeSkill(state)}
       isAuthenticated
       idleSession={state.idle_session}
       message={actionError}

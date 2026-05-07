@@ -38,6 +38,7 @@ export type DashboardControls =
 export function ChronosDashboardPage({
   activeSessionCount = 1,
   controls = { mode: "readonly" },
+  downtimeSkill,
   isAuthenticated = false,
   idleSession,
   message,
@@ -45,6 +46,7 @@ export function ChronosDashboardPage({
 }: {
   activeSessionCount?: number;
   controls?: DashboardControls;
+  downtimeSkill?: ChronosSkill | null;
   idleSession?: {
     started_at: string;
     current_idle_elapsed_seconds: number;
@@ -81,7 +83,7 @@ export function ChronosDashboardPage({
           </div>
         </section>
         {message ? <p className="admin-inline-message is-error">{message}</p> : null}
-        <SkillTimerGrid controls={controls} skills={skills} />
+        <SkillTimerGrid controls={controls} downtimeSkill={downtimeSkill} idleSession={idleSession} skills={skills} />
         <DashboardFooterHint />
       </main>
     </ChronosShell>
