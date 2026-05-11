@@ -98,11 +98,17 @@ export function DowntimeTimerCard({ idleSession, lifetimeSeconds: initialLifetim
         <h2>Downtime</h2>
         <p className="metric-label">{isTracking ? "TRACKING NOW" : "LIFETIME DOWNTIME"}</p>
         {activeIdleSession ? (
-          <LiveTimerValue
-            className="metric-value active-value"
-            initialSeconds={activeIdleSession.current_idle_elapsed_seconds}
-            startedAt={activeIdleSession.started_at}
-          />
+          <>
+            <LiveTimerValue
+              className="metric-value active-value"
+              initialSeconds={activeIdleSession.current_idle_elapsed_seconds}
+              startedAt={activeIdleSession.started_at}
+            />
+            <p className="downtime-lifetime-total">
+              <span>Lifetime total</span>
+              <strong>{formatSecondsAsTimer(lifetimeSeconds)}</strong>
+            </p>
+          </>
         ) : (
           <div className="metric-value">{formatSecondsAsTimer(lifetimeSeconds)}</div>
         )}
