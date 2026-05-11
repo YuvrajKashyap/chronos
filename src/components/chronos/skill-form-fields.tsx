@@ -18,7 +18,6 @@ import {
   splitSkillIconKey,
 } from "@/lib/chronos/skill-style-options";
 import { CardMotif } from "./card-motif";
-import styles from "./skill-color-picker.module.css";
 
 export type SkillFormInitialValues = {
   accentKey?: string;
@@ -88,16 +87,6 @@ export function SkillFormFields({
   const storedIconKey = buildSkillIconKey(iconKey, motifKey);
   const customAccentStyle = {
     "--custom-accent": customAccentColor,
-  } as CSSProperties;
-  const selectedAccentOption = isCustomAccent ? null : ACCENT_OPTIONS.find((option) => option.key === accentKey);
-  const selectedCustomAccent = getSkillCustomAccent(accentKey);
-  const selectedAccentLabel = selectedAccentOption?.label ?? "Custom";
-  const selectedAccentDetail = selectedAccentOption ? `${selectedAccentOption.motif} motif system` : customAccentColor.toUpperCase();
-  const selectedAccentClass = selectedAccentOption ? `accent-${selectedAccentOption.key}` : "";
-  const pickerStyle = {
-    "--custom-accent": customAccentColor,
-    "--picker-custom-color": selectedCustomAccent?.color ?? "rgb(var(--picker-accent-rgb))",
-    "--picker-accent-rgb": selectedCustomAccent?.rgb,
   } as CSSProperties;
 
   const groupedIcons = useMemo(() => {
@@ -268,64 +257,39 @@ export function SkillFormFields({
           </fieldset>
         ) : null}
 
-        <fieldset className={`skill-modal-fieldset skill-accent-fieldset ${styles.accentFieldset}`}>
+        <fieldset className="skill-modal-fieldset skill-accent-fieldset">
           <legend>Accent</legend>
-          <div className={`${styles.accentPicker} ${selectedAccentClass}`} style={pickerStyle}>
-            <div className={styles.accentPreview} aria-hidden="true">
-              <span className={styles.previewHalo} />
-              <span className={styles.previewCore} />
-              <span className={styles.previewOrbit} />
-            </div>
-            <div className={styles.accentHeader}>
-              <span>Selected tone</span>
-              <strong>{selectedAccentLabel}</strong>
-              <p>{selectedAccentDetail}. Card glow, controls, and decorative energy inherit this tone.</p>
-            </div>
-            <div className={styles.accentGrid}>
-              {ACCENT_OPTIONS.map((option) => (
-                <button
-                  className={`accent-${option.key} ${styles.accentChoice} ${option.key === accentKey ? styles.selected : ""}`}
-                  type="button"
-                  key={option.key}
-                  aria-pressed={option.key === accentKey}
-                  aria-label={`Use ${option.label} accent`}
-                  onClick={() => setAccentKey(option.key)}
-                >
-                  <span className={styles.swatchFrame} aria-hidden="true">
-                    <span className={styles.swatchCore} />
-                    <span className={styles.swatchSheen} />
-                  </span>
-                  <span className={styles.choiceText}>
-                    <strong>{option.label}</strong>
-                    <span>{option.motif}</span>
-                  </span>
-                </button>
-              ))}
-              <label
-                className={`${styles.accentChoice} ${styles.customChoice} ${isCustomAccent ? styles.selected : ""}`}
-                style={customAccentStyle}
-                title="Custom accent"
+          <div className="skill-accent-row">
+            {ACCENT_OPTIONS.map((option) => (
+              <button
+                className={`skill-accent-choice accent-${option.key} ${option.key === accentKey ? "is-selected" : ""}`}
+                type="button"
+                key={option.key}
+                aria-pressed={option.key === accentKey}
+                onClick={() => setAccentKey(option.key)}
               >
-                <input
-                  type="color"
-                  value={customAccentColor}
-                  aria-label="Custom accent color"
-                  onChange={(event) => {
-                    setCustomAccentColor(event.target.value);
-                    setAccentKey(getSkillAccentKeyFromHex(event.target.value));
-                  }}
-                  onClick={() => setAccentKey(getSkillAccentKeyFromHex(customAccentColor))}
-                />
-                <span className={styles.swatchFrame} aria-hidden="true">
-                  <span className={styles.customWheel} />
-                  <span className={styles.swatchSheen} />
-                </span>
-                <span className={styles.choiceText}>
-                  <strong>Custom</strong>
-                  <span>{customAccentColor.toUpperCase()}</span>
-                </span>
-              </label>
-            </div>
+                <span aria-hidden="true" />
+                {option.label}
+              </button>
+            ))}
+            <label
+              className={`skill-accent-choice skill-accent-custom ${isCustomAccent ? "is-selected" : ""}`}
+              style={customAccentStyle}
+              title="Custom accent"
+            >
+              <input
+                type="color"
+                value={customAccentColor}
+                aria-label="Custom accent color"
+                onChange={(event) => {
+                  setCustomAccentColor(event.target.value);
+                  setAccentKey(getSkillAccentKeyFromHex(event.target.value));
+                }}
+                onClick={() => setAccentKey(getSkillAccentKeyFromHex(customAccentColor))}
+              />
+              <span className="skill-accent-wheel" aria-hidden="true" />
+              Custom
+            </label>
           </div>
         </fieldset>
 
