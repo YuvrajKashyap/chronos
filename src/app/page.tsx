@@ -2,7 +2,11 @@ import { ChronosDashboardPage } from "@/components/chronos/chronos-dashboard-pag
 import { chronosSkills } from "@/lib/chronos-sample-data";
 import { getAdminTimerState } from "@/lib/chronos/admin-dashboard";
 import { getPublicDashboard } from "@/lib/chronos/public-dashboard";
-import { getAdminActiveSessionCount, transformAdminDashboardToSkills } from "@/lib/chronos/transform-admin-dashboard";
+import {
+  getAdminActiveSessionCount,
+  transformAdminDashboardToSkills,
+  transformAdminDowntimeSkill,
+} from "@/lib/chronos/transform-admin-dashboard";
 import {
   getPublicActiveSessionCount,
   hasUsefulPublicDashboardData,
@@ -66,6 +70,8 @@ async function getAuthenticatedDashboard() {
 
     return {
       activeSessionCount: getAdminActiveSessionCount(state),
+      downtimeSkill: transformAdminDowntimeSkill(state),
+      idleSession: state.idle_session,
       pendingSessions: state.pending_sessions ?? [],
       skills: transformAdminDashboardToSkills(state),
     };
@@ -101,6 +107,8 @@ export default async function Home({
           stopSmoothAction: stopChronosTimerSmooth,
           updateSkillAction: updateChronosSkill,
         }}
+        downtimeSkill={adminDashboard.downtimeSkill}
+        idleSession={adminDashboard.idleSession}
         isAuthenticated
         message={actionError}
         pendingSessions={adminDashboard.pendingSessions}
