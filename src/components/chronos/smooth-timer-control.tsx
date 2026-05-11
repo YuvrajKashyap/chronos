@@ -206,12 +206,30 @@ export function TimerCardRuntime({
       return undefined;
     }
 
+    const previousTimerState = {
+      accumulatedSeconds: accumulatedSecondsRef.current,
+      activeStartedAtMs: activeStartedAtMsRef.current,
+      externalActiveSkillId,
+      mode,
+      runStartedAtMs: runStartedAtMsRef.current,
+      seconds,
+    };
     const visibleSeconds =
       mode === "running"
         ? accumulatedSecondsRef.current + Math.floor((Date.now() - (runStartedAtMsRef.current ?? Date.now())) / 1000)
         : seconds;
     const finalSeconds = Math.max(0, visibleSeconds);
     const endedAt = getStoppedAtIso(activeStartedAtMsRef.current, finalSeconds);
+
+    function restoreStoppedTimer() {
+      accumulatedSecondsRef.current = previousTimerState.accumulatedSeconds;
+      activeStartedAtMsRef.current = previousTimerState.activeStartedAtMs;
+      runStartedAtMsRef.current = previousTimerState.runStartedAtMs;
+      setSeconds(previousTimerState.seconds);
+      setMode(previousTimerState.mode);
+      setExternalActiveSkillId(previousTimerState.externalActiveSkillId ?? skillId);
+      window.dispatchEvent(new CustomEvent(timerStartedEvent, { detail: { skillId } }));
+    }
 
     setError(null);
     setSeconds(finalSeconds);
@@ -220,24 +238,31 @@ export function TimerCardRuntime({
     setExternalActiveSkillId(null);
     window.dispatchEvent(new Event(timerStoppedEvent));
 
-    if (startPromiseRef.current) {
-      const startResult = await startPromiseRef.current;
-      if (!startResult.success) {
-        setError(startResult.error);
-        setIsSyncingStop(false);
+    try {
+      if (startPromiseRef.current) {
+        const startResult = await startPromiseRef.current;
+        if (!startResult.success) {
+          setError(startResult.error);
+          return undefined;
+        }
+      }
+
+      const result = await stopAction(skillName, endedAt);
+
+      if (!result.success) {
+        restoreStoppedTimer();
+        setError(result.error);
         return undefined;
       }
-    }
 
-    const result = await stopAction(skillName, endedAt);
-    setIsSyncingStop(false);
-
-    if (!result.success) {
-      setError(result.error);
+      return result.session;
+    } catch (error) {
+      restoreStoppedTimer();
+      setError(error instanceof Error ? error.message : "Timer could not be stopped.");
       return undefined;
+    } finally {
+      setIsSyncingStop(false);
     }
-
-    return result.session;
   }
 
   return (
