@@ -86,6 +86,35 @@ export type AdminTimerState = {
   recent_sessions: AdminRecentSession[];
 };
 
+function isMissingRpcFunction(message: string) {
+  const normalized = message.toLowerCase();
+
+  return normalized.includes("could not find the function") || normalized.includes("schema cache");
+}
+
+async function ensureDowntimeClock(client: Awaited<ReturnType<typeof createChronosServerClient>>) {
+  const startedAt = new Date().toISOString();
+  const { error } = await client.rpc("ensure_downtime_timer", { p_started_at: startedAt });
+
+  if (!error) {
+    return;
+  }
+
+  if (!isMissingRpcFunction(error.message)) {
+    return;
+  }
+
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+
+  if (!user) {
+    return;
+  }
+
+  await client.rpc("start_idle_window", { p_user_id: user.id, p_started_at: startedAt });
+}
+
 export async function getAdminTimerState(): Promise<{ state: AdminTimerState | null; error: string | null }> {
   if (!hasChronosSupabaseEnv()) {
     return { state: null, error: "Supabase environment variables are not configured." };
@@ -93,6 +122,8 @@ export async function getAdminTimerState(): Promise<{ state: AdminTimerState | n
 
   try {
     const supabase = await createChronosServerClient();
+    await ensureDowntimeClock(supabase);
+
     const { data, error } = await supabase.rpc("get_admin_timer_state");
 
     if (error) {
