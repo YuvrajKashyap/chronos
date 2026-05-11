@@ -18,6 +18,7 @@ import {
   splitSkillIconKey,
 } from "@/lib/chronos/skill-style-options";
 import { CardMotif } from "./card-motif";
+import styles from "./custom-color-picker.module.css";
 
 export type SkillFormInitialValues = {
   accentKey?: string;
@@ -33,6 +34,14 @@ export type SkillFormInitialValues = {
 
 const CATEGORY_ORDER = ["Core", "Creative", "Work", "Learning", "Wellness", "Life", "Travel", "Tech"];
 const DEFAULT_CUSTOM_ACCENT = "#ff563f";
+const CUSTOM_ACCENT_PRESETS = [
+  { color: "#ff563f", label: "Ember" },
+  { color: "#f0ad2c", label: "Gilded" },
+  { color: "#32c4ab", label: "Aqua" },
+  { color: "#3f8dff", label: "Signal" },
+  { color: "#9a66ef", label: "Violet" },
+  { color: "#f06aa6", label: "Bloom" },
+];
 
 function splitSeconds(totalSeconds: number | null | undefined) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds ?? 0));
@@ -42,6 +51,16 @@ function splitSeconds(totalSeconds: number | null | undefined) {
     minutes: Math.floor((safeSeconds % 3600) / 60),
     seconds: safeSeconds % 60,
   };
+}
+
+function normalizeHexInput(value: string) {
+  const cleaned = value.trim().replace(/^#/, "").replace(/[^0-9a-f]/gi, "").slice(0, 6);
+
+  return `#${cleaned}`;
+}
+
+function isCompleteHexColor(value: string) {
+  return /^#[0-9a-f]{6}$/i.test(value.trim());
 }
 
 function getRandomMotif() {
@@ -71,6 +90,7 @@ export function SkillFormFields({
 }) {
   const initialCustomAccent = getSkillCustomAccent(initialValues.accentKey);
   const [customAccentColor, setCustomAccentColor] = useState(initialCustomAccent?.color ?? DEFAULT_CUSTOM_ACCENT);
+  const [customAccentDraft, setCustomAccentDraft] = useState(initialCustomAccent?.color ?? DEFAULT_CUSTOM_ACCENT);
   const [accentKey, setAccentKey] = useState(initialCustomAccent?.key ?? initialValues.accentKey ?? "coral");
   const initialBaseIconKey = splitSkillIconKey(initialValues.iconKey).iconKey;
   const initialEmoji = getSkillEmoji(initialBaseIconKey) ?? CUSTOM_EMOJI_OPTIONS[0];
@@ -88,6 +108,17 @@ export function SkillFormFields({
   const customAccentStyle = {
     "--custom-accent": customAccentColor,
   } as CSSProperties;
+
+  function commitCustomAccent(nextColor: string) {
+    if (!isCompleteHexColor(nextColor)) {
+      return;
+    }
+
+    const normalized = nextColor.toLowerCase();
+    setCustomAccentColor(normalized);
+    setCustomAccentDraft(normalized);
+    setAccentKey(getSkillAccentKeyFromHex(normalized));
+  }
 
   const groupedIcons = useMemo(() => {
     const query = iconSearch.trim().toLowerCase();
@@ -272,25 +303,83 @@ export function SkillFormFields({
                 {option.label}
               </button>
             ))}
-            <label
+            <button
               className={`skill-accent-choice skill-accent-custom ${isCustomAccent ? "is-selected" : ""}`}
               style={customAccentStyle}
               title="Custom accent"
+              type="button"
+              aria-pressed={isCustomAccent}
+              onClick={() => setAccentKey(getSkillAccentKeyFromHex(customAccentColor))}
             >
-              <input
-                type="color"
-                value={customAccentColor}
-                aria-label="Custom accent color"
-                onChange={(event) => {
-                  setCustomAccentColor(event.target.value);
-                  setAccentKey(getSkillAccentKeyFromHex(event.target.value));
-                }}
-                onClick={() => setAccentKey(getSkillAccentKeyFromHex(customAccentColor))}
-              />
               <span className="skill-accent-wheel" aria-hidden="true" />
               Custom
-            </label>
+            </button>
           </div>
+          {isCustomAccent ? (
+            <div className={styles.customColorPanel} style={customAccentStyle}>
+              <div className={styles.colorPreview} aria-hidden="true">
+                <span className={styles.previewGlow} />
+                <span className={styles.previewOrb} />
+                <span className={styles.previewRing} />
+              </div>
+              <div className={styles.customColorBody}>
+                <div className={styles.customColorHeader}>
+                  <span>Custom tone</span>
+                  <strong>{customAccentColor.toUpperCase()}</strong>
+                </div>
+                <label className={styles.hexField}>
+                  <span>Hex value</span>
+                  <input
+                    value={customAccentDraft}
+                    inputMode="text"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    maxLength={7}
+                    aria-label="Custom accent hex color"
+                    onBlur={() => {
+                      if (isCompleteHexColor(customAccentDraft)) {
+                        commitCustomAccent(customAccentDraft);
+                      } else {
+                        setCustomAccentDraft(customAccentColor);
+                      }
+                    }}
+                    onChange={(event) => {
+                      const nextDraft = normalizeHexInput(event.target.value);
+                      setCustomAccentDraft(nextDraft);
+
+                      if (isCompleteHexColor(nextDraft)) {
+                        commitCustomAccent(nextDraft);
+                      }
+                    }}
+                  />
+                </label>
+                <div className={styles.presetRail} aria-label="Custom accent presets">
+                  {CUSTOM_ACCENT_PRESETS.map((preset) => (
+                    <button
+                      className={preset.color.toLowerCase() === customAccentColor ? styles.activePreset : ""}
+                      type="button"
+                      key={preset.color}
+                      style={{ "--preset-color": preset.color } as CSSProperties}
+                      aria-label={`Use ${preset.label} custom color`}
+                      onClick={() => commitCustomAccent(preset.color)}
+                    >
+                      <span aria-hidden="true" />
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                <label className={styles.nativeSpectrum}>
+                  <span>Open spectrum</span>
+                  <input
+                    type="color"
+                    value={customAccentColor}
+                    aria-label="Open native color spectrum"
+                    onChange={(event) => commitCustomAccent(event.target.value)}
+                  />
+                </label>
+              </div>
+            </div>
+          ) : null}
         </fieldset>
 
         <fieldset className="skill-modal-fieldset skill-visibility-fieldset">

@@ -1,0 +1,286 @@
+.customColorPanel {
+  --custom-accent: #ff563f;
+  margin-top: 12px;
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  overflow: hidden;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--custom-accent) 34%, transparent);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--custom-accent) 19%, transparent), transparent 34%),
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--custom-accent) 12%, transparent), transparent 30%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 20px 46px rgba(0, 0, 0, 0.18),
+    0 0 34px color-mix(in srgb, var(--custom-accent) 10%, transparent);
+  animation: custom-color-rise 180ms ease-out;
+}
+
+.customColorPanel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(115deg, transparent 0 40%, color-mix(in srgb, var(--custom-accent) 9%, transparent) 50%, transparent 62%),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--custom-accent) 8%, transparent) 0 1px, transparent 1px 14px);
+  opacity: 0.52;
+  pointer-events: none;
+  mask-image: radial-gradient(circle at 30% 22%, black, transparent 72%);
+}
+
+.colorPreview,
+.customColorBody {
+  position: relative;
+  z-index: 1;
+}
+
+.colorPreview {
+  width: 92px;
+  min-height: 152px;
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 40% 18%, rgba(255, 255, 255, 0.2), transparent 28%),
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--custom-accent) 23%, transparent), transparent 62%),
+    rgba(255, 255, 255, 0.035);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--custom-accent) 24%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.previewGlow,
+.previewOrb,
+.previewRing {
+  position: absolute;
+  border-radius: 999px;
+}
+
+.previewGlow {
+  width: 58px;
+  height: 104px;
+  background: color-mix(in srgb, var(--custom-accent) 18%, transparent);
+  filter: blur(18px);
+}
+
+.previewOrb {
+  width: 46px;
+  height: 46px;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.9), transparent 20%),
+    linear-gradient(145deg, color-mix(in srgb, var(--custom-accent) 84%, white), var(--custom-accent));
+  box-shadow:
+    0 0 26px color-mix(in srgb, var(--custom-accent) 52%, transparent),
+    0 14px 28px rgba(0, 0, 0, 0.24);
+}
+
+.previewRing {
+  width: 66px;
+  height: 66px;
+  border: 1px solid transparent;
+  border-top-color: color-mix(in srgb, var(--custom-accent) 74%, transparent);
+  border-right-color: color-mix(in srgb, var(--custom-accent) 26%, transparent);
+  transform: rotate(-26deg);
+}
+
+.customColorBody {
+  min-width: 0;
+  display: grid;
+  gap: 13px;
+}
+
+.customColorHeader {
+  display: grid;
+  gap: 4px;
+}
+
+.customColorHeader span,
+.hexField span {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.customColorHeader strong {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.hexField {
+  display: grid;
+  gap: 8px;
+}
+
+.hexField input {
+  min-height: 46px;
+  border: 1px solid color-mix(in srgb, var(--custom-accent) 28%, var(--divider));
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--custom-accent) 14%, transparent), transparent 48%),
+    rgba(255, 255, 255, 0.035);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  outline: 0;
+  padding: 0 14px;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.hexField input:focus {
+  border-color: color-mix(in srgb, var(--custom-accent) 62%, transparent);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--custom-accent) 12%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.presetRail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.presetRail button {
+  --preset-color: #ff563f;
+  min-width: 0;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--preset-color) 28%, var(--divider));
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--preset-color) 14%, transparent), transparent 38%),
+    rgba(255, 255, 255, 0.035);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 850;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.presetRail button span {
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--preset-color);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--preset-color) 52%, transparent);
+}
+
+.presetRail button:hover,
+.presetRail button:focus-visible,
+.presetRail .activePreset {
+  border-color: color-mix(in srgb, var(--preset-color) 62%, transparent);
+  background: color-mix(in srgb, var(--preset-color) 12%, transparent);
+  color: var(--text-primary);
+  outline: 0;
+  transform: translateY(-1px);
+}
+
+.nativeSpectrum {
+  min-height: 46px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--custom-accent) 38%, transparent);
+  border-radius: 15px;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent),
+    conic-gradient(from 90deg, #ff3b30, #ffcc00, #34c759, #00c7be, #007aff, #af52de, #ff2d55, #ff3b30);
+  box-shadow:
+    inset 0 0 0 999px rgba(3, 8, 16, 0.64),
+    0 0 24px color-mix(in srgb, var(--custom-accent) 12%, transparent);
+  color: #f7fbff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.nativeSpectrum span {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+.nativeSpectrum input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+:global(:root[data-theme="light"]) .customColorPanel {
+  background:
+    radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--custom-accent) 13%, transparent), transparent 34%),
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--custom-accent) 10%, transparent), transparent 30%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(241, 248, 247, 0.68));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 18px 38px rgba(44, 82, 83, 0.11);
+}
+
+:global(:root[data-theme="light"]) .hexField input,
+:global(:root[data-theme="light"]) .presetRail button {
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--custom-accent) 8%, transparent), transparent 42%),
+    rgba(255, 255, 255, 0.72);
+}
+
+:global(:root[data-theme="light"]) .nativeSpectrum {
+  box-shadow:
+    inset 0 0 0 999px rgba(248, 253, 251, 0.52),
+    0 0 20px color-mix(in srgb, var(--custom-accent) 12%, transparent);
+  color: #17302f;
+}
+
+:global(:root[data-theme="light"]) .nativeSpectrum span {
+  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes custom-color-rise {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 680px) {
+  .customColorPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .colorPreview {
+    display: none;
+  }
+}
+
+@media (max-width: 430px) {
+  .presetRail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
