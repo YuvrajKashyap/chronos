@@ -1,266 +1,355 @@
-.customColorPanel {
-  --custom-accent: #ff563f;
-  margin-top: 12px;
-  position: relative;
+.colorPickerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 16px;
-  overflow: hidden;
-  padding: 16px;
-  border: 1px solid color-mix(in srgb, var(--custom-accent) 34%, transparent);
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--custom-accent) 19%, transparent), transparent 34%),
-    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--custom-accent) 12%, transparent), transparent 30%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 20px 46px rgba(0, 0, 0, 0.18),
-    0 0 34px color-mix(in srgb, var(--custom-accent) 10%, transparent);
-  animation: custom-color-rise 180ms ease-out;
+  place-items: center;
+  padding: clamp(16px, 4vw, 48px);
+  background: rgba(2, 7, 15, 0.58);
+  backdrop-filter: blur(13px) saturate(1.05);
+  animation: picker-backdrop-in 180ms ease-out;
 }
 
-.customColorPanel::before {
+.colorPickerDialog {
+  --custom-accent: #ff5640;
+  --custom-hue-color: #ff0000;
+  width: min(922px, calc(100vw - 32px));
+  max-height: min(970px, calc(100svh - 32px));
+  position: relative;
+  overflow: auto;
+  padding: clamp(34px, 4vw, 58px);
+  border: 1px solid color-mix(in srgb, var(--custom-accent) 74%, rgba(255, 255, 255, 0.16));
+  border-radius: 35px;
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--custom-accent) 11%, transparent), transparent 35%),
+    radial-gradient(circle at 100% 100%, rgba(42, 116, 160, 0.13), transparent 34%),
+    linear-gradient(145deg, rgba(25, 31, 43, 0.94), rgba(7, 16, 28, 0.97) 58%, rgba(5, 13, 24, 0.98));
+  box-shadow:
+    0 44px 120px rgba(0, 0, 0, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 46px color-mix(in srgb, var(--custom-accent) 14%, transparent);
+  color: #f6f1eb;
+  animation: picker-dialog-in 220ms cubic-bezier(0.2, 0.86, 0.24, 1);
+}
+
+.colorPickerDialog::before {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(115deg, transparent 0 40%, color-mix(in srgb, var(--custom-accent) 9%, transparent) 50%, transparent 62%),
-    repeating-linear-gradient(90deg, color-mix(in srgb, var(--custom-accent) 8%, transparent) 0 1px, transparent 1px 14px);
-  opacity: 0.52;
+    radial-gradient(circle at 17% 15%, color-mix(in srgb, var(--custom-accent) 10%, transparent), transparent 28%),
+    linear-gradient(115deg, transparent 0 42%, rgba(255, 255, 255, 0.035) 50%, transparent 58%);
   pointer-events: none;
-  mask-image: radial-gradient(circle at 30% 22%, black, transparent 72%);
 }
 
-.colorPreview,
-.customColorBody {
+.colorPickerTopbar,
+.pickerStage,
+.presetSection,
+.valueGrid {
   position: relative;
   z-index: 1;
 }
 
-.colorPreview {
-  width: 92px;
-  min-height: 152px;
-  display: grid;
-  place-items: center;
-  align-self: stretch;
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 40% 18%, rgba(255, 255, 255, 0.2), transparent 28%),
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--custom-accent) 23%, transparent), transparent 62%),
-    rgba(255, 255, 255, 0.035);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--custom-accent) 24%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.previewGlow,
-.previewOrb,
-.previewRing {
-  position: absolute;
-  border-radius: 999px;
-}
-
-.previewGlow {
-  width: 58px;
-  height: 104px;
-  background: color-mix(in srgb, var(--custom-accent) 18%, transparent);
-  filter: blur(18px);
-}
-
-.previewOrb {
-  width: 46px;
-  height: 46px;
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.9), transparent 20%),
-    linear-gradient(145deg, color-mix(in srgb, var(--custom-accent) 84%, white), var(--custom-accent));
-  box-shadow:
-    0 0 26px color-mix(in srgb, var(--custom-accent) 52%, transparent),
-    0 14px 28px rgba(0, 0, 0, 0.24);
-}
-
-.previewRing {
+.closeButton {
   width: 66px;
   height: 66px;
-  border: 1px solid transparent;
-  border-top-color: color-mix(in srgb, var(--custom-accent) 74%, transparent);
-  border-right-color: color-mix(in srgb, var(--custom-accent) 26%, transparent);
-  transform: rotate(-26deg);
-}
-
-.customColorBody {
-  min-width: 0;
-  display: grid;
-  gap: 13px;
-}
-
-.customColorHeader {
-  display: grid;
-  gap: 4px;
-}
-
-.customColorHeader span,
-.hexField span {
-  color: var(--text-muted);
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.customColorHeader strong {
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 30px;
-  font-weight: 650;
-  line-height: 1;
-}
-
-.hexField {
-  display: grid;
-  gap: 8px;
-}
-
-.hexField input {
-  min-height: 46px;
-  border: 1px solid color-mix(in srgb, var(--custom-accent) 28%, var(--divider));
-  border-radius: 14px;
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--custom-accent) 14%, transparent), transparent 48%),
-    rgba(255, 255, 255, 0.035);
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  outline: 0;
-  padding: 0 14px;
-  text-transform: uppercase;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
-}
-
-.hexField input:focus {
-  border-color: color-mix(in srgb, var(--custom-accent) 62%, transparent);
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--custom-accent) 12%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-}
-
-.presetRail {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.presetRail button {
-  --preset-color: #ff563f;
-  min-width: 0;
-  min-height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  border: 1px solid color-mix(in srgb, var(--preset-color) 28%, var(--divider));
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--preset-color) 14%, transparent), transparent 38%),
-    rgba(255, 255, 255, 0.035);
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 850;
-  transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease,
-    color 160ms ease;
-}
-
-.presetRail button span {
-  width: 13px;
-  height: 13px;
-  border-radius: 999px;
-  background: var(--preset-color);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--preset-color) 52%, transparent);
-}
-
-.presetRail button:hover,
-.presetRail button:focus-visible,
-.presetRail .activePreset {
-  border-color: color-mix(in srgb, var(--preset-color) 62%, transparent);
-  background: color-mix(in srgb, var(--preset-color) 12%, transparent);
-  color: var(--text-primary);
-  outline: 0;
-  transform: translateY(-1px);
-}
-
-.nativeSpectrum {
-  min-height: 46px;
-  position: relative;
+  position: absolute;
+  top: 27px;
+  right: 36px;
+  z-index: 2;
   display: grid;
   place-items: center;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--custom-accent) 38%, transparent);
-  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 999px;
   background:
-    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent),
-    conic-gradient(from 90deg, #ff3b30, #ffcc00, #34c759, #00c7be, #007aff, #af52de, #ff2d55, #ff3b30);
-  box-shadow:
-    inset 0 0 0 999px rgba(3, 8, 16, 0.64),
-    0 0 24px color-mix(in srgb, var(--custom-accent) 12%, transparent);
-  color: #f7fbff;
+    radial-gradient(circle at 36% 28%, rgba(255, 255, 255, 0.08), transparent 42%),
+    rgba(255, 255, 255, 0.035);
+  color: rgba(255, 255, 255, 0.82);
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 900;
+  transition:
+    transform 170ms ease,
+    border-color 170ms ease,
+    background 170ms ease,
+    color 170ms ease;
 }
 
-.nativeSpectrum span {
-  position: relative;
-  z-index: 1;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+.closeButton:hover,
+.closeButton:focus-visible {
+  border-color: color-mix(in srgb, var(--custom-accent) 42%, rgba(255, 255, 255, 0.2));
+  background: color-mix(in srgb, var(--custom-accent) 11%, rgba(255, 255, 255, 0.04));
+  color: #fff;
+  outline: 0;
+  transform: scale(1.04);
 }
 
-.nativeSpectrum input {
-  position: absolute;
-  inset: 0;
+.colorPickerTopbar {
+  padding-right: 92px;
+}
+
+.titleCluster {
+  display: grid;
+  gap: 24px;
+}
+
+.titleCluster > span,
+.presetSection > span,
+.valueGrid label > span,
+.rgbGroup > span {
+  color: rgba(246, 241, 235, 0.78);
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: 0.22em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.colorIdentity {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.currentSwatch {
+  width: 75px;
+  height: 75px;
+  flex: 0 0 auto;
+  border: 4px solid #111827;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.42), transparent 24%),
+    var(--custom-accent);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 13px 35px color-mix(in srgb, var(--custom-accent) 24%, transparent);
+}
+
+.topHexField {
+  min-width: min(315px, 100%);
+  min-height: 74px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 0 22px 0 28px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 11px;
+  background: rgba(6, 14, 26, 0.62);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.topHexField input,
+.valueGrid input {
   width: 100%;
-  height: 100%;
-  opacity: 0;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--font-body);
+  font-size: 24px;
+  font-weight: 540;
+  outline: 0;
+}
+
+.topHexField button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
   cursor: pointer;
 }
 
-:global(:root[data-theme="light"]) .customColorPanel {
+.pickerStage {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  gap: 59px;
+  align-items: stretch;
+}
+
+.saturationPlane {
+  height: min(414px, 38vh);
+  min-height: 290px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
   background:
-    radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--custom-accent) 13%, transparent), transparent 34%),
-    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--custom-accent) 10%, transparent), transparent 30%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(241, 248, 247, 0.68));
+    linear-gradient(to top, #000, transparent),
+    linear-gradient(to right, #fff, var(--custom-hue-color));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 18px 38px rgba(44, 82, 83, 0.11);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 22px 44px rgba(0, 0, 0, 0.28);
+  cursor: crosshair;
+  touch-action: none;
 }
 
-:global(:root[data-theme="light"]) .hexField input,
-:global(:root[data-theme="light"]) .presetRail button {
+.saturationHandle {
+  width: 38px;
+  height: 38px;
+  position: absolute;
+  border: 5px solid #fff;
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.28),
+    0 10px 22px rgba(0, 0, 0, 0.24);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hueRail {
+  width: 40px;
+  position: relative;
+  border-radius: 999px;
+  background: linear-gradient(
+    to bottom,
+    #ff3b30 0%,
+    #ff2d55 13%,
+    #af52de 25%,
+    #004cff 38%,
+    #00b5ff 50%,
+    #20e3c2 61%,
+    #19e64a 72%,
+    #ffe600 84%,
+    #ff8d00 93%,
+    #ff3b30 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 18px 34px rgba(0, 0, 0, 0.28);
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.hueHandle {
+  width: 44px;
+  height: 44px;
+  position: absolute;
+  left: 50%;
+  border: 5px solid #fff;
+  border-radius: 999px;
+  background: var(--custom-hue-color);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.22),
+    0 10px 22px rgba(0, 0, 0, 0.25);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.presetSection {
+  margin-top: 39px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.presetDots {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: clamp(14px, 2.4vw, 30px);
+  align-items: center;
+}
+
+.presetDots button {
+  --preset-color: #ff5640;
+  width: 58px;
+  height: 58px;
+  justify-self: center;
+  border: 0;
+  border-radius: 999px;
   background:
-    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--custom-accent) 8%, transparent), transparent 42%),
-    rgba(255, 255, 255, 0.72);
-}
-
-:global(:root[data-theme="light"]) .nativeSpectrum {
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.34), transparent 24%),
+    var(--preset-color);
   box-shadow:
-    inset 0 0 0 999px rgba(248, 253, 251, 0.52),
-    0 0 20px color-mix(in srgb, var(--custom-accent) 12%, transparent);
-  color: #17302f;
+    inset 0 -10px 18px rgba(0, 0, 0, 0.13),
+    0 12px 24px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
-:global(:root[data-theme="light"]) .nativeSpectrum span {
-  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.8);
+.presetDots button:hover,
+.presetDots button:focus-visible {
+  outline: 0;
+  transform: translateY(-2px) scale(1.03);
 }
 
-@keyframes custom-color-rise {
+.presetDots .activePreset {
+  box-shadow:
+    0 0 0 5px rgba(45, 183, 174, 0.54),
+    0 0 0 9px rgba(45, 183, 174, 0.18),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.13),
+    0 12px 24px rgba(0, 0, 0, 0.18);
+}
+
+.presetDots .addPreset {
+  border: 1px dashed rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.86);
+  box-shadow: none;
+}
+
+.valueGrid {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 60px;
+}
+
+.valueGrid label,
+.rgbGroup {
+  display: grid;
+  gap: 16px;
+}
+
+.valueGrid label input,
+.rgbGroup input {
+  height: 66px;
+  padding: 0 24px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9px;
+  background: rgba(6, 14, 26, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  text-transform: uppercase;
+}
+
+.rgbGroup > div {
+  display: grid;
+  grid-template-columns: minmax(0, 128px) auto minmax(0, 136px) auto minmax(0, 143px);
+  gap: 16px;
+  align-items: center;
+}
+
+.rgbGroup i {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 24px;
+  font-style: normal;
+}
+
+.rgbGroup input {
+  text-align: center;
+}
+
+:global(:root[data-theme="light"]) .colorPickerBackdrop {
+  background: rgba(8, 20, 27, 0.42);
+}
+
+@keyframes picker-backdrop-in {
   from {
     opacity: 0;
-    transform: translateY(-6px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes picker-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
   }
 
   to {
@@ -269,18 +358,58 @@
   }
 }
 
-@media (max-width: 680px) {
-  .customColorPanel {
+@media (max-width: 820px) {
+  .colorPickerDialog {
+    padding: 30px 22px;
+  }
+
+  .closeButton {
+    top: 18px;
+    right: 18px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .colorIdentity,
+  .pickerStage,
+  .valueGrid {
     grid-template-columns: 1fr;
   }
 
-  .colorPreview {
-    display: none;
+  .pickerStage {
+    gap: 18px;
   }
-}
 
-@media (max-width: 430px) {
-  .presetRail {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .hueRail {
+    width: 100%;
+    height: 38px;
+    background: linear-gradient(
+      to right,
+      #ff3b30 0%,
+      #ff2d55 13%,
+      #af52de 25%,
+      #004cff 38%,
+      #00b5ff 50%,
+      #20e3c2 61%,
+      #19e64a 72%,
+      #ffe600 84%,
+      #ff8d00 93%,
+      #ff3b30 100%
+    );
+    cursor: ew-resize;
+  }
+
+  .hueHandle {
+    top: 50% !important;
+    left: calc(var(--hue-x, 0) * 1%);
+  }
+
+  .presetDots {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .rgbGroup > div {
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    gap: 8px;
   }
 }

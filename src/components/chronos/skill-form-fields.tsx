@@ -1,8 +1,9 @@
 "use client";
 
 import type { SkillMotif } from "@/lib/chronos-sample-data";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { Copy, Plus, X } from "lucide-react";
 
 import {
   ACCENT_OPTIONS,
@@ -35,12 +36,14 @@ export type SkillFormInitialValues = {
 const CATEGORY_ORDER = ["Core", "Creative", "Work", "Learning", "Wellness", "Life", "Travel", "Tech"];
 const DEFAULT_CUSTOM_ACCENT = "#ff563f";
 const CUSTOM_ACCENT_PRESETS = [
-  { color: "#ff563f", label: "Ember" },
-  { color: "#f0ad2c", label: "Gilded" },
-  { color: "#32c4ab", label: "Aqua" },
-  { color: "#3f8dff", label: "Signal" },
-  { color: "#9a66ef", label: "Violet" },
-  { color: "#f06aa6", label: "Bloom" },
+  "#ff5640",
+  "#f49a22",
+  "#ffd341",
+  "#4ccb72",
+  "#36c2cc",
+  "#3477f5",
+  "#7b35db",
+  "#e34f8a",
 ];
 
 function splitSeconds(totalSeconds: number | null | undefined) {
@@ -61,6 +64,94 @@ function normalizeHexInput(value: string) {
 
 function isCompleteHexColor(value: string) {
   return /^#[0-9a-f]{6}$/i.test(value.trim());
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function hexToRgb(value: string) {
+  const fallback = DEFAULT_CUSTOM_ACCENT;
+  const hex = isCompleteHexColor(value) ? value : fallback;
+  const raw = hex.replace("#", "");
+
+  return {
+    r: Number.parseInt(raw.slice(0, 2), 16),
+    g: Number.parseInt(raw.slice(2, 4), 16),
+    b: Number.parseInt(raw.slice(4, 6), 16),
+  };
+}
+
+function rgbToHex({ r, g, b }: { r: number; g: number; b: number }) {
+  return `#${[r, g, b].map((channel) => clampNumber(Math.round(channel), 0, 255).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function rgbToHsv({ r, g, b }: { r: number; g: number; b: number }) {
+  const red = r / 255;
+  const green = g / 255;
+  const blue = b / 255;
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const delta = max - min;
+  let hue = 0;
+
+  if (delta !== 0) {
+    if (max === red) {
+      hue = 60 * (((green - blue) / delta) % 6);
+    } else if (max === green) {
+      hue = 60 * ((blue - red) / delta + 2);
+    } else {
+      hue = 60 * ((red - green) / delta + 4);
+    }
+  }
+
+  return {
+    h: hue < 0 ? hue + 360 : hue,
+    s: max === 0 ? 0 : (delta / max) * 100,
+    v: max * 100,
+  };
+}
+
+function hsvToRgb({ h, s, v }: { h: number; s: number; v: number }) {
+  const hue = ((h % 360) + 360) % 360;
+  const saturation = clampNumber(s, 0, 100) / 100;
+  const value = clampNumber(v, 0, 100) / 100;
+  const chroma = value * saturation;
+  const x = chroma * (1 - Math.abs(((hue / 60) % 2) - 1));
+  const m = value - chroma;
+  let red = 0;
+  let green = 0;
+  let blue = 0;
+
+  if (hue < 60) {
+    red = chroma;
+    green = x;
+  } else if (hue < 120) {
+    red = x;
+    green = chroma;
+  } else if (hue < 180) {
+    green = chroma;
+    blue = x;
+  } else if (hue < 240) {
+    green = x;
+    blue = chroma;
+  } else if (hue < 300) {
+    red = x;
+    blue = chroma;
+  } else {
+    red = chroma;
+    blue = x;
+  }
+
+  return {
+    r: Math.round((red + m) * 255),
+    g: Math.round((green + m) * 255),
+    b: Math.round((blue + m) * 255),
+  };
+}
+
+function hsvToHex(hsv: { h: number; s: number; v: number }) {
+  return rgbToHex(hsvToRgb(hsv));
 }
 
 function getRandomMotif() {
@@ -91,6 +182,7 @@ export function SkillFormFields({
   const initialCustomAccent = getSkillCustomAccent(initialValues.accentKey);
   const [customAccentColor, setCustomAccentColor] = useState(initialCustomAccent?.color ?? DEFAULT_CUSTOM_ACCENT);
   const [customAccentDraft, setCustomAccentDraft] = useState(initialCustomAccent?.color ?? DEFAULT_CUSTOM_ACCENT);
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [accentKey, setAccentKey] = useState(initialCustomAccent?.key ?? initialValues.accentKey ?? "coral");
   const initialBaseIconKey = splitSkillIconKey(initialValues.iconKey).iconKey;
   const initialEmoji = getSkillEmoji(initialBaseIconKey) ?? CUSTOM_EMOJI_OPTIONS[0];
@@ -105,9 +197,14 @@ export function SkillFormFields({
   const isCustomAccent = Boolean(getSkillCustomAccent(accentKey));
   const selectedAccentKey = isCustomAccent ? getSkillAccentKeyFromHex(customAccentColor) : accentKey;
   const storedIconKey = buildSkillIconKey(iconKey, motifKey);
+  const customRgb = hexToRgb(customAccentColor);
+  const customHsv = rgbToHsv(customRgb);
   const customAccentStyle = {
     "--custom-accent": customAccentColor,
+    "--custom-hue-color": hsvToHex({ h: customHsv.h, s: 100, v: 100 }),
   } as CSSProperties;
+  const svPlaneRef = useRef<HTMLDivElement>(null);
+  const hueRailRef = useRef<HTMLDivElement>(null);
 
   function commitCustomAccent(nextColor: string) {
     if (!isCompleteHexColor(nextColor)) {
@@ -118,6 +215,35 @@ export function SkillFormFields({
     setCustomAccentColor(normalized);
     setCustomAccentDraft(normalized);
     setAccentKey(getSkillAccentKeyFromHex(normalized));
+  }
+
+  function pickFromSaturationValue(clientX: number, clientY: number) {
+    const box = svPlaneRef.current?.getBoundingClientRect();
+    if (!box) {
+      return;
+    }
+
+    const nextSaturation = clampNumber(((clientX - box.left) / box.width) * 100, 0, 100);
+    const nextValue = clampNumber(100 - ((clientY - box.top) / box.height) * 100, 0, 100);
+    commitCustomAccent(hsvToHex({ h: customHsv.h, s: nextSaturation, v: nextValue }));
+  }
+
+  function pickFromHue(clientX: number, clientY: number) {
+    const box = hueRailRef.current?.getBoundingClientRect();
+    if (!box) {
+      return;
+    }
+
+    const isHorizontal = box.width > box.height;
+    const offset = isHorizontal ? clientX - box.left : clientY - box.top;
+    const length = isHorizontal ? box.width : box.height;
+    const nextHue = clampNumber((offset / length) * 360, 0, 359);
+    commitCustomAccent(hsvToHex({ h: nextHue, s: customHsv.s, v: customHsv.v }));
+  }
+
+  function handleRgbChannel(channel: "r" | "g" | "b", value: string) {
+    const nextValue = clampNumber(Math.floor(Number(value) || 0), 0, 255);
+    commitCustomAccent(rgbToHex({ ...customRgb, [channel]: nextValue }));
   }
 
   const groupedIcons = useMemo(() => {
@@ -309,74 +435,200 @@ export function SkillFormFields({
               title="Custom accent"
               type="button"
               aria-pressed={isCustomAccent}
-              onClick={() => setAccentKey(getSkillAccentKeyFromHex(customAccentColor))}
+              onClick={() => {
+                setAccentKey(getSkillAccentKeyFromHex(customAccentColor));
+                setIsColorPickerOpen(true);
+              }}
             >
               <span className="skill-accent-wheel" aria-hidden="true" />
               Custom
             </button>
           </div>
-          {isCustomAccent ? (
-            <div className={styles.customColorPanel} style={customAccentStyle}>
-              <div className={styles.colorPreview} aria-hidden="true">
-                <span className={styles.previewGlow} />
-                <span className={styles.previewOrb} />
-                <span className={styles.previewRing} />
-              </div>
-              <div className={styles.customColorBody}>
-                <div className={styles.customColorHeader}>
-                  <span>Custom tone</span>
-                  <strong>{customAccentColor.toUpperCase()}</strong>
-                </div>
-                <label className={styles.hexField}>
-                  <span>Hex value</span>
-                  <input
-                    value={customAccentDraft}
-                    inputMode="text"
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    maxLength={7}
-                    aria-label="Custom accent hex color"
-                    onBlur={() => {
-                      if (isCompleteHexColor(customAccentDraft)) {
-                        commitCustomAccent(customAccentDraft);
-                      } else {
-                        setCustomAccentDraft(customAccentColor);
-                      }
-                    }}
-                    onChange={(event) => {
-                      const nextDraft = normalizeHexInput(event.target.value);
-                      setCustomAccentDraft(nextDraft);
+          {isColorPickerOpen ? (
+            <div className={styles.colorPickerBackdrop} role="presentation">
+              <div className={styles.colorPickerDialog} style={customAccentStyle} role="dialog" aria-modal="true" aria-label="Custom color picker">
+                <button className={styles.closeButton} type="button" aria-label="Close color picker" onClick={() => setIsColorPickerOpen(false)}>
+                  <X size={28} strokeWidth={1.8} aria-hidden="true" />
+                </button>
 
-                      if (isCompleteHexColor(nextDraft)) {
-                        commitCustomAccent(nextDraft);
+                <div className={styles.colorPickerTopbar}>
+                  <div className={styles.titleCluster}>
+                    <span>Color</span>
+                    <div className={styles.colorIdentity}>
+                      <span className={styles.currentSwatch} aria-hidden="true" />
+                      <label className={styles.topHexField}>
+                        <input
+                          value={customAccentDraft.toUpperCase()}
+                          inputMode="text"
+                          autoCapitalize="characters"
+                          spellCheck={false}
+                          maxLength={7}
+                          aria-label="Current custom color hex value"
+                          onBlur={() => {
+                            if (isCompleteHexColor(customAccentDraft)) {
+                              commitCustomAccent(customAccentDraft);
+                            } else {
+                              setCustomAccentDraft(customAccentColor);
+                            }
+                          }}
+                          onChange={(event) => {
+                            const nextDraft = normalizeHexInput(event.target.value);
+                            setCustomAccentDraft(nextDraft);
+
+                            if (isCompleteHexColor(nextDraft)) {
+                              commitCustomAccent(nextDraft);
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          aria-label="Copy color value"
+                          onClick={() => void navigator.clipboard?.writeText(customAccentColor.toUpperCase())}
+                        >
+                          <Copy size={23} strokeWidth={1.75} aria-hidden="true" />
+                        </button>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.pickerStage}>
+                  <div
+                    className={styles.saturationPlane}
+                    ref={svPlaneRef}
+                    role="slider"
+                    tabIndex={0}
+                    aria-label="Color saturation and brightness"
+                    aria-valuetext={`${Math.round(customHsv.s)} percent saturation, ${Math.round(customHsv.v)} percent brightness`}
+                    onPointerDown={(event) => {
+                      event.currentTarget.setPointerCapture(event.pointerId);
+                      pickFromSaturationValue(event.clientX, event.clientY);
+                    }}
+                    onPointerMove={(event) => {
+                      if (event.buttons === 1) {
+                        pickFromSaturationValue(event.clientX, event.clientY);
                       }
                     }}
-                  />
-                </label>
-                <div className={styles.presetRail} aria-label="Custom accent presets">
-                  {CUSTOM_ACCENT_PRESETS.map((preset) => (
-                    <button
-                      className={preset.color.toLowerCase() === customAccentColor ? styles.activePreset : ""}
-                      type="button"
-                      key={preset.color}
-                      style={{ "--preset-color": preset.color } as CSSProperties}
-                      aria-label={`Use ${preset.label} custom color`}
-                      onClick={() => commitCustomAccent(preset.color)}
-                    >
-                      <span aria-hidden="true" />
-                      {preset.label}
-                    </button>
-                  ))}
+                    onKeyDown={(event) => {
+                      if (event.key === "ArrowRight") {
+                        event.preventDefault();
+                        commitCustomAccent(hsvToHex({ ...customHsv, s: customHsv.s + 2 }));
+                      }
+                      if (event.key === "ArrowLeft") {
+                        event.preventDefault();
+                        commitCustomAccent(hsvToHex({ ...customHsv, s: customHsv.s - 2 }));
+                      }
+                      if (event.key === "ArrowUp") {
+                        event.preventDefault();
+                        commitCustomAccent(hsvToHex({ ...customHsv, v: customHsv.v + 2 }));
+                      }
+                      if (event.key === "ArrowDown") {
+                        event.preventDefault();
+                        commitCustomAccent(hsvToHex({ ...customHsv, v: customHsv.v - 2 }));
+                      }
+                    }}
+                  >
+                    <span
+                      className={styles.saturationHandle}
+                      style={{
+                        left: `${customHsv.s}%`,
+                        top: `${100 - customHsv.v}%`,
+                      }}
+                    />
+                  </div>
+
+                  <div
+                    className={styles.hueRail}
+                    ref={hueRailRef}
+                    style={{ "--hue-x": `${(customHsv.h / 360) * 100}` } as CSSProperties}
+                    role="slider"
+                    tabIndex={0}
+                    aria-label="Color hue"
+                    aria-valuemin={0}
+                    aria-valuemax={359}
+                    aria-valuenow={Math.round(customHsv.h)}
+                    onPointerDown={(event) => {
+                      event.currentTarget.setPointerCapture(event.pointerId);
+                      pickFromHue(event.clientX, event.clientY);
+                    }}
+                    onPointerMove={(event) => {
+                      if (event.buttons === 1) {
+                        pickFromHue(event.clientX, event.clientY);
+                      }
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+                        event.preventDefault();
+                        commitCustomAccent(hsvToHex({ ...customHsv, h: customHsv.h - 4 }));
+                      }
+                      if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+                        event.preventDefault();
+                        commitCustomAccent(hsvToHex({ ...customHsv, h: customHsv.h + 4 }));
+                      }
+                    }}
+                  >
+                    <span className={styles.hueHandle} style={{ top: `${(customHsv.h / 360) * 100}%` }} />
+                  </div>
                 </div>
-                <label className={styles.nativeSpectrum}>
-                  <span>Open spectrum</span>
-                  <input
-                    type="color"
-                    value={customAccentColor}
-                    aria-label="Open native color spectrum"
-                    onChange={(event) => commitCustomAccent(event.target.value)}
-                  />
-                </label>
+
+                <section className={styles.presetSection} aria-label="Color presets">
+                  <span>Presets</span>
+                  <div className={styles.presetDots}>
+                    {CUSTOM_ACCENT_PRESETS.map((preset) => (
+                      <button
+                        className={preset.toLowerCase() === customAccentColor ? styles.activePreset : ""}
+                        type="button"
+                        key={preset}
+                        style={{ "--preset-color": preset } as CSSProperties}
+                        aria-label={`Use ${preset.toUpperCase()} preset`}
+                        onClick={() => commitCustomAccent(preset)}
+                      />
+                    ))}
+                    <button className={styles.addPreset} type="button" aria-label="Custom color is controlled above">
+                      <Plus size={25} strokeWidth={1.6} aria-hidden="true" />
+                    </button>
+                  </div>
+                </section>
+
+                <div className={styles.valueGrid}>
+                  <label>
+                    <span>Hex</span>
+                    <input
+                      value={customAccentDraft.toUpperCase()}
+                      inputMode="text"
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      maxLength={7}
+                      aria-label="Hex color"
+                      onBlur={() => {
+                        if (isCompleteHexColor(customAccentDraft)) {
+                          commitCustomAccent(customAccentDraft);
+                        } else {
+                          setCustomAccentDraft(customAccentColor);
+                        }
+                      }}
+                      onChange={(event) => {
+                        const nextDraft = normalizeHexInput(event.target.value);
+                        setCustomAccentDraft(nextDraft);
+
+                        if (isCompleteHexColor(nextDraft)) {
+                          commitCustomAccent(nextDraft);
+                        }
+                      }}
+                    />
+                  </label>
+
+                  <div className={styles.rgbGroup}>
+                    <span>RGB</span>
+                    <div>
+                      <input aria-label="Red" type="number" min={0} max={255} value={customRgb.r} onChange={(event) => handleRgbChannel("r", event.target.value)} />
+                      <i aria-hidden="true">,</i>
+                      <input aria-label="Green" type="number" min={0} max={255} value={customRgb.g} onChange={(event) => handleRgbChannel("g", event.target.value)} />
+                      <i aria-hidden="true">,</i>
+                      <input aria-label="Blue" type="number" min={0} max={255} value={customRgb.b} onChange={(event) => handleRgbChannel("b", event.target.value)} />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ) : null}
