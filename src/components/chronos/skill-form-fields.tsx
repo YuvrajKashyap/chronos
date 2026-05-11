@@ -446,9 +446,9 @@ export function SkillFormFields({
           </div>
           {isColorPickerOpen ? (
             <div className={styles.colorPickerBackdrop} role="presentation">
-              <div className={styles.colorPickerDialog} style={customAccentStyle} role="dialog" aria-modal="true" aria-label="Custom color picker">
+              <div className={styles.colorPickerDialog} style={customAccentStyle} role="dialog" aria-label="Custom color picker">
                 <button className={styles.closeButton} type="button" aria-label="Close color picker" onClick={() => setIsColorPickerOpen(false)}>
-                  <X size={28} strokeWidth={1.8} aria-hidden="true" />
+                  <X size={18} strokeWidth={1.8} aria-hidden="true" />
                 </button>
 
                 <div className={styles.colorPickerTopbar}>
