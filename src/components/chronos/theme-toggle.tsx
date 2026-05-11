@@ -5,22 +5,66 @@ import { useEffect, useState } from "react";
 
 type Theme = "light" | "dark";
 
+const themeStorageKey = "chronos-theme";
+const themeCookieName = "chronos-theme";
+
+function isTheme(value: string | null): value is Theme {
+  return value === "light" || value === "dark";
+}
+
+function getCookieTheme(): Theme | null {
+  const cookie = document.cookie
+    .split("; ")
+    .find((part) => part.startsWith(`${themeCookieName}=`))
+    ?.split("=")[1];
+
+  return cookie && isTheme(cookie) ? cookie : null;
+}
+
 function getInitialTheme(): Theme {
   if (typeof window === "undefined") {
     return "dark";
   }
 
-  const requested = new URLSearchParams(window.location.search).get("theme");
-  if (requested === "light" || requested === "dark") {
-    return requested;
+  let saved: string | null = null;
+  try {
+    saved = window.localStorage.getItem(themeStorageKey);
+  } catch {
+    saved = null;
   }
 
-  const saved = window.localStorage.getItem("chronos-theme");
-  if (saved === "light" || saved === "dark") {
+  if (isTheme(saved)) {
     return saved;
   }
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  const cookieTheme = getCookieTheme();
+  if (cookieTheme) {
+    return cookieTheme;
+  }
+
+  const requested = new URLSearchParams(window.location.search).get("theme");
+  if (isTheme(requested)) {
+    return requested;
+  }
+
+  return typeof window.matchMedia === "function" && window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function applyTheme(theme: Theme) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+}
+
+function persistTheme(theme: Theme) {
+  try {
+    window.localStorage.setItem(themeStorageKey, theme);
+  } catch {
+    // Cookies still keep the server-rendered and refreshed theme aligned.
+  }
+
+  document.cookie = `${themeCookieName}=${theme}; Path=/; Max-Age=31536000; SameSite=Lax`;
 }
 
 export function ThemeToggle() {
@@ -29,13 +73,19 @@ export function ThemeToggle() {
   const nextTheme = isDark ? "light" : "dark";
 
   useEffect(() => {
-    setTheme(getInitialTheme());
+    const initialTheme = getInitialTheme();
+    setTheme(initialTheme);
+    applyTheme(initialTheme);
+    persistTheme(initialTheme);
   }, []);
 
   function toggleTheme() {
-    setTheme(nextTheme);
-    document.documentElement.dataset.theme = nextTheme;
-    window.localStorage.setItem("chronos-theme", nextTheme);
+    setTheme((currentTheme) => {
+      const next = currentTheme === "dark" ? "light" : "dark";
+      applyTheme(next);
+      persistTheme(next);
+      return next;
+    });
   }
 
   return (

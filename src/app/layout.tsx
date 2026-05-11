@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 
 const editorial = Cormorant_Garamond({
@@ -19,34 +20,80 @@ export const metadata: Metadata = {
   description: "A lifetime time-investment ledger for Yuvraj Kashyap.",
 };
 
-export default function RootLayout({
+type Theme = "light" | "dark";
+
+function isTheme(value: string | undefined): value is Theme {
+  return value === "light" || value === "dark";
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const cookieTheme = cookieStore.get("chronos-theme")?.value;
+  const initialTheme = isTheme(cookieTheme) ? cookieTheme : undefined;
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${editorial.variable} ${sans.variable}`}>
+    <html lang="en" data-theme={initialTheme} suppressHydrationWarning>
+      <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function () {
-                try {
-                  var requested = new URLSearchParams(window.location.search).get('theme');
-                  if (requested === 'light' || requested === 'dark') {
-                    document.documentElement.dataset.theme = requested;
-                    return;
+                var fallbackTheme = 'dark';
+                var storageKey = 'chronos-theme';
+                var cookieName = 'chronos-theme';
+
+                function isTheme(value) {
+                  return value === 'light' || value === 'dark';
+                }
+
+                function getCookieTheme() {
+                  var parts = document.cookie ? document.cookie.split('; ') : [];
+                  for (var index = 0; index < parts.length; index += 1) {
+                    var pair = parts[index].split('=');
+                    if (pair[0] === cookieName && isTheme(pair[1])) {
+                      return pair[1];
+                    }
                   }
-                  var saved = localStorage.getItem('chronos-theme');
-                  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                  return null;
+                }
+
+                function persistTheme(theme) {
+                  try {
+                    localStorage.setItem(storageKey, theme);
+                  } catch (_) {}
+                  document.cookie = cookieName + '=' + theme + '; Path=/; Max-Age=31536000; SameSite=Lax';
+                }
+
+                function applyTheme(theme) {
                   document.documentElement.dataset.theme = theme;
+                  document.documentElement.style.colorScheme = theme;
+                }
+
+                try {
+                  var saved = localStorage.getItem(storageKey);
+                  var cookieTheme = getCookieTheme();
+                  var requested = new URLSearchParams(window.location.search).get('theme');
+                  var systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  var theme = isTheme(saved) ? saved : isTheme(cookieTheme) ? cookieTheme : isTheme(requested) ? requested : systemTheme;
+
+                  applyTheme(theme);
+
+                  if (!isTheme(saved) || cookieTheme !== theme || (isTheme(requested) && !isTheme(saved))) {
+                    persistTheme(theme);
+                  }
                 } catch (_) {
-                  document.documentElement.dataset.theme = 'dark';
+                  applyTheme(fallbackTheme);
                 }
               })();
             `,
           }}
         />
+      </head>
+      <body className={`${editorial.variable} ${sans.variable}`}>
         {children}
       </body>
     </html>
