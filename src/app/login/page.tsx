@@ -8,20 +8,21 @@ import { getPublicDashboard } from "@/lib/chronos/public-dashboard";
 import {
   getPublicActiveSessionCount,
   hasUsefulPublicDashboardData,
+  parseDashboardSortMode,
   transformPublicDashboardToSkills,
 } from "@/lib/chronos/transform-dashboard";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; next?: string }>;
+  searchParams: Promise<{ error?: string; sort?: string }>;
 }) {
   const params = await searchParams;
+  const sortMode = parseDashboardSortMode(params.sort);
   const authError = params.error ? decodeURIComponent(params.error) : null;
-  const nextPath = params.next === "/insights" || params.next === "/settings" || params.next === "/admin" ? params.next : "/admin";
   const { payload } = await getPublicDashboard();
   const hasRealData = hasUsefulPublicDashboardData(payload);
-  const skills = hasRealData && payload ? transformPublicDashboardToSkills(payload) : chronosSkills;
+  const skills = hasRealData && payload ? transformPublicDashboardToSkills(payload, sortMode) : chronosSkills;
   const activeSessionCount = hasRealData ? getPublicActiveSessionCount(payload) : 1;
 
   return (
@@ -31,6 +32,7 @@ export default async function LoginPage({
           activeSessionCount={activeSessionCount}
           controls={{ mode: "readonly" }}
           skills={skills}
+          sortMode={sortMode}
         />
       </div>
       <main className="auth-modal-backdrop" aria-labelledby="login-title">
@@ -87,7 +89,7 @@ export default async function LoginPage({
             <h1 id="login-title">Welcome Back</h1>
             <p className="auth-copy">Sign in if you&apos;re me.</p>
             {authError ? <p className="auth-message is-error">Auth callback: {authError}</p> : null}
-            <LoginForm nextPath={nextPath} />
+            <LoginForm />
           </div>
         </section>
       </main>

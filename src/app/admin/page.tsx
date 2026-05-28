@@ -4,24 +4,17 @@ import { redirect } from "next/navigation";
 import { ChronosDashboardPage } from "@/components/chronos/chronos-dashboard-page";
 import { ChronosShell } from "@/components/chronos/chronos-shell";
 import { getAdminTimerState } from "@/lib/chronos/admin-dashboard";
-import {
-  getAdminActiveSessionCount,
-  getAdminIdleSession,
-  transformAdminDashboardToSkills,
-  transformAdminDowntimeSkill,
-} from "@/lib/chronos/transform-admin-dashboard";
+import { getAdminActiveSessionCount, transformAdminDashboardToSkills } from "@/lib/chronos/transform-admin-dashboard";
+import { type DashboardSortMode, parseDashboardSortMode } from "@/lib/chronos/transform-dashboard";
 import { createChronosServerClient } from "@/lib/supabase/server";
 import {
   confirmChronosTimerSession,
-  confirmChronosTimerSessionSmooth,
   createChronosSkill,
   deleteChronosSkill,
   logoutFromChronos,
   reorderChronosSkills,
   startChronosTimer,
-  startChronosTimerSmooth,
   stopChronosTimer,
-  stopChronosTimerSmooth,
   updateChronosSkill,
 } from "./actions";
 
@@ -42,6 +35,10 @@ function LogoutButton() {
       </button>
     </form>
   );
+}
+
+function getDashboardNextPath(pathname: "/" | "/admin", requestedSortMode: string | undefined, sortMode: DashboardSortMode) {
+  return requestedSortMode ? `${pathname}?sort=${sortMode}` : pathname;
 }
 
 function AdminStatusPanel({
@@ -104,9 +101,10 @@ function AdminStatusPanel({
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; sort?: string }>;
 }) {
   const params = await searchParams;
+  const sortMode = parseDashboardSortMode(params.sort);
   const actionError = params.error ? decodeURIComponent(params.error) : null;
   let supabase;
 
@@ -189,24 +187,20 @@ export default async function AdminPage({
       activeSessionCount={getAdminActiveSessionCount(state)}
       controls={{
         mode: "admin",
-        nextPath: "/admin",
+        nextPath: getDashboardNextPath("/admin", params.sort, sortMode),
         confirmSessionAction: confirmChronosTimerSession,
-        confirmSessionSmoothAction: confirmChronosTimerSessionSmooth,
         createSkillAction: createChronosSkill,
         deleteSkillAction: deleteChronosSkill,
         reorderSkillAction: reorderChronosSkills,
         startAction: startChronosTimer,
-        startSmoothAction: startChronosTimerSmooth,
         stopAction: stopChronosTimer,
-        stopSmoothAction: stopChronosTimerSmooth,
         updateSkillAction: updateChronosSkill,
       }}
-      downtimeSkill={transformAdminDowntimeSkill(state)}
       isAuthenticated
-      idleSession={getAdminIdleSession(state)}
       message={actionError}
       pendingSessions={state.pending_sessions ?? []}
-      skills={transformAdminDashboardToSkills(state)}
+      skills={transformAdminDashboardToSkills(state, sortMode)}
+      sortMode={sortMode}
     />
   );
 }
