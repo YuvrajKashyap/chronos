@@ -651,7 +651,7 @@ a {
   transform: none;
 }
 
-.reorder-card-shell.is-reorderable button,
+.reorder-card-shell.is-reorderable button:not(.skill-drag-handle),
 .reorder-card-shell.is-reorderable a {
   cursor: pointer;
 }
