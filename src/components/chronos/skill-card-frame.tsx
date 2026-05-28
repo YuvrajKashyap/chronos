@@ -1,7 +1,7 @@
 "use client";
 
 import { Edit3, MoreVertical, Trash2 } from "lucide-react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { SkillFormFields } from "./skill-form-fields";
@@ -19,10 +19,6 @@ export type SkillCardManageProps = {
   lifetimeSeconds?: number | null;
   name: string;
   nextPath: string;
-  weeklyTargetSeconds?: number | null;
-  targetSessionsPerWeek?: number | null;
-  priorityWeight?: number | null;
-  goalNote?: string | null;
   updateAction: SkillAction;
   visibility?: "public" | "private";
 };
@@ -31,12 +27,10 @@ export function SkillCardFrame({
   children,
   className,
   manage,
-  style,
 }: {
   children: ReactNode;
   className: string;
   manage?: SkillCardManageProps;
-  style?: CSSProperties;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [modal, setModal] = useState<"edit" | "delete" | null>(null);
@@ -79,7 +73,6 @@ export function SkillCardFrame({
   return (
     <article
       className={className}
-      style={style}
       onContextMenu={(event) => {
         if (!manage) {
           return;
@@ -143,10 +136,6 @@ export function SkillCardFrame({
                 iconKey: manage.iconKey,
                 lifetimeSeconds: manage.lifetimeSeconds,
                 name: manage.name,
-                weeklyTargetSeconds: manage.weeklyTargetSeconds,
-                targetSessionsPerWeek: manage.targetSessionsPerWeek,
-                priorityWeight: manage.priorityWeight,
-                goalNote: manage.goalNote,
                 visibility: manage.visibility,
               }}
               showLifetime

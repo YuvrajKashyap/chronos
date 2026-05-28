@@ -1,11 +1,10 @@
 import type { ChronosSkill } from "@/lib/chronos-sample-data";
-import type { CSSProperties } from "react";
 import type { DashboardControls } from "./chronos-dashboard-page";
 import { CardMotif } from "./card-motif";
-import { LiveTimerValue } from "./live-timer-value";
 import { LoginPromptButton } from "./login-prompt-button";
+import { LiveTimerValue } from "./live-timer-value";
 import { SkillCardFrame } from "./skill-card-frame";
-import { TimerCardRuntime } from "./smooth-timer-control";
+import { TimerSubmitButton } from "./timer-submit-button";
 
 function isAdTracker(skill: ChronosSkill) {
   const normalized = [skill.title, skill.slug, skill.iconKey]
@@ -36,18 +35,10 @@ export function SkillTimerCard({
   ]
     .filter(Boolean)
     .join(" ");
-  const cardStyle =
-    skill.accentColor && skill.accentRgb
-      ? ({
-          "--accent": skill.accentColor,
-          "--accent-rgb": skill.accentRgb,
-        } as CSSProperties)
-      : undefined;
 
   return (
     <SkillCardFrame
       className={cardClassName}
-      style={cardStyle}
       manage={
         controls.mode === "admin"
           ? {
@@ -59,10 +50,6 @@ export function SkillTimerCard({
               lifetimeSeconds: skill.lifetimeSeconds,
               name: skill.title,
               nextPath: controls.nextPath,
-              weeklyTargetSeconds: skill.weeklyTargetSeconds,
-              targetSessionsPerWeek: skill.targetSessionsPerWeek,
-              priorityWeight: skill.priorityWeight,
-              goalNote: skill.goalNote,
               updateAction: controls.updateSkillAction,
               visibility: skill.visibility,
             }
@@ -88,53 +75,40 @@ export function SkillTimerCard({
             <Icon size={42} strokeWidth={1.85} aria-hidden="true" />
           )}
         </div>
-        {controls.mode !== "admin" && skill.badge ? (
+        {skill.badge ? (
           <span className="live-badge">
             <span aria-hidden="true" />
             {skill.badge}
           </span>
         ) : null}
       </div>
+      <div className="card-body">
+        <h2>{skill.title}</h2>
+        {!skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
+        {skill.isActive && skill.activeStartedAt ? (
+          <LiveTimerValue
+            className="metric-value active-value"
+            initialSeconds={skill.initialElapsedSeconds}
+            startedAt={skill.activeStartedAt}
+          />
+        ) : (
+          <div className={skill.isActive ? "metric-value active-value" : "metric-value"}>{skill.value}</div>
+        )}
+        {skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
+      </div>
+      <div className="card-rule" aria-hidden="true" />
       {controls.mode === "admin" ? (
-        <TimerCardRuntime
-          activeStartedAt={skill.activeStartedAt}
-          buttonLabel={isDisabledStart ? "Start" : skill.buttonLabel}
-          confirmAction={controls.confirmSessionSmoothAction}
-          disabled={isDisabledStart}
-          initialElapsedSeconds={skill.initialElapsedSeconds}
-          initialIsActive={skill.isActive}
-          label={skill.label}
-          skillId={skill.id}
-          skillName={skill.title}
-          startAction={controls.startSmoothAction}
-          stopAction={controls.stopSmoothAction}
-          value={skill.value}
-        />
+        <form action={skill.isActive ? controls.stopAction : controls.startAction} className="timer-control-form">
+          <input type="hidden" name="skillId" value={skill.id} />
+          <input type="hidden" name="nextPath" value={controls.nextPath} />
+          <TimerSubmitButton buttonLabel={isDisabledStart ? "Start" : skill.buttonLabel} disabled={isDisabledStart} />
+        </form>
+      ) : controls.mode === "login" ? (
+        <LoginPromptButton buttonLabel={skill.buttonLabel} />
       ) : (
-        <>
-          <div className="card-body">
-            <h2>{skill.title}</h2>
-            {!skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
-            {skill.isActive ? (
-              <LiveTimerValue
-                className="metric-value active-value"
-                initialSeconds={skill.initialElapsedSeconds}
-                startedAt={skill.activeStartedAt}
-              />
-            ) : (
-              <div className="metric-value">{skill.value}</div>
-            )}
-            {skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
-          </div>
-          <div className="card-rule" aria-hidden="true" />
-          {controls.mode === "login" ? (
-            <LoginPromptButton buttonLabel={skill.buttonLabel} />
-          ) : (
-            <button className="timer-button" type="button">
-              <span>{skill.buttonLabel}</span>
-            </button>
-          )}
-        </>
+        <button className="timer-button" type="button">
+          <span>{skill.buttonLabel}</span>
+        </button>
       )}
       <CardMotif type={skill.motif} />
     </SkillCardFrame>
