@@ -16,14 +16,6 @@ const navItems = [
   { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
-function getNavHref(href: string, isAuthenticated: boolean) {
-  if (isAuthenticated || href === "/") {
-    return href;
-  }
-
-  return `/login?next=${encodeURIComponent(href)}`;
-}
-
 export function ChronosTopNav({ isAuthenticated }: { isAuthenticated: boolean }) {
   const pathname = usePathname();
 
@@ -36,12 +28,11 @@ export function ChronosTopNav({ isAuthenticated }: { isAuthenticated: boolean })
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.href === "/" ? pathname === "/" || pathname === "/admin" : pathname.startsWith(item.href);
-          const href = getNavHref(item.href, isAuthenticated);
 
           return (
             <Link
               className={isActive ? "nav-link active" : "nav-link"}
-              href={href}
+              href={item.href}
               key={item.label}
               aria-current={isActive ? "page" : undefined}
             >
