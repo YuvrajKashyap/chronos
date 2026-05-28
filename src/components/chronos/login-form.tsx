@@ -5,14 +5,13 @@ import { useActionState } from "react";
 
 import { signInToChronos, type LoginFormState } from "@/app/login/actions";
 
-export function LoginForm({ nextPath = "/admin" }: { nextPath?: string }) {
+export function LoginForm() {
   const initialState: LoginFormState = { error: null };
   const [state, formAction, isPending] = useActionState(signInToChronos, initialState);
   const error = state?.error ?? null;
 
   return (
     <form className="auth-form" action={formAction} autoComplete="off">
-      <input type="hidden" name="nextPath" value={nextPath} />
       <div className="auth-field-stack">
         <label htmlFor="chronos-access-name">Username</label>
         <div className="auth-field-shell">
