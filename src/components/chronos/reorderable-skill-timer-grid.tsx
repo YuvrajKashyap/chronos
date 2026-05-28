@@ -1,11 +1,21 @@
 "use client";
 
-import { Children, type ReactNode, useEffect, useMemo, useRef, useState, useTransition, type DragEvent } from "react";
+import { Children, type PointerEvent as ReactPointerEvent, type ReactNode, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { GripVertical } from "lucide-react";
 
 import { AddSkillCard } from "./add-skill-card";
 import type { DashboardControls } from "./chronos-dashboard-page";
 
 type AdminDashboardControls = Extract<DashboardControls, { mode: "admin" }>;
+type PointerDragSession = {
+  activeId: string;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  started: boolean;
+};
+
+const DRAG_THRESHOLD_PX = 8;
 
 function isSameOrder(left: string[], right: string[]) {
   return left.length === right.length && left.every((id, index) => id === right[index]);
@@ -30,10 +40,58 @@ function hasSameSkillSet(left: string[], right: string[]) {
   return left.length === right.length && left.every((id) => right.includes(id));
 }
 
+function isDragHandle(target: EventTarget | null) {
+  return target instanceof HTMLElement ? Boolean(target.closest("[data-drag-handle]")) : false;
+}
+
 function isInteractiveDragTarget(target: EventTarget | null) {
   return target instanceof HTMLElement
     ? Boolean(target.closest("button, a, input, textarea, select, [role='menu'], [data-no-drag]"))
     : false;
+}
+
+function getNearestSkillId(container: HTMLElement | null, clientX: number, clientY: number, activeId: string) {
+  const directTarget = document.elementFromPoint(clientX, clientY);
+  const directShell = directTarget instanceof HTMLElement ? directTarget.closest<HTMLElement>("[data-reorder-skill-id]") : null;
+  const directId = directShell?.dataset.reorderSkillId;
+
+  if (directId && directId !== activeId) {
+    return directId;
+  }
+
+  const shells = Array.from(container?.querySelectorAll<HTMLElement>("[data-reorder-skill-id]") ?? []);
+  let nearestId: string | null = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
+  for (const shell of shells) {
+    const skillId = shell.dataset.reorderSkillId;
+    if (!skillId) {
+      continue;
+    }
+
+    const rect = shell.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const distance = Math.hypot(clientX - centerX, clientY - centerY);
+
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearestId = skillId;
+    }
+  }
+
+  return nearestId === activeId ? null : nearestId;
+}
+
+function scrollNearViewportEdge(clientY: number) {
+  const edgeSize = 72;
+  const scrollStep = 18;
+
+  if (clientY < edgeSize) {
+    window.scrollBy({ top: -scrollStep, behavior: "instant" });
+  } else if (clientY > window.innerHeight - edgeSize) {
+    window.scrollBy({ top: scrollStep, behavior: "instant" });
+  }
 }
 
 export function ReorderableSkillTimerGrid({
@@ -52,17 +110,44 @@ export function ReorderableSkillTimerGrid({
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, startTransition] = useTransition();
+  const gridRef = useRef<HTMLElement | null>(null);
   const originalOrderRef = useRef(skillIds);
   const pendingOrderRef = useRef(skillIds);
   const rollbackOrderRef = useRef(skillIds);
   const draggingIdRef = useRef<string | null>(null);
   const savingOrderRef = useRef<string[] | null>(null);
-  const didDropRef = useRef(false);
+  const dragSessionRef = useRef<PointerDragSession | null>(null);
   const cardNodes = Children.toArray(children);
 
   const cardsById = useMemo(() => {
     return new Map(skillIds.map((skillId, index) => [skillId, cardNodes[index]]));
   }, [cardNodes, skillIds]);
+
+  useEffect(() => {
+    function handleWindowPointerMove(event: PointerEvent) {
+      if (updatePointerDrag(event.pointerId, event.clientX, event.clientY)) {
+        event.preventDefault();
+      }
+    }
+
+    function handleWindowPointerUp(event: PointerEvent) {
+      finishPointerDrag(event.pointerId, true);
+    }
+
+    function handleWindowPointerCancel(event: PointerEvent) {
+      finishPointerDrag(event.pointerId, false);
+    }
+
+    window.addEventListener("pointermove", handleWindowPointerMove, { capture: true, passive: false });
+    window.addEventListener("pointerup", handleWindowPointerUp, { capture: true });
+    window.addEventListener("pointercancel", handleWindowPointerCancel, { capture: true });
+
+    return () => {
+      window.removeEventListener("pointermove", handleWindowPointerMove, { capture: true });
+      window.removeEventListener("pointerup", handleWindowPointerUp, { capture: true });
+      window.removeEventListener("pointercancel", handleWindowPointerCancel, { capture: true });
+    };
+  }, []);
 
   useEffect(() => {
     if (draggingId) {
@@ -130,58 +215,97 @@ export function ReorderableSkillTimerGrid({
     });
   }
 
-  function handleDragStart(event: DragEvent<HTMLElement>, skillId: string) {
-    if (isInteractiveDragTarget(event.target)) {
-      event.preventDefault();
+  function startPointerDrag(event: ReactPointerEvent<HTMLElement>, skillId: string) {
+    if (isSaving || event.button !== 0) {
       return;
     }
 
-    didDropRef.current = false;
+    const startedFromHandle = isDragHandle(event.target);
+    if (!startedFromHandle && (event.pointerType !== "mouse" || isInteractiveDragTarget(event.target))) {
+      return;
+    }
+
     setError(null);
-    setDraggingId(skillId);
-    draggingIdRef.current = skillId;
-    setDropTargetId(skillId);
+    dragSessionRef.current = {
+      activeId: skillId,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      started: false,
+    };
     pendingOrderRef.current = orderedSkillIds;
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", skillId);
+    event.preventDefault();
   }
 
-  function handleDragOver(event: DragEvent<HTMLElement>, targetId: string) {
-    const activeId = draggingIdRef.current ?? draggingId ?? event.dataTransfer.getData("text/plain");
-
-    if (!activeId || activeId === targetId) {
-      return;
+  function updatePointerDrag(pointerId: number, clientX: number, clientY: number) {
+    const session = dragSessionRef.current;
+    if (!session || session.pointerId !== pointerId) {
+      return false;
     }
 
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
+    const distance = Math.hypot(clientX - session.startX, clientY - session.startY);
+    if (!session.started && distance < DRAG_THRESHOLD_PX) {
+      return true;
+    }
+
+    if (!session.started) {
+      session.started = true;
+      draggingIdRef.current = session.activeId;
+      setDraggingId(session.activeId);
+      setDropTargetId(session.activeId);
+    }
+
+    scrollNearViewportEdge(clientY);
+
+    const targetId = getNearestSkillId(gridRef.current, clientX, clientY, session.activeId);
+    if (!targetId) {
+      return true;
+    }
+
     setDropTargetId(targetId);
     setOrderedSkillIds((currentSkillIds) => {
-      const nextSkillIds = moveSkill(currentSkillIds, activeId, targetId);
+      const nextSkillIds = moveSkill(currentSkillIds, session.activeId, targetId);
       pendingOrderRef.current = nextSkillIds;
       return nextSkillIds;
     });
+
+    return true;
   }
 
-  function handleDrop(event: DragEvent<HTMLElement>) {
-    event.preventDefault();
-    didDropRef.current = true;
-    commitOrder(pendingOrderRef.current);
-    draggingIdRef.current = null;
-    setDraggingId(null);
-    setDropTargetId(null);
-  }
+  function finishPointerDrag(pointerId: number, shouldCommit: boolean) {
+    const session = dragSessionRef.current;
+    if (!session || session.pointerId !== pointerId) {
+      return;
+    }
 
-  function handleDragEnd() {
-    if (!didDropRef.current) {
+    if (session.started && shouldCommit) {
+      commitOrder(pendingOrderRef.current);
+    } else if (session.started) {
       setOrderedSkillIds(originalOrderRef.current);
       pendingOrderRef.current = originalOrderRef.current;
     }
 
-    didDropRef.current = false;
+    dragSessionRef.current = null;
     draggingIdRef.current = null;
     setDraggingId(null);
     setDropTargetId(null);
+  }
+
+  function moveByKeyboard(skillId: string, direction: -1 | 1) {
+    if (isSaving) {
+      return;
+    }
+
+    const currentIndex = orderedSkillIds.indexOf(skillId);
+    const targetId = orderedSkillIds[currentIndex + direction];
+    if (!targetId) {
+      return;
+    }
+
+    const nextSkillIds = moveSkill(orderedSkillIds, skillId, targetId);
+    pendingOrderRef.current = nextSkillIds;
+    setDropTargetId(targetId);
+    commitOrder(nextSkillIds);
   }
 
   return (
@@ -191,6 +315,7 @@ export function ReorderableSkillTimerGrid({
         className={draggingId || isSaving ? "skill-grid is-reordering" : "skill-grid"}
         aria-busy={isSaving}
         aria-label="Skill timers"
+        ref={gridRef}
       >
         {orderedSkillIds.map((skillId) => (
           <div
@@ -202,15 +327,31 @@ export function ReorderableSkillTimerGrid({
             ]
               .filter(Boolean)
               .join(" ")}
-            data-skill-id={skillId}
-            draggable={!isSaving}
+            data-reorder-skill-id={skillId}
             key={skillId}
-            onDragEnd={handleDragEnd}
-            onDragOver={(event) => handleDragOver(event, skillId)}
-            onDragStart={(event) => handleDragStart(event, skillId)}
-            onDrop={handleDrop}
+            onPointerDown={(event) => startPointerDrag(event, skillId)}
           >
             {cardsById.get(skillId)}
+            <button
+              className="skill-drag-handle"
+              type="button"
+              aria-label="Drag to reorder dashboard card"
+              data-drag-handle
+              disabled={isSaving}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                  event.preventDefault();
+                  moveByKeyboard(skillId, -1);
+                }
+
+                if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                  event.preventDefault();
+                  moveByKeyboard(skillId, 1);
+                }
+              }}
+            >
+              <GripVertical size={18} aria-hidden="true" />
+            </button>
           </div>
         ))}
         {fixedChildren}
