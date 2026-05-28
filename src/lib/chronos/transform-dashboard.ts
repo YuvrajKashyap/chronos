@@ -4,6 +4,11 @@ import { resolveSkillStyle } from "@/lib/chronos/skill-style-options";
 import type { PublicDashboardPayload, PublicDashboardSkill } from "@/lib/chronos/public-dashboard";
 
 export type PublicLikeSkill = PublicDashboardSkill;
+export type DashboardSortMode = "custom" | "recent";
+
+export function parseDashboardSortMode(value?: string | null): DashboardSortMode {
+  return value === "recent" ? "recent" : "custom";
+}
 
 export function hasUsefulPublicDashboardData(payload: PublicDashboardPayload | null) {
   return Array.isArray(payload?.skills) && payload.skills.length > 0;
@@ -19,14 +24,30 @@ export function getPublicActiveSessionCount(payload: PublicDashboardPayload | nu
   }).length;
 }
 
-export function transformPublicDashboardToSkills(payload: PublicDashboardPayload): ChronosSkill[] {
+function compareCustomOrder(a: PublicDashboardSkill, b: PublicDashboardSkill) {
+  return (a.sort_order ?? 0) - (b.sort_order ?? 0) || (a.name ?? "").localeCompare(b.name ?? "");
+}
+
+function getUpdatedAtTime(skill: PublicDashboardSkill) {
+  const parsed = skill.updated_at ? Date.parse(skill.updated_at) : 0;
+
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function transformPublicDashboardToSkills(
+  payload: PublicDashboardPayload,
+  sortMode: DashboardSortMode = "custom",
+): ChronosSkill[] {
   return [...(payload.skills ?? [])]
     .sort((a, b) => {
-      return (a.sort_order ?? 0) - (b.sort_order ?? 0) || (a.name ?? "").localeCompare(b.name ?? "");
+      if (sortMode === "recent") {
+        return getUpdatedAtTime(b) - getUpdatedAtTime(a) || compareCustomOrder(a, b);
+      }
+
+      return compareCustomOrder(a, b);
     })
     .map((skill) => {
       const style = resolveSkillStyle({
-        accentColor: skill.accent_color,
         accentKey: skill.accent_key,
         iconKey: skill.icon_key,
         name: skill.name,
@@ -43,8 +64,6 @@ export function transformPublicDashboardToSkills(payload: PublicDashboardPayload
         icon: style.icon,
         iconEmoji: style.emoji,
         accent: style.accent,
-        accentColor: style.accentColor,
-        accentRgb: style.accentRgb,
         accentKey: skill.accent_key ?? style.accent,
         visibility: skill.visibility ?? undefined,
         isActive,
@@ -56,10 +75,6 @@ export function transformPublicDashboardToSkills(payload: PublicDashboardPayload
         activeStartedAt: skill.active_session_started_at ?? undefined,
         initialElapsedSeconds,
         lifetimeSeconds: skill.lifetime_seconds,
-        weeklyTargetSeconds: skill.weekly_target_seconds,
-        targetSessionsPerWeek: skill.target_sessions_per_week,
-        priorityWeight: skill.priority_weight,
-        goalNote: skill.goal_note,
       };
     });
 }

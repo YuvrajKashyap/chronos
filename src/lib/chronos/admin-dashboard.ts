@@ -12,12 +12,9 @@ export type AdminSkill = {
   visibility: "public" | "private";
   is_downtime: boolean;
   sort_order: number;
+  updated_at?: string | null;
   archived_at?: string | null;
   lifetime_seconds: number;
-  weekly_target_seconds?: number | null;
-  target_sessions_per_week?: number | null;
-  priority_weight?: number | null;
-  goal_note?: string | null;
   active_session_started_at?: string | null;
   current_active_elapsed_seconds?: number | null;
 };
@@ -38,22 +35,12 @@ export type AdminRecentSession = {
   id: string;
   skill_id: string;
   skill_name: string;
-  is_downtime?: boolean | null;
   started_at: string;
   ended_at?: string | null;
   source: "timer" | "manual" | "system";
   is_private: boolean;
   counts_toward_lifetime?: boolean | null;
   duration_seconds: number;
-  planned_seconds?: number | null;
-  quality_score?: number | null;
-  energy_score?: number | null;
-  focus_score?: number | null;
-  outcome?: string | null;
-  project_key?: string | null;
-  tag_names?: string[] | null;
-  interruption_count?: number | null;
-  paused_seconds?: number | null;
 };
 
 export type AdminPendingSession = {
@@ -63,6 +50,11 @@ export type AdminPendingSession = {
   started_at: string;
   ended_at: string;
   duration_seconds: number;
+};
+
+export type AdminIdleSession = {
+  started_at: string;
+  current_idle_elapsed_seconds?: number | null;
 };
 
 export type AdminTimerState = {
@@ -78,10 +70,7 @@ export type AdminTimerState = {
   };
   skills: AdminSkill[];
   active_session?: AdminActiveSession | null;
-  idle_session?: {
-    started_at: string;
-    current_idle_elapsed_seconds: number;
-  } | null;
+  idle_session?: AdminIdleSession | null;
   pending_sessions?: AdminPendingSession[];
   recent_sessions: AdminRecentSession[];
 };
