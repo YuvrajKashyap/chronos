@@ -5047,6 +5047,11 @@ a {
     height: auto;
   }
 
+  .skill-drag-handle {
+    right: 74px;
+    opacity: 1;
+  }
+
   .skill-card-menu-trigger {
     opacity: 1;
     transform: none;
