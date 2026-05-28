@@ -662,6 +662,30 @@ a {
   cursor: text;
 }
 
+.skill-drag-handle {
+  width: clamp(34px, calc(var(--ui) * 0.024), 46px);
+  height: clamp(34px, calc(var(--ui) * 0.024), 46px);
+  position: absolute;
+  top: clamp(16px, calc(var(--ui) * 0.013), 26px);
+  right: clamp(58px, calc(var(--ui) * 0.043), 82px);
+  z-index: 11;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(var(--accent-rgb, var(--nav-active-rgb)), 0.24);
+  border-radius: 999px;
+  background: rgba(10, 18, 28, 0.62);
+  color: var(--text-secondary);
+  cursor: grab;
+  opacity: 0.74;
+  touch-action: none;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
 :root[data-theme="light"] .skill-card {
   height: var(--card-h);
   border-color: rgba(var(--accent-rgb), 0.25);
