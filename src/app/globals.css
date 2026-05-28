@@ -613,6 +613,7 @@ a {
 
 .reorder-card-shell.is-dragging {
   cursor: grabbing;
+  pointer-events: none;
   transform: scale(0.985) rotate(-0.35deg);
 }
 
