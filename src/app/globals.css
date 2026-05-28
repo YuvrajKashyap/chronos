@@ -686,6 +686,25 @@ a {
     transform 160ms ease;
 }
 
+.skill-drag-handle:hover,
+.skill-drag-handle:focus-visible,
+.reorder-card-shell.is-dragging .skill-drag-handle {
+  border-color: rgba(var(--accent-rgb, var(--nav-active-rgb)), 0.52);
+  background: rgba(var(--accent-rgb, var(--nav-active-rgb)), 0.13);
+  color: var(--accent, var(--nav-active));
+  opacity: 1;
+  outline: 0;
+  transform: translateY(0);
+}
+
+.skill-drag-handle:active {
+  cursor: grabbing;
+}
+
+:root[data-theme="light"] .skill-drag-handle {
+  background: rgba(255, 255, 255, 0.82);
+}
+
 :root[data-theme="light"] .skill-card {
   height: var(--card-h);
   border-color: rgba(var(--accent-rgb), 0.25);
