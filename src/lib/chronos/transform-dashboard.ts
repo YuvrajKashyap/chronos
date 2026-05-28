@@ -28,8 +28,8 @@ function compareCustomOrder(a: PublicDashboardSkill, b: PublicDashboardSkill) {
   return (a.sort_order ?? 0) - (b.sort_order ?? 0) || (a.name ?? "").localeCompare(b.name ?? "");
 }
 
-function getUpdatedAtTime(skill: PublicDashboardSkill) {
-  const parsed = skill.updated_at ? Date.parse(skill.updated_at) : 0;
+function getLastActiveTime(skill: PublicDashboardSkill) {
+  const parsed = skill.last_active_at ? Date.parse(skill.last_active_at) : 0;
 
   return Number.isFinite(parsed) ? parsed : 0;
 }
@@ -41,7 +41,7 @@ export function transformPublicDashboardToSkills(
   return [...(payload.skills ?? [])]
     .sort((a, b) => {
       if (sortMode === "recent") {
-        return getUpdatedAtTime(b) - getUpdatedAtTime(a) || compareCustomOrder(a, b);
+        return getLastActiveTime(b) - getLastActiveTime(a) || compareCustomOrder(a, b);
       }
 
       return compareCustomOrder(a, b);

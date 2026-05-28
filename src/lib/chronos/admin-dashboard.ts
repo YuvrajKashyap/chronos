@@ -13,6 +13,7 @@ export type AdminSkill = {
   is_downtime: boolean;
   sort_order: number;
   updated_at?: string | null;
+  last_active_at?: string | null;
   archived_at?: string | null;
   lifetime_seconds: number;
   active_session_started_at?: string | null;

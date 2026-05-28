@@ -56,6 +56,7 @@ export function transformAdminDashboardToSkills(
       visibility: skill.visibility,
       sort_order: skill.sort_order,
       updated_at: skill.updated_at,
+      last_active_at: skill.last_active_at,
       lifetime_seconds: skill.lifetime_seconds,
       active_session_started_at: skill.active_session_started_at,
       current_active_elapsed_seconds: skill.current_active_elapsed_seconds,

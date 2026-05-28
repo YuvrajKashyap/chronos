@@ -11,6 +11,7 @@ export type PublicDashboardSkill = {
   visibility?: "public" | "private" | null;
   sort_order?: number | null;
   updated_at?: string | null;
+  last_active_at?: string | null;
   lifetime_seconds?: number | null;
   today_seconds?: number | null;
   week_seconds?: number | null;
