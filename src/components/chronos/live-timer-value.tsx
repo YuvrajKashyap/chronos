@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { formatSecondsAsTimer } from "@/lib/chronos/format-time";
 
@@ -10,15 +10,15 @@ type LiveTimerValueProps = {
   startedAt?: string;
 };
 
-function getElapsedSeconds(startedAt: string | undefined, fallbackSeconds: number) {
+function getElapsedSeconds(startedAt: string | undefined, fallbackSeconds: number, fallbackStartedAtMs: number) {
   if (!startedAt) {
-    return fallbackSeconds;
+    return Math.max(0, fallbackSeconds + Math.floor((Date.now() - fallbackStartedAtMs) / 1000));
   }
 
   const startedAtMs = new Date(startedAt).getTime();
 
   if (Number.isNaN(startedAtMs)) {
-    return fallbackSeconds;
+    return Math.max(0, fallbackSeconds + Math.floor((Date.now() - fallbackStartedAtMs) / 1000));
   }
 
   return Math.max(fallbackSeconds, Math.floor((Date.now() - startedAtMs) / 1000));
@@ -26,12 +26,14 @@ function getElapsedSeconds(startedAt: string | undefined, fallbackSeconds: numbe
 
 export function LiveTimerValue({ className, initialSeconds = 0, startedAt }: LiveTimerValueProps) {
   const [seconds, setSeconds] = useState(initialSeconds);
+  const fallbackStartedAtMsRef = useRef(Date.now());
 
   useEffect(() => {
-    setSeconds(getElapsedSeconds(startedAt, initialSeconds));
+    fallbackStartedAtMsRef.current = Date.now();
+    setSeconds(getElapsedSeconds(startedAt, initialSeconds, fallbackStartedAtMsRef.current));
 
     const intervalId = window.setInterval(() => {
-      setSeconds(getElapsedSeconds(startedAt, initialSeconds));
+      setSeconds(getElapsedSeconds(startedAt, initialSeconds, fallbackStartedAtMsRef.current));
     }, 1000);
 
     return () => window.clearInterval(intervalId);
