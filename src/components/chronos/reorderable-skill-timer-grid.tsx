@@ -1,7 +1,6 @@
 "use client";
 
 import { Children, type PointerEvent as ReactPointerEvent, type ReactNode, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { GripVertical } from "lucide-react";
 
 import { AddSkillCard } from "./add-skill-card";
 import type { DashboardControls } from "./chronos-dashboard-page";
@@ -38,10 +37,6 @@ function moveSkill(skillIds: string[], draggingId: string, targetId: string) {
 
 function hasSameSkillSet(left: string[], right: string[]) {
   return left.length === right.length && left.every((id) => right.includes(id));
-}
-
-function isDragHandle(target: EventTarget | null) {
-  return target instanceof HTMLElement ? Boolean(target.closest("[data-drag-handle]")) : false;
 }
 
 function isInteractiveDragTarget(target: EventTarget | null) {
@@ -220,8 +215,7 @@ export function ReorderableSkillTimerGrid({
       return;
     }
 
-    const startedFromHandle = isDragHandle(event.target);
-    if (!startedFromHandle && (event.pointerType !== "mouse" || isInteractiveDragTarget(event.target))) {
+    if (isInteractiveDragTarget(event.target)) {
       return;
     }
 
@@ -291,23 +285,6 @@ export function ReorderableSkillTimerGrid({
     setDropTargetId(null);
   }
 
-  function moveByKeyboard(skillId: string, direction: -1 | 1) {
-    if (isSaving) {
-      return;
-    }
-
-    const currentIndex = orderedSkillIds.indexOf(skillId);
-    const targetId = orderedSkillIds[currentIndex + direction];
-    if (!targetId) {
-      return;
-    }
-
-    const nextSkillIds = moveSkill(orderedSkillIds, skillId, targetId);
-    pendingOrderRef.current = nextSkillIds;
-    setDropTargetId(targetId);
-    commitOrder(nextSkillIds);
-  }
-
   return (
     <>
       {error ? <p className="admin-inline-message is-error reorder-message">{error}</p> : null}
@@ -332,26 +309,6 @@ export function ReorderableSkillTimerGrid({
             onPointerDown={(event) => startPointerDrag(event, skillId)}
           >
             {cardsById.get(skillId)}
-            <button
-              className="skill-drag-handle"
-              type="button"
-              aria-label="Drag to reorder dashboard card"
-              data-drag-handle
-              disabled={isSaving}
-              onKeyDown={(event) => {
-                if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-                  event.preventDefault();
-                  moveByKeyboard(skillId, -1);
-                }
-
-                if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-                  event.preventDefault();
-                  moveByKeyboard(skillId, 1);
-                }
-              }}
-            >
-              <GripVertical size={18} aria-hidden="true" />
-            </button>
           </div>
         ))}
         {fixedChildren}
