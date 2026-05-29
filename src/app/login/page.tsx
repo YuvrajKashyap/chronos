@@ -15,11 +15,12 @@ import {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; sort?: string }>;
+  searchParams: Promise<{ error?: string; next?: string; sort?: string }>;
 }) {
   const params = await searchParams;
-  const sortMode = parseDashboardSortMode(params.sort);
   const authError = params.error ? decodeURIComponent(params.error) : null;
+  const sortMode = parseDashboardSortMode(params.sort);
+  const nextPath = params.next === "/insights" || params.next === "/settings" || params.next === "/admin" ? params.next : "/admin";
   const { payload } = await getPublicDashboard();
   const hasRealData = hasUsefulPublicDashboardData(payload);
   const skills = hasRealData && payload ? transformPublicDashboardToSkills(payload, sortMode) : chronosSkills;
@@ -89,7 +90,7 @@ export default async function LoginPage({
             <h1 id="login-title">Welcome Back</h1>
             <p className="auth-copy">Sign in if you&apos;re me.</p>
             {authError ? <p className="auth-message is-error">Auth callback: {authError}</p> : null}
-            <LoginForm />
+            <LoginForm nextPath={nextPath} />
           </div>
         </section>
       </main>
