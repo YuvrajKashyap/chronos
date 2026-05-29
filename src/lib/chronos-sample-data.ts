@@ -18,6 +18,8 @@ export type ChronosSkill = {
   icon: LucideIcon;
   accent: string;
   accentKey?: string;
+  accentColor?: string;
+  accentRgb?: string;
   visibility?: "public" | "private";
   iconEmoji?: string;
   isActive: boolean;
@@ -29,6 +31,10 @@ export type ChronosSkill = {
   activeStartedAt?: string;
   initialElapsedSeconds?: number;
   lifetimeSeconds?: number | null;
+  weeklyTargetSeconds?: number | null;
+  targetSessionsPerWeek?: number | null;
+  priorityWeight?: number | null;
+  goalNote?: string | null;
 };
 
 export const chronosSkills: ChronosSkill[] = [
