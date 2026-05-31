@@ -4,7 +4,7 @@ import { resolveSkillStyle } from "@/lib/chronos/skill-style-options";
 import type { PublicDashboardPayload, PublicDashboardSkill } from "@/lib/chronos/public-dashboard";
 
 export type PublicLikeSkill = PublicDashboardSkill;
-export type DashboardSortMode = "custom" | "recent";
+export type DashboardSortMode = "custom" | "recent" | "hours-desc" | "hours-asc";
 
 export function hasUsefulPublicDashboardData(payload: PublicDashboardPayload | null) {
   return Array.isArray(payload?.skills) && payload.skills.length > 0;
@@ -21,7 +21,11 @@ export function getPublicActiveSessionCount(payload: PublicDashboardPayload | nu
 }
 
 export function parseDashboardSortMode(value?: string | null): DashboardSortMode {
-  return value === "recent" ? "recent" : "custom";
+  if (value === "recent" || value === "hours-desc" || value === "hours-asc") {
+    return value;
+  }
+
+  return "custom";
 }
 
 function compareCustomOrder(a: PublicLikeSkill, b: PublicLikeSkill) {
@@ -39,6 +43,10 @@ function getLastActiveTime(skill: PublicLikeSkill) {
   return Number.isFinite(time) ? time : 0;
 }
 
+function getTrackedSeconds(skill: PublicLikeSkill) {
+  return Math.max(0, Math.floor(skill.lifetime_seconds ?? 0)) + Math.max(0, Math.floor(skill.current_active_elapsed_seconds ?? 0));
+}
+
 export function transformPublicDashboardToSkills(
   payload: PublicDashboardPayload,
   sortMode: DashboardSortMode = "custom",
@@ -47,6 +55,14 @@ export function transformPublicDashboardToSkills(
     .sort((a, b) => {
       if (sortMode === "recent") {
         return getLastActiveTime(b) - getLastActiveTime(a) || compareCustomOrder(a, b);
+      }
+
+      if (sortMode === "hours-desc") {
+        return getTrackedSeconds(b) - getTrackedSeconds(a) || compareCustomOrder(a, b);
+      }
+
+      if (sortMode === "hours-asc") {
+        return getTrackedSeconds(a) - getTrackedSeconds(b) || compareCustomOrder(a, b);
       }
 
       return compareCustomOrder(a, b);

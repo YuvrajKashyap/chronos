@@ -9,6 +9,8 @@ import type { DashboardSortMode } from "@/lib/chronos/transform-dashboard";
 const sortOptions: Array<{ label: string; value: DashboardSortMode }> = [
   { label: "Custom", value: "custom" },
   { label: "Recent", value: "recent" },
+  { label: "Most Hours", value: "hours-desc" },
+  { label: "Least Hours", value: "hours-asc" },
 ];
 
 export function DashboardSortDropdown({ sortMode }: { sortMode: DashboardSortMode }) {

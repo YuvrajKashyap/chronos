@@ -7,6 +7,7 @@ import { createChronosServerClient } from "@/lib/supabase/server";
 
 const ALLOWED_ACCENTS = new Set(["coral", "blue", "amber", "violet", "teal", "indigo"]);
 const CUSTOM_ACCENT_PATTERN = /^custom-[0-9a-f]{6}$/i;
+const DASHBOARD_SORT_MODES = new Set(["custom", "recent", "hours-desc", "hours-asc"]);
 
 function getSafeNextPath(formData: FormData | null) {
   const nextPath = String(formData?.get("nextPath") ?? "/admin");
@@ -22,7 +23,7 @@ function getSafeNextPath(formData: FormData | null) {
   const sortMode = parsedNextPath.searchParams.get("sort");
   const searchParams = new URLSearchParams();
 
-  if (sortMode === "custom" || sortMode === "recent") {
+  if (sortMode && DASHBOARD_SORT_MODES.has(sortMode)) {
     searchParams.set("sort", sortMode);
   }
 
