@@ -17,9 +17,8 @@ type PointerDragSession = {
 };
 
 const DRAG_THRESHOLD_PX = 8;
-const TOUCH_HOLD_DELAY_MS = 420;
-const TOUCH_SCROLL_TOLERANCE_PX = 10;
-const FORCE_PRESSURE_THRESHOLD = 0.65;
+const TOUCH_HOLD_DELAY_MS = 3000;
+const TOUCH_SCROLL_TOLERANCE_PX = 22;
 
 function isSameOrder(left: string[], right: string[]) {
   return left.length === right.length && left.every((id, index) => id === right[index]);
@@ -236,13 +235,11 @@ export function ReorderableSkillTimerGrid({
     }
 
     const requiresHold = needsHoldToDrag(event.pointerType);
-    const isForcePress = requiresHold && event.pressure >= FORCE_PRESSURE_THRESHOLD;
-    const shouldArmImmediately = !requiresHold || isForcePress;
 
     setError(null);
     const session: PointerDragSession = {
       activeId: skillId,
-      armed: shouldArmImmediately,
+      armed: !requiresHold,
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
@@ -251,16 +248,31 @@ export function ReorderableSkillTimerGrid({
     dragSessionRef.current = session;
     pendingOrderRef.current = orderedSkillIds;
 
-    if (requiresHold && !isForcePress) {
+    if (requiresHold) {
       session.holdTimerId = window.setTimeout(() => {
-        if (dragSessionRef.current?.pointerId === event.pointerId) {
-          dragSessionRef.current.armed = true;
+        const currentSession = dragSessionRef.current;
+        if (currentSession?.pointerId === event.pointerId) {
+          beginPointerDrag(currentSession);
         }
       }, TOUCH_HOLD_DELAY_MS);
       return;
     }
 
     event.preventDefault();
+  }
+
+  function beginPointerDrag(session: PointerDragSession) {
+    clearHoldTimer(session);
+    session.armed = true;
+
+    if (session.started) {
+      return;
+    }
+
+    session.started = true;
+    draggingIdRef.current = session.activeId;
+    setDraggingId(session.activeId);
+    setDropTargetId(session.activeId);
   }
 
   function updatePointerDrag(pointerId: number, clientX: number, clientY: number) {
@@ -283,11 +295,7 @@ export function ReorderableSkillTimerGrid({
     }
 
     if (!session.started) {
-      clearHoldTimer(session);
-      session.started = true;
-      draggingIdRef.current = session.activeId;
-      setDraggingId(session.activeId);
-      setDropTargetId(session.activeId);
+      beginPointerDrag(session);
     }
 
     scrollNearViewportEdge(clientY);
