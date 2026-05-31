@@ -713,8 +713,11 @@ a {
 
 .reorder-card-shell.is-reorderable,
 .reorder-card-shell.is-reorderable > .skill-card {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
   cursor: grab;
-  touch-action: none;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .reorder-card-shell.is-reorderable:active,

@@ -8,6 +8,8 @@ import type { DashboardControls } from "./chronos-dashboard-page";
 type AdminDashboardControls = Extract<DashboardControls, { mode: "admin" }>;
 type PointerDragSession = {
   activeId: string;
+  armed: boolean;
+  holdTimerId?: number;
   pointerId: number;
   startX: number;
   startY: number;
@@ -15,6 +17,9 @@ type PointerDragSession = {
 };
 
 const DRAG_THRESHOLD_PX = 8;
+const TOUCH_HOLD_DELAY_MS = 420;
+const TOUCH_SCROLL_TOLERANCE_PX = 10;
+const FORCE_PRESSURE_THRESHOLD = 0.65;
 
 function isSameOrder(left: string[], right: string[]) {
   return left.length === right.length && left.every((id, index) => id === right[index]);
@@ -43,6 +48,17 @@ function isInteractiveDragTarget(target: EventTarget | null) {
   return target instanceof HTMLElement
     ? Boolean(target.closest("button, a, input, textarea, select, [role='menu'], [data-no-drag]"))
     : false;
+}
+
+function needsHoldToDrag(pointerType: string) {
+  return pointerType !== "mouse";
+}
+
+function clearHoldTimer(session: PointerDragSession) {
+  if (session.holdTimerId !== undefined) {
+    window.clearTimeout(session.holdTimerId);
+    session.holdTimerId = undefined;
+  }
 }
 
 function getNearestSkillId(container: HTMLElement | null, clientX: number, clientY: number, activeId: string) {
@@ -219,15 +235,31 @@ export function ReorderableSkillTimerGrid({
       return;
     }
 
+    const requiresHold = needsHoldToDrag(event.pointerType);
+    const isForcePress = requiresHold && event.pressure >= FORCE_PRESSURE_THRESHOLD;
+    const shouldArmImmediately = !requiresHold || isForcePress;
+
     setError(null);
-    dragSessionRef.current = {
+    const session: PointerDragSession = {
       activeId: skillId,
+      armed: shouldArmImmediately,
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
       started: false,
     };
+    dragSessionRef.current = session;
     pendingOrderRef.current = orderedSkillIds;
+
+    if (requiresHold && !isForcePress) {
+      session.holdTimerId = window.setTimeout(() => {
+        if (dragSessionRef.current?.pointerId === event.pointerId) {
+          dragSessionRef.current.armed = true;
+        }
+      }, TOUCH_HOLD_DELAY_MS);
+      return;
+    }
+
     event.preventDefault();
   }
 
@@ -238,11 +270,20 @@ export function ReorderableSkillTimerGrid({
     }
 
     const distance = Math.hypot(clientX - session.startX, clientY - session.startY);
+    if (!session.armed) {
+      if (distance > TOUCH_SCROLL_TOLERANCE_PX) {
+        finishPointerDrag(pointerId, false);
+      }
+
+      return false;
+    }
+
     if (!session.started && distance < DRAG_THRESHOLD_PX) {
       return true;
     }
 
     if (!session.started) {
+      clearHoldTimer(session);
       session.started = true;
       draggingIdRef.current = session.activeId;
       setDraggingId(session.activeId);
@@ -271,6 +312,8 @@ export function ReorderableSkillTimerGrid({
     if (!session || session.pointerId !== pointerId) {
       return;
     }
+
+    clearHoldTimer(session);
 
     if (session.started && shouldCommit) {
       commitOrder(pendingOrderRef.current);
