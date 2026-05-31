@@ -62,13 +62,14 @@ export function ChronosDashboardPage({
 }) {
   const sessionLabel = activeSessionCount === 1 ? "1 active session" : `${activeSessionCount} active sessions`;
   const isIdleTracking = activeSessionCount === 0 && Boolean(idleSession);
+  const showViewOnlyNote = controls.mode === "login";
 
   return (
     <ChronosShell isAuthenticated={isAuthenticated}>
       <main className="dashboard-main">
         <section className="dashboard-hero" aria-label="Dashboard status">
-          <div className="dashboard-status-bar">
-            <div className={controls.mode === "login" ? "status-row has-view-only-note" : "status-row"}>
+          <div className={showViewOnlyNote ? "dashboard-status-bar has-view-only-note" : "dashboard-status-bar"}>
+            <div className="status-row">
               <span className="status-dot" aria-hidden="true" />
               <span>{isIdleTracking ? "Idle tracking active" : sessionLabel}</span>
               {isIdleTracking && idleSession ? (
@@ -78,15 +79,15 @@ export function ChronosDashboardPage({
                   startedAt={idleSession.started_at}
                 />
               ) : null}
-              {controls.mode === "login" ? (
-                <span className="status-view-only-note">
-                  <span>Public view of Yuvraj's current stats.</span>
-                  <span>Editing is available only when Yuvraj signs in.</span>
-                  <span>P.S. The majority of these stats have only been tracked since Yuvraj turned 21. So some have been estimated.</span>
-                </span>
-              ) : null}
             </div>
             <DashboardSortDropdown sortMode={sortMode} />
+            {showViewOnlyNote ? (
+              <span className="status-view-only-note">
+                <span>Public view of Yuvraj's current stats.</span>
+                <span>Editing is available only when Yuvraj signs in.</span>
+                <span>P.S. The majority of these stats have only been tracked since Yuvraj turned 21. So some have been estimated.</span>
+              </span>
+            ) : null}
           </div>
         </section>
         {message ? <p className="admin-inline-message is-error">{message}</p> : null}
