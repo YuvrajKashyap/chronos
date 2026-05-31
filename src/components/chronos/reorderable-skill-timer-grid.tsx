@@ -1,19 +1,33 @@
 "use client";
 
-import { Children, type PointerEvent as ReactPointerEvent, type ReactNode, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+  Children,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  type TouchEvent as ReactTouchEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 
 import { AddSkillCard } from "./add-skill-card";
 import type { DashboardControls } from "./chronos-dashboard-page";
 
 type AdminDashboardControls = Extract<DashboardControls, { mode: "admin" }>;
-type PointerDragSession = {
+type DragSession = {
   activeId: string;
   armed: boolean;
   holdTimerId?: number;
-  pointerId: number;
+  input: "mouse" | "touch";
+  pointerId?: number;
+  startedAtMs: number;
   startX: number;
   startY: number;
   started: boolean;
+  touchId?: number;
 };
 
 const DRAG_THRESHOLD_PX = 8;
@@ -49,15 +63,32 @@ function isInteractiveDragTarget(target: EventTarget | null) {
     : false;
 }
 
-function needsHoldToDrag(pointerType: string) {
-  return pointerType !== "mouse";
+function blocksTouchDragTarget(target: EventTarget | null) {
+  return target instanceof HTMLElement
+    ? Boolean(target.closest("input, textarea, select, [role='menu'], [data-no-drag]"))
+    : false;
 }
 
-function clearHoldTimer(session: PointerDragSession) {
+function clearHoldTimer(session: DragSession) {
   if (session.holdTimerId !== undefined) {
     window.clearTimeout(session.holdTimerId);
     session.holdTimerId = undefined;
   }
+}
+
+function getTouchById(touches: TouchList, touchId: number | undefined) {
+  if (touchId === undefined) {
+    return null;
+  }
+
+  for (let index = 0; index < touches.length; index += 1) {
+    const touch = touches[index];
+    if (touch?.identifier === touchId) {
+      return touch;
+    }
+  }
+
+  return null;
 }
 
 function getNearestSkillId(container: HTMLElement | null, clientX: number, clientY: number, activeId: string) {
@@ -126,7 +157,8 @@ export function ReorderableSkillTimerGrid({
   const rollbackOrderRef = useRef(skillIds);
   const draggingIdRef = useRef<string | null>(null);
   const savingOrderRef = useRef<string[] | null>(null);
-  const dragSessionRef = useRef<PointerDragSession | null>(null);
+  const dragSessionRef = useRef<DragSession | null>(null);
+  const suppressNextClickRef = useRef(false);
   const cardNodes = Children.toArray(children);
 
   const cardsById = useMemo(() => {
@@ -156,6 +188,56 @@ export function ReorderableSkillTimerGrid({
       window.removeEventListener("pointermove", handleWindowPointerMove, { capture: true });
       window.removeEventListener("pointerup", handleWindowPointerUp, { capture: true });
       window.removeEventListener("pointercancel", handleWindowPointerCancel, { capture: true });
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleWindowTouchMove(event: TouchEvent) {
+      const session = dragSessionRef.current;
+      if (!session || session.input !== "touch") {
+        return;
+      }
+
+      const touch = getTouchById(event.touches, session.touchId);
+      if (!touch) {
+        return;
+      }
+
+      if (updateTouchDrag(session.touchId, touch.clientX, touch.clientY)) {
+        event.preventDefault();
+      }
+    }
+
+    function handleWindowTouchEnd(event: TouchEvent) {
+      const session = dragSessionRef.current;
+      if (!session || session.input !== "touch" || !getTouchById(event.changedTouches, session.touchId)) {
+        return;
+      }
+
+      if (session.started) {
+        event.preventDefault();
+      }
+
+      finishTouchDrag(session.touchId, true);
+    }
+
+    function handleWindowTouchCancel(event: TouchEvent) {
+      const session = dragSessionRef.current;
+      if (!session || session.input !== "touch" || !getTouchById(event.changedTouches, session.touchId)) {
+        return;
+      }
+
+      finishTouchDrag(session.touchId, false);
+    }
+
+    window.addEventListener("touchmove", handleWindowTouchMove, { capture: true, passive: false });
+    window.addEventListener("touchend", handleWindowTouchEnd, { capture: true, passive: false });
+    window.addEventListener("touchcancel", handleWindowTouchCancel, { capture: true, passive: false });
+
+    return () => {
+      window.removeEventListener("touchmove", handleWindowTouchMove, { capture: true });
+      window.removeEventListener("touchend", handleWindowTouchEnd, { capture: true });
+      window.removeEventListener("touchcancel", handleWindowTouchCancel, { capture: true });
     };
   }, []);
 
@@ -226,7 +308,7 @@ export function ReorderableSkillTimerGrid({
   }
 
   function startPointerDrag(event: ReactPointerEvent<HTMLElement>, skillId: string) {
-    if (isSaving || event.button !== 0) {
+    if (isSaving || event.button !== 0 || event.pointerType !== "mouse") {
       return;
     }
 
@@ -234,13 +316,13 @@ export function ReorderableSkillTimerGrid({
       return;
     }
 
-    const requiresHold = needsHoldToDrag(event.pointerType);
-
     setError(null);
-    const session: PointerDragSession = {
+    const session: DragSession = {
       activeId: skillId,
-      armed: !requiresHold,
+      armed: true,
+      input: "mouse",
       pointerId: event.pointerId,
+      startedAtMs: Date.now(),
       startX: event.clientX,
       startY: event.clientY,
       started: false,
@@ -248,20 +330,42 @@ export function ReorderableSkillTimerGrid({
     dragSessionRef.current = session;
     pendingOrderRef.current = orderedSkillIds;
 
-    if (requiresHold) {
-      session.holdTimerId = window.setTimeout(() => {
-        const currentSession = dragSessionRef.current;
-        if (currentSession?.pointerId === event.pointerId) {
-          beginPointerDrag(currentSession);
-        }
-      }, TOUCH_HOLD_DELAY_MS);
-      return;
-    }
-
     event.preventDefault();
   }
 
-  function beginPointerDrag(session: PointerDragSession) {
+  function startTouchDrag(event: ReactTouchEvent<HTMLElement>, skillId: string) {
+    if (isSaving || event.touches.length !== 1 || blocksTouchDragTarget(event.target)) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+
+    setError(null);
+    const session: DragSession = {
+      activeId: skillId,
+      armed: false,
+      input: "touch",
+      startedAtMs: Date.now(),
+      startX: touch.clientX,
+      startY: touch.clientY,
+      started: false,
+      touchId: touch.identifier,
+    };
+    dragSessionRef.current = session;
+    pendingOrderRef.current = orderedSkillIds;
+
+    session.holdTimerId = window.setTimeout(() => {
+      const currentSession = dragSessionRef.current;
+      if (currentSession?.input === "touch" && currentSession.touchId === touch.identifier) {
+        beginDrag(currentSession);
+      }
+    }, TOUCH_HOLD_DELAY_MS);
+  }
+
+  function beginDrag(session: DragSession) {
     clearHoldTimer(session);
     session.armed = true;
 
@@ -277,17 +381,34 @@ export function ReorderableSkillTimerGrid({
 
   function updatePointerDrag(pointerId: number, clientX: number, clientY: number) {
     const session = dragSessionRef.current;
-    if (!session || session.pointerId !== pointerId) {
+    if (!session || session.input !== "mouse" || session.pointerId !== pointerId) {
       return false;
     }
 
+    return updateDragPosition(session, clientX, clientY);
+  }
+
+  function updateTouchDrag(touchId: number | undefined, clientX: number, clientY: number) {
+    const session = dragSessionRef.current;
+    if (!session || session.input !== "touch" || session.touchId !== touchId) {
+      return false;
+    }
+
+    return updateDragPosition(session, clientX, clientY);
+  }
+
+  function updateDragPosition(session: DragSession, clientX: number, clientY: number) {
     const distance = Math.hypot(clientX - session.startX, clientY - session.startY);
     if (!session.armed) {
-      if (distance > TOUCH_SCROLL_TOLERANCE_PX) {
-        finishPointerDrag(pointerId, false);
-      }
+      if (session.input === "touch" && Date.now() - session.startedAtMs >= TOUCH_HOLD_DELAY_MS) {
+        beginDrag(session);
+      } else {
+        if (distance > TOUCH_SCROLL_TOLERANCE_PX) {
+          finishDrag(session, false);
+        }
 
-      return false;
+        return false;
+      }
     }
 
     if (!session.started && distance < DRAG_THRESHOLD_PX) {
@@ -295,7 +416,7 @@ export function ReorderableSkillTimerGrid({
     }
 
     if (!session.started) {
-      beginPointerDrag(session);
+      beginDrag(session);
     }
 
     scrollNearViewportEdge(clientY);
@@ -317,11 +438,31 @@ export function ReorderableSkillTimerGrid({
 
   function finishPointerDrag(pointerId: number, shouldCommit: boolean) {
     const session = dragSessionRef.current;
-    if (!session || session.pointerId !== pointerId) {
+    if (!session || session.input !== "mouse" || session.pointerId !== pointerId) {
       return;
     }
 
+    finishDrag(session, shouldCommit);
+  }
+
+  function finishTouchDrag(touchId: number | undefined, shouldCommit: boolean) {
+    const session = dragSessionRef.current;
+    if (!session || session.input !== "touch" || session.touchId !== touchId) {
+      return;
+    }
+
+    finishDrag(session, shouldCommit);
+  }
+
+  function finishDrag(session: DragSession, shouldCommit: boolean) {
     clearHoldTimer(session);
+
+    if (session.input === "touch" && session.started) {
+      suppressNextClickRef.current = true;
+      window.setTimeout(() => {
+        suppressNextClickRef.current = false;
+      }, 700);
+    }
 
     if (session.started && shouldCommit) {
       commitOrder(pendingOrderRef.current);
@@ -334,6 +475,16 @@ export function ReorderableSkillTimerGrid({
     draggingIdRef.current = null;
     setDraggingId(null);
     setDropTargetId(null);
+  }
+
+  function handleClickCapture(event: ReactMouseEvent<HTMLElement>) {
+    if (!suppressNextClickRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    suppressNextClickRef.current = false;
   }
 
   return (
@@ -357,7 +508,9 @@ export function ReorderableSkillTimerGrid({
               .join(" ")}
             data-reorder-skill-id={skillId}
             key={skillId}
+            onClickCapture={handleClickCapture}
             onPointerDown={(event) => startPointerDrag(event, skillId)}
+            onTouchStartCapture={(event) => startTouchDrag(event, skillId)}
           >
             {cardsById.get(skillId)}
           </div>
