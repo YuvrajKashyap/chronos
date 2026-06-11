@@ -485,10 +485,13 @@ a {
 }
 
 .dashboard-status-bar.has-view-only-note {
+  --view-only-note-lift: clamp(12px, calc(var(--ui) * 0.012), 22px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  row-gap: clamp(18px, calc(var(--ui) * 0.014), 28px);
+  position: relative;
+  min-height: 74px;
+  row-gap: 0;
 }
 
 .status-row {
@@ -528,6 +531,9 @@ a {
   justify-self: center;
   width: min(720px, 100%);
   max-width: calc(100vw - 48px);
+  position: absolute;
+  left: 50%;
+  top: calc(50% - var(--view-only-note-lift));
   z-index: 5;
   display: grid;
   gap: 4px;
@@ -540,6 +546,7 @@ a {
   text-shadow:
     0 1px 2px var(--page-bg),
     0 0 12px var(--page-bg);
+  transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
@@ -4918,6 +4925,11 @@ a {
   .dashboard-main {
     width: 100%;
     padding: 28px 20px 34px;
+  }
+
+  .dashboard-status-bar.has-view-only-note {
+    min-height: 0;
+    row-gap: 12px;
   }
 
   .status-view-only-note {
