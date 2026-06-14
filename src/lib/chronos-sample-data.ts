@@ -49,6 +49,7 @@ export const chronosSkills: ChronosSkill[] = [
     value: "02:14:36",
     buttonLabel: "Stop",
     motif: "contour",
+    lifetimeSeconds: 184 * 60 * 60 + 12 * 60,
   },
   {
     id: "fitness",

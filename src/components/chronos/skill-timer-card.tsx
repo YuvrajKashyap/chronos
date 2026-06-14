@@ -1,4 +1,5 @@
 import type { ChronosSkill } from "@/lib/chronos-sample-data";
+import { formatSecondsAsTimer } from "@/lib/chronos/format-time";
 import type { CSSProperties } from "react";
 import type { DashboardControls } from "./chronos-dashboard-page";
 import { CardMotif } from "./card-motif";
@@ -28,6 +29,7 @@ export function SkillTimerCard({
 }) {
   const Icon = skill.icon;
   const isDisabledStart = controls.mode === "admin" && hasActiveTimer && !skill.isActive;
+  const activeLifetimeValue = skill.isActive && skill.lifetimeSeconds != null ? formatSecondsAsTimer(skill.lifetimeSeconds) : null;
   const cardClassName = [
     "skill-card",
     `accent-${skill.accent}`,
@@ -114,17 +116,24 @@ export function SkillTimerCard({
         <>
           <div className="card-body">
             <h2>{skill.title}</h2>
-            {!skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
+            <p className="metric-label">{skill.label}</p>
             {skill.isActive ? (
-              <LiveTimerValue
-                className="metric-value active-value"
-                initialSeconds={skill.initialElapsedSeconds}
-                startedAt={skill.activeStartedAt}
-              />
+              <>
+                <LiveTimerValue
+                  className="metric-value active-value"
+                  initialSeconds={skill.initialElapsedSeconds}
+                  startedAt={skill.activeStartedAt}
+                />
+                {activeLifetimeValue ? (
+                  <p className="active-lifetime-total">
+                    <span>Lifetime total</span>
+                    <strong>{activeLifetimeValue}</strong>
+                  </p>
+                ) : null}
+              </>
             ) : (
               <div className="metric-value">{skill.value}</div>
             )}
-            {skill.isActive ? <p className="metric-label">{skill.label}</p> : null}
           </div>
           <div className="card-rule" aria-hidden="true" />
           {controls.mode === "login" ? (
