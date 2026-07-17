@@ -38,8 +38,9 @@ export type DashboardControls =
     };
 
 export function ChronosDashboardPage({
-  activeSessionCount = 1,
+  activeSessionCount = 0,
   controls = { mode: "readonly" },
+  dataNotice,
   downtimeSkill,
   isAuthenticated = false,
   idleSession,
@@ -49,6 +50,7 @@ export function ChronosDashboardPage({
 }: {
   activeSessionCount?: number;
   controls?: DashboardControls;
+  dataNotice?: string | null;
   downtimeSkill?: ChronosSkill | null;
   idleSession?: {
     started_at: string;
@@ -83,7 +85,7 @@ export function ChronosDashboardPage({
             <DashboardSortDropdown sortMode={sortMode} />
             {showViewOnlyNote ? (
               <span className="status-view-only-note">
-                <span>Public view of Yuvraj's current stats.</span>
+                <span>Public view of Yuvraj&apos;s current stats.</span>
                 <span>Editing is available only when Yuvraj signs in.</span>
                 <span>P.S. The majority of these stats have only been tracked since Yuvraj turned 21. So some have been estimated.</span>
               </span>
@@ -91,6 +93,11 @@ export function ChronosDashboardPage({
           </div>
         </section>
         {message ? <p className="admin-inline-message is-error">{message}</p> : null}
+        {dataNotice ? (
+          <p className="dashboard-data-notice" role="status">
+            {dataNotice}
+          </p>
+        ) : null}
         <SkillTimerGrid controls={controls} downtimeSkill={downtimeSkill} idleSession={idleSession} skills={skills} sortMode={sortMode} />
         <DashboardFooterHint />
       </main>

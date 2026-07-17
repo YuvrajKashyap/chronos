@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import { cookies } from "next/headers";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const editorial = Cormorant_Garamond({
@@ -16,12 +17,43 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: getSiteUrl(),
   applicationName: "Chronos",
   title: {
-    default: "Chronos",
+    default: "Chronos — Time Investment Ledger",
     template: "%s | Chronos",
   },
-  description: "A lifetime time-investment ledger for Yuvraj Kashyap.",
+  description:
+    "A public proof-of-work dashboard and private time-investment ledger for durable skill totals, live sessions, and personal analytics.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    title: "Chronos — Time Investment Ledger",
+    description:
+      "Track where time compounds through durable skill totals, live sessions, and a public-safe proof-of-work view.",
+    siteName: "Chronos",
+    images: [
+      {
+        url: "/portfolio-hero.png",
+        width: 1234,
+        height: 712,
+        alt: "Chronos public time-investment dashboard",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Chronos — Time Investment Ledger",
+    description: "A public proof-of-work dashboard backed by a private, authenticated time ledger.",
+    images: ["/portfolio-hero.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   manifest: "/site.webmanifest",
   icons: {
     icon: [

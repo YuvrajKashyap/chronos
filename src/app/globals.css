@@ -3725,6 +3725,25 @@ a {
   font-weight: 700;
 }
 
+.dashboard-data-notice {
+  width: min(760px, 100%);
+  margin: 18px auto 28px;
+  padding: 14px 18px;
+  border: 1px solid rgba(126, 201, 195, 0.24);
+  border-radius: 16px;
+  background: rgba(126, 201, 195, 0.08);
+  color: var(--text-secondary);
+  font-size: clamp(13px, calc(var(--ui) * 0.009), 17px);
+  font-weight: 650;
+  line-height: 1.55;
+  text-align: center;
+}
+
+:root[data-theme="light"] .dashboard-data-notice {
+  border-color: rgba(61, 126, 121, 0.2);
+  background: rgba(61, 126, 121, 0.07);
+}
+
 .pending-session-panel {
   margin: 18px 0 var(--hero-gap);
   padding: clamp(18px, calc(var(--ui) * 0.016), 30px);

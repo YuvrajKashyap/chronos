@@ -3,7 +3,6 @@ import { X } from "lucide-react";
 
 import { ChronosDashboardPage } from "@/components/chronos/chronos-dashboard-page";
 import { LoginForm } from "@/components/chronos/login-form";
-import { chronosSkills } from "@/lib/chronos-sample-data";
 import { getPublicDashboard } from "@/lib/chronos/public-dashboard";
 import {
   getPublicActiveSessionCount,
@@ -21,10 +20,13 @@ export default async function LoginPage({
   const authError = params.error ? decodeURIComponent(params.error) : null;
   const sortMode = parseDashboardSortMode(params.sort);
   const nextPath = params.next === "/insights" || params.next === "/settings" || params.next === "/admin" ? params.next : "/admin";
-  const { payload } = await getPublicDashboard();
+  const { payload, error } = await getPublicDashboard();
   const hasRealData = hasUsefulPublicDashboardData(payload);
-  const skills = hasRealData && payload ? transformPublicDashboardToSkills(payload, sortMode) : chronosSkills;
-  const activeSessionCount = hasRealData ? getPublicActiveSessionCount(payload) : 1;
+  const skills = hasRealData && payload ? transformPublicDashboardToSkills(payload, sortMode) : [];
+  const activeSessionCount = hasRealData ? getPublicActiveSessionCount(payload) : 0;
+  const dataNotice = hasRealData
+    ? null
+    : error ?? "Live public totals are temporarily unavailable. Chronos does not substitute sample data.";
 
   return (
     <div className="login-overlay-page">
@@ -32,6 +34,7 @@ export default async function LoginPage({
         <ChronosDashboardPage
           activeSessionCount={activeSessionCount}
           controls={{ mode: "readonly" }}
+          dataNotice={dataNotice}
           skills={skills}
           sortMode={sortMode}
         />
@@ -83,7 +86,7 @@ export default async function LoginPage({
             </div>
             <p className="auth-brand-motto">
               Time is not spent.
-              <span>It's invested.</span>
+              <span>It&apos;s invested.</span>
             </p>
           </aside>
           <div className="auth-form-pane">

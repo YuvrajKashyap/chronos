@@ -6,10 +6,10 @@ import { cookies } from "next/headers";
 import { getChronosSupabaseEnv } from "./env";
 
 export async function createChronosServerClient() {
-  const { url, anonKey } = getChronosSupabaseEnv();
+  const { url, publishableKey } = getChronosSupabaseEnv();
   const cookieStore = await cookies();
 
-  return createServerClient(url, anonKey, {
+  return createServerClient(url, publishableKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

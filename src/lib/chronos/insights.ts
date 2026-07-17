@@ -1,4 +1,4 @@
-import { getAdminTimerState, type AdminRecentSession, type AdminSkill, type AdminTimerState } from "@/lib/chronos/admin-dashboard";
+import { getAdminTimerState, type AdminRecentSession, type AdminSkill } from "@/lib/chronos/admin-dashboard";
 import { getPublicDashboard, type PublicDashboardPayload, type PublicDashboardSkill } from "@/lib/chronos/public-dashboard";
 import { hasChronosSupabaseEnv } from "@/lib/supabase/env";
 import { createChronosServerClient } from "@/lib/supabase/server";
@@ -396,11 +396,12 @@ function buildSkillSummaries(skills: AdminSkill[], sessions: InsightSession[]) {
   });
 }
 
-function deriveInsights({
+export function deriveChronosInsights({
   activeSessionCount,
   error,
   generatedAt,
   mode,
+  now = new Date(),
   sessions,
   skills,
 }: {
@@ -408,10 +409,10 @@ function deriveInsights({
   error: string | null;
   generatedAt?: string;
   mode: "admin" | "public" | "empty";
+  now?: Date;
   sessions: InsightSession[];
   skills: InsightSkill[];
 }): ChronosInsights {
-  const now = new Date();
   const usefulSessions = sessions.filter((session) => session.duration_seconds > 0);
   const countedSessions = usefulSessions.filter((session) => session.counts_toward_lifetime === true || session.ended_at === null);
   const skippedSessions = usefulSessions.filter((session) => session.counts_toward_lifetime === false);
@@ -949,7 +950,7 @@ export async function getChronosInsights(isAuthenticated: boolean): Promise<Chro
 
     if (state) {
       const sessions = normalizeAdminSessions(sessionRows, state.skills, state.recent_sessions ?? []);
-      const insights = deriveInsights({
+      const insights = deriveChronosInsights({
         activeSessionCount: state.active_session ? 1 : 0,
         error: sessionError,
         generatedAt: state.generated_at,
@@ -969,7 +970,7 @@ export async function getChronosInsights(isAuthenticated: boolean): Promise<Chro
 
   if (payload) {
     const skills = publicSkills(payload);
-    return deriveInsights({
+    return deriveChronosInsights({
       activeSessionCount: payload.active_session ? 1 : 0,
       error,
       generatedAt: payload.generated_at,
@@ -983,7 +984,7 @@ export async function getChronosInsights(isAuthenticated: boolean): Promise<Chro
 }
 
 function emptyInsights(error: string | null): ChronosInsights {
-  return deriveInsights({
+  return deriveChronosInsights({
     activeSessionCount: 0,
     error,
     mode: "empty",

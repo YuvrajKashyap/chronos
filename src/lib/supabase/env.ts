@@ -1,19 +1,23 @@
 export type ChronosSupabaseEnv = {
   url: string;
-  anonKey: string;
+  publishableKey: string;
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseKey = supabasePublishableKey || supabaseAnonKey;
 
 export function hasChronosSupabaseEnv() {
-  return Boolean(supabaseUrl && supabaseAnonKey);
+  return Boolean(supabaseUrl && supabaseKey);
 }
 
 export function getChronosSupabaseEnv(): ChronosSupabaseEnv {
   const missing = [
     !supabaseUrl ? "NEXT_PUBLIC_SUPABASE_URL" : null,
-    !supabaseAnonKey ? "NEXT_PUBLIC_SUPABASE_ANON_KEY" : null,
+    !supabaseKey
+      ? "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (or legacy NEXT_PUBLIC_SUPABASE_ANON_KEY)"
+      : null,
   ].filter(Boolean);
 
   if (missing.length > 0) {
@@ -22,6 +26,6 @@ export function getChronosSupabaseEnv(): ChronosSupabaseEnv {
 
   return {
     url: supabaseUrl!,
-    anonKey: supabaseAnonKey!,
+    publishableKey: supabaseKey!,
   };
 }

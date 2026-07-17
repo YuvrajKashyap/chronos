@@ -189,7 +189,7 @@ export function ReorderableSkillTimerGrid({
       window.removeEventListener("pointerup", handleWindowPointerUp, { capture: true });
       window.removeEventListener("pointercancel", handleWindowPointerCancel, { capture: true });
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- handlers intentionally read mutable drag refs
 
   useEffect(() => {
     function handleWindowTouchMove(event: TouchEvent) {
@@ -239,7 +239,7 @@ export function ReorderableSkillTimerGrid({
       window.removeEventListener("touchend", handleWindowTouchEnd, { capture: true });
       window.removeEventListener("touchcancel", handleWindowTouchCancel, { capture: true });
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- handlers intentionally read mutable drag refs
 
   useEffect(() => {
     if (draggingId) {

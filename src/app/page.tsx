@@ -1,6 +1,5 @@
 import { ChronosDashboardPage } from "@/components/chronos/chronos-dashboard-page";
 import { ChronosShell } from "@/components/chronos/chronos-shell";
-import { chronosSkills } from "@/lib/chronos-sample-data";
 import { getAdminTimerState } from "@/lib/chronos/admin-dashboard";
 import { getPublicDashboard } from "@/lib/chronos/public-dashboard";
 import {
@@ -181,10 +180,21 @@ export default async function Home({
     );
   }
 
-  const { payload } = await getPublicDashboard();
+  const { payload, error } = await getPublicDashboard();
   const hasRealData = hasUsefulPublicDashboardData(payload);
-  const skills = hasRealData && payload ? transformPublicDashboardToSkills(payload, sortMode) : chronosSkills;
-  const activeSessionCount = hasRealData ? getPublicActiveSessionCount(payload) : 1;
+  const skills = hasRealData && payload ? transformPublicDashboardToSkills(payload, sortMode) : [];
+  const activeSessionCount = hasRealData ? getPublicActiveSessionCount(payload) : 0;
+  const dataNotice = hasRealData
+    ? null
+    : error ?? "Live public totals are temporarily unavailable. Chronos does not substitute sample data.";
 
-  return <ChronosDashboardPage activeSessionCount={activeSessionCount} controls={{ mode: "login" }} skills={skills} sortMode={sortMode} />;
+  return (
+    <ChronosDashboardPage
+      activeSessionCount={activeSessionCount}
+      controls={{ mode: "login" }}
+      dataNotice={dataNotice}
+      skills={skills}
+      sortMode={sortMode}
+    />
+  );
 }

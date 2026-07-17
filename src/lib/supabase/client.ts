@@ -5,9 +5,9 @@ import { createBrowserClient } from "@supabase/ssr";
 import { getChronosSupabaseEnv } from "./env";
 
 export function createChronosBrowserClient() {
-  const { url, anonKey } = getChronosSupabaseEnv();
+  const { url, publishableKey } = getChronosSupabaseEnv();
 
-  return createBrowserClient(url, anonKey, {
+  return createBrowserClient(url, publishableKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,

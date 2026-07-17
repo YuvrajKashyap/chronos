@@ -499,6 +499,9 @@ export function SkillFormFields({
                     role="slider"
                     tabIndex={0}
                     aria-label="Color saturation and brightness"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(customHsv.s)}
                     aria-valuetext={`${Math.round(customHsv.s)} percent saturation, ${Math.round(customHsv.v)} percent brightness`}
                     onPointerDown={(event) => {
                       event.currentTarget.setPointerCapture(event.pointerId);
