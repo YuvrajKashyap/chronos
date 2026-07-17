@@ -2,7 +2,7 @@
 
 Chronos is my live time-investment ledger: a public proof-of-work dashboard backed by a private, owner-operated timer and session system. I designed, built, and operate it to answer a harder question than “where did today go?” — **what have I consistently invested in over years?**
 
-[View the live product](https://chronos-mu-pied.vercel.app) · [Read the architecture](docs/architecture.md) · [Review the methodology](docs/methodology.md)
+[View the live product](https://chronos.yuvrajkashyap.com) · [Read the architecture](docs/architecture.md) · [Review the methodology](docs/methodology.md)
 
 ![Chronos public dashboard showing real tracked categories and lifetime totals](public/portfolio-hero.png)
 

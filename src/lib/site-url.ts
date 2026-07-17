@@ -1,4 +1,4 @@
-const verifiedProductionUrl = "https://chronos-mu-pied.vercel.app";
+const verifiedProductionUrl = "https://chronos.yuvrajkashyap.com";
 
 export function getSiteUrl() {
   const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();

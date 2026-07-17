@@ -44,7 +44,7 @@ Migrations grant minimal schema usage and table privileges for authenticated use
 
 Configure the exact production host and local development callback patterns in Supabase Auth. The current public deployment is:
 
-- `https://chronos-mu-pied.vercel.app/**`
+- `https://chronos.yuvrajkashyap.com/**`
 - `http://localhost:3000/**`
 
 If a custom domain is added later, add it only after ownership and TLS are verified.
